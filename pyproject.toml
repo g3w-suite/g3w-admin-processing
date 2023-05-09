@@ -1,0 +1,59 @@
+[build-system]
+build-backend   = "setuptools.build_meta"
+requires        = [
+    "setuptools>=67",
+    "setuptools_scm[toml]>=7.1"
+]
+
+[project]
+name            = "processing"
+dynamic         = [
+    "version",              # retrieve package version from git tags
+    "dependencies",         # retrieve package dependencies from requirements.txt
+    "optional-dependencies" # retrieve development dependencies from requirements_dev.txt
+] 
+authors         = [ { name = "Gis3w snc", email = "info@gis3w.it" } ]
+description     = "G3W-ADMIN plugin for use the processing features of QGIS application-"
+readme          = "README.md"
+license         = { text = "Mozilla Public License 2.0 (MPL 2.0)" }
+classifiers     = [
+    "Development Status :: 3 - Beta",
+    "Environment :: Web Environment",
+    "Framework :: Django",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Topic :: Software Development :: Libraries",
+]
+# requires-python = ">=3.10"
+
+[project.urls]
+"Homepage"      = "https://github.com/g3w-suite/g3w-admin-processing"
+"Bug Tracker"   = "https://github.com/g3w-suite/g3w-admin-processing/issues"
+
+[tool.setuptools]
+# Manual package discovery
+packages        = ["qprocessing"]
+package-dir     = { qprocessing = "qprocessing" }
+
+# Custom package discovery
+# [tool.setuptools.packages]
+# find = { }
+
+# https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#automatic-discovery
+#
+# NB: see also: MANIFEST.in
+
+[tool.setuptools.dynamic]
+dependencies    = { file = ["requirements.txt"] }
+
+[tool.setuptools.dynamic.optional-dependencies]
+dev  = { file = ["requirements_dev.txt"] }
+
+[tool.setuptools_scm]
+fallback_version = "0.0.0-alpha.0"
+write_to         = "_version.py" # hardcode version number in a file
+#
+# Or alternatively retrieve it at runtime:
+# https://github.com/pypa/setuptools_scm/#retrieving-package-version-at-runtime
