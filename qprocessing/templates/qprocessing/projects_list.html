@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% load static %}
+{% load crispy_forms_tags %}
+{% load i18n %}
+
+{% block page_header %}
+    <h1>
+        {% trans 'QProcessing Projects' %}
+      </h1>
+{% endblock %}
+
+{% block main_content %}
+<div class="row">
+<div class="col-md-12 col-xs-12">
+    <div class="box">
+        <div class="box-header">
+            {% if perms.auth.add_simplereopoproject %}
+            <a href="{% url 'qprocessing-project-add' %}" class="btn btn-info" id="btn-add-project"><i class="ion ion-plus-circled"></i> {% trans 'Project' %}</a>
+            {% endif %}
+        </div>
+        <div class="box-body">
+            <table id="qprocessingprojects_table" class="table table-hover table-striped" data-widget-type="dataTable">
+                <thead>
+                    <tr>
+                        <th style="width:120px">{% trans 'Actions' %}</th>
+                        <th>{% trans 'Projects' %}</th>
+                        <th>{% trans 'Model' %}</th>
+                        <th>{% trans 'Note' %}</th>
+                    </tr>
+                </thead>
+                {% for object in object_list %}
+                    <tr id="qprocessing_project_{{ object.pk }}">
+                        <td>
+
+                            <span class="col-xs-4 icon">
+                                <a href="{% url 'qprocessing-project-update' object.id %}" data-toggle="tooltip" data-placement="top" title="{% trans 'Edit' %}" ><i class="ion ion-edit"></i></a>
+                            </span>
+                            <span class="col-xs-4 icon">
+                                <a href="#" data-toggle="tooltip" data-placement="top" title="{% trans 'Delete' %}"  data-widget-type="deleteItem" data-delete-url="{% url 'qprocessing-project-delete' object.pk %}" data-item-selector="#qprocessing_project_{{ object.pk }}"><i class="ion ion-trash-b"></i></a>
+                            </span>
+                        </td>
+                        <td>{{ object.projects }}</td>
+                        <td>{{ object.model }}</td>
+                        <td>{{ object.note|safe }}</td>
+                    </tr>
+                {% endfor %}
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+</div>
+{% endblock %}
