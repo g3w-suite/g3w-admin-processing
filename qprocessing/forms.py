@@ -22,6 +22,7 @@ from django_file_form.forms import FileFormMixin, UploadedFileField
 #from usersmanage.configs import G3W_EDITOR1
 from core.mixins.forms import G3WRequestFormMixin, G3WFormMixin
 from .models import QProcessingProject
+from .utils.data import QProcessingModel
 import os
 
 
@@ -56,6 +57,7 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
                                             Div(
                                                 Field('projects', css_class='select2'),
                                                 'model',
+                                                'model-uploads',
                                                 'form_id',
                                                 'upload_url',
                                                 Field('note', css_class='wys5'),
@@ -78,6 +80,13 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
         file_extension = os.path.splitext(self.cleaned_data['model'].name)[1]
         if file_extension.lower() not in ('.model3', ):
             raise ValidationError(_("File must have '.model3' extension"))
+
+        # Validate the model
+        validations = QProcessingModel(self.cleaned_data['model'].file.path).validate()
+
+        for is_valid, errors in validations:
+            if not is_valid:
+                raise ValidationError(_(f'[Model Validation Errors] - {"; ".join(errors)}'))
 
         return self.cleaned_data['model']
 
