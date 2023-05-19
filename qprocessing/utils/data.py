@@ -98,6 +98,13 @@ class QProcessingModel(object):
             'outputs': self.outputs
         }
 
+    def validate(self):
+        """
+        Proxy interface to QgsProcessingModelAlgorithm.validate method.
+        """
+
+        return self.model.validate()
+
 
 
 

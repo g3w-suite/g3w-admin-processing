@@ -76,18 +76,29 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
         Validate .model3 uploaded
         """
 
+        model = self.cleaned_data['model']
+
         # Validate file extension
-        file_extension = os.path.splitext(self.cleaned_data['model'].name)[1]
+        file_extension = os.path.splitext(model.name)[1]
         if file_extension.lower() not in ('.model3', ):
             raise ValidationError(_("File must have '.model3' extension"))
 
+        if hasattr(self.cleaned_data['model'], 'path'):
+            model_file = model.path
+
+        # Case UploadedFileWithId
+        elif hasattr(model, 'file'):
+            if hasattr(model.file, 'path'):
+                model_file = model.file.path
+            else:
+                model_file = model.file.name
+
         # Validate the model
-        validations = QProcessingModel(self.cleaned_data['model'].file.path).validate()
+        is_valid, errors = QProcessingModel(model_file).validate()
 
-        for is_valid, errors in validations:
-            if not is_valid:
-                raise ValidationError(_(f'[Model Validation Errors] - {"; ".join(errors)}'))
+        if not is_valid:
+            raise ValidationError(_(f'[Model Validation Errors] - {"; ".join(errors)}'))
 
-        return self.cleaned_data['model']
+        return model
 
 
