@@ -39,7 +39,7 @@
                                 <a href="#" data-toggle="tooltip" data-placement="top" title="{% trans 'Delete' %}"  data-widget-type="deleteItem" data-delete-url="{% url 'qprocessing-project-delete' object.pk %}" data-item-selector="#qprocessing_project_{{ object.pk }}"><i class="ion ion-trash-b"></i></a>
                             </span>
                         </td>
-                        <td>{{ object.projects }}</td>
+                        <td>{{ object.projects.all|join:' | ' }}</td>
                         <td>{{ object.model }}</td>
                         <td>{{ object.note|safe }}</td>
                     </tr>
