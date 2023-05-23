@@ -15,3 +15,4 @@ import os
 
 CURRENT_PATH = os.path.dirname(__file__)
 TEST_BASE_PATH = 'data/'
+MODEL_FILE = 'test.model3'
