@@ -22,9 +22,11 @@ from core.utils.qgisapi import get_qgs_project
 from .models import QProcessingProject
 from .forms import QProcessingProjectForm
 from .utils.data import QProcessingModel
+from .tasks import run_model_task
 
 from qgis.core import QgsProcessingFeedback, QgsProcessingContext
 
+import json
 
 
 class QProcessingProjectsListView(ListView):
@@ -84,21 +86,41 @@ class ConsoleFeedBack(QgsProcessingFeedback):
     def reportError(self, error, fatalError=False):
         self._error = error
 
-
+from qgis.core import QgsProject, QgsProcessingContext, QgsProcessingFeedback
+import os
+CURRENT_PATH = os.path.dirname(__file__)
 class QProcessingRunTest(View):
 
     def get(self, request):
 
-        qpp = QProcessingProject.objects.all()[1]
-        qpm = QProcessingModel(str(qpp.model.file))
+        qpm = QProcessingModel(os.path.join(CURRENT_PATH, 'tests/data/test_buffer_layer1.model3'))
+        prj = QgsProject()
+        loaded = prj.read(os.path.join(CURRENT_PATH, 'tests/data/test_qgis_328.qgs'))
+
+        assert loaded
+        assert prj.mapLayer('buildings_7783caca_93e9_4c17_9770_1fd8e82f7109').isValid()
+
+        # ingresso1 = './buildings.geojson'
+        ingresso1 = os.path.join(CURRENT_PATH, 'tests/data/buildings.geojson')
+        result_path = os.path.join(CURRENT_PATH, 'tests/data/processing_result', 'out.shp')
 
         params = {'buffer_distance': 1000,
-                  'ingresso1': 'dbname=\'geo_demo\' host=localhost port=5432 user=\'postgres\' password=\'postgres\' sslmode=disable key=\'id\' estimatedmetadata=true srid=3857 type=MultiPolygon checkPrimaryKeyUnicity=\'0\' table="g3w_suite"."edifici" (geom)',
-                  'layer_bufferd': '/tmp/out.shp'}
+                  'ingresso1': ingresso1,
+                  'layer_bufferd': result_path}
+
+        print(params)
 
         ctx = QgsProcessingContext()
-        ctx.setProject(qpp.projects.all()[0].qgis_project)
-        ctf = ConsoleFeedBack()
+        ctf = QgsProcessingFeedback()
 
-        #return HttpResponse('Test runned')
+        print(prj)
+        ctx.setProject(prj)
+
+        res = qpm.model.processAlgorithm(params, ctx, ctf)
+
+        print(res)
+        print(ctf.textLog())
+
+        return HttpResponse(f'processing result: {json.dumps(res)}')
+
 

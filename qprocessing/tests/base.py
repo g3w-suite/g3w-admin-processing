@@ -16,3 +16,5 @@ import os
 CURRENT_PATH = os.path.dirname(__file__)
 TEST_BASE_PATH = 'data/'
 MODEL_FILE = 'test.model3'
+MODEL_FILE_1 = 'test_buffer_layer1.model3'
+QGS_PROJECT_FILE = 'test_qgis_328.qgs'

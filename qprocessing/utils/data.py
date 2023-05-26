@@ -105,6 +105,12 @@ class QProcessingModel(object):
 
         return self.model.validate()
 
+    def process_algorithm(self, params, context, feedback):
+        """
+        Proxy interface to QgsProcessingModelAlgorithm.processAlgorithm method.
+        """
+        return self.model.processAlgorithm(params, context, feedback)
+
 
 
 
