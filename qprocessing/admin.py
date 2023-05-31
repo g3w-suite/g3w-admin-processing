@@ -1,3 +1,9 @@
 from django.contrib import admin
+from .models import QProcessingProject
 
-# Register your models here.
+@admin.register(QProcessingProject)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = (
+        'pk',
+        'model',
+    )
