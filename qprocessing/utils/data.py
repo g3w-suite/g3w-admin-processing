@@ -10,7 +10,7 @@ __date__ = '2023-05-09'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
-from qgis.core import QgsProcessingModelAlgorithm
+from qgis.core import QgsProcessingModelAlgorithm, QgsWkbTypes
 
 class QProcessingModel(object):
     """
@@ -59,12 +59,23 @@ class QProcessingModel(object):
         self.inputs = []
         for op in self.model.orderedParameters():
             dop = self.model.parameterDefinition(op.parameterName())
-            self.inputs.append(
-                {
+            dt = {
                     'name': op.parameterName(),
-                    'type': dop.type()
+                    'description': dop.description(),
+                    'help': dop.help(),
+                    'type': dop.type(),
+                    'default_value': dop.defaultValue()
                 }
-            )
+
+            # For QgsProcessingParameterLimitedDataTypes:
+            try:
+                dt.update({
+                    'data_types': dop.dataTypes()
+                })
+            except:
+                pass
+
+            self.inputs.append(dt)
 
     def _get_outputs(self):
         """

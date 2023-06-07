@@ -7,6 +7,9 @@ class QprocessingConfig(AppConfig):
 
     def ready(self):
 
+        # Import signals receivers
+        from . import receivers
+
         # Initialize processing
         from qdjango.apps import QGS_APPLICATION
         import os
@@ -24,4 +27,5 @@ class QprocessingConfig(AppConfig):
             QgsNativeAlgorithms(QGS_APPLICATION.processingRegistry()))
         QGS_APPLICATION.processingRegistry().addProvider(
             GdalAlgorithmProvider())
+
 
