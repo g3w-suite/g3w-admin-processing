@@ -64,6 +64,7 @@ class QProcessingModel(object):
             dop = self.model.parameterDefinition(op.parameterName())
             vmap = dop.toVariantMap()
             qtype = vmap['parameter_type']
+            flags = self._read_flags(vmap['flags'])
 
             dt = {
                     'name': vmap['name'],
@@ -71,13 +72,17 @@ class QProcessingModel(object):
                     'type': MAPPING_PROCESSING_PARAMS_FORM_TYPE[qtype],
                     'qprocessing_type': qtype,
                     'default': dop.defaultValue(),
+                    'editable': True, # Editable by default: only for g3w-client complaint
+                    'validate': {
+                        "required": dop.FlagOptional not in flags
+                    },
                     'input': {
                         'type': 'text',
                         'options': {}
                     }
                 }
 
-            # Update `input` sectio by qtype
+            # Update `input` section by qtype
             if qtype in MAPPING_QPROCESSINGTYPE_FORMTYPE:
                 dt.update(MAPPING_QPROCESSINGTYPE_FORMTYPE[qtype](**vmap).input_form)
 
@@ -109,6 +114,20 @@ class QProcessingModel(object):
 
                 }
             )
+
+    ##
+    def _read_flags(self, flags:int ):
+
+        def fit_bits(n:int):
+            """
+            fn_bits: Calculate binary (base2) numbers from integer (base10)
+            """
+            while n:
+                b = n & (~n + 1)
+                yield b
+                n ^= b
+
+        return [flag for flag in fit_bits(flags)]
 
     def render2dict(self):
         """
