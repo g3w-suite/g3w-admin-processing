@@ -10,7 +10,10 @@ __date__ = '2023-05-09'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
-from qgis.core import QgsProcessingModelAlgorithm, QgsWkbTypes
+from qgis.core import QgsProcessingModelAlgorithm
+from .formtypes import \
+    MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
+    MAPPING_QPROCESSINGTYPE_FORMTYPE
 
 class QProcessingModel(object):
     """
@@ -59,13 +62,25 @@ class QProcessingModel(object):
         self.inputs = []
         for op in self.model.orderedParameters():
             dop = self.model.parameterDefinition(op.parameterName())
+            vmap = dop.toVariantMap()
+            qtype = vmap['parameter_type']
+
             dt = {
-                    'name': op.parameterName(),
-                    'description': dop.description(),
-                    'help': dop.help(),
-                    'type': dop.type(),
-                    'default_value': dop.defaultValue()
+                    'name': vmap['name'],
+                    'label': vmap['description'],
+                    'type': MAPPING_PROCESSING_PARAMS_FORM_TYPE[qtype],
+                    'qprocessing_type': qtype,
+                    'default': dop.defaultValue(),
+                    'input': {
+                        'type': 'text',
+                        'options': {}
+                    }
                 }
+
+            # Update `input` sectio by qtype
+            if qtype in MAPPING_QPROCESSINGTYPE_FORMTYPE:
+                dt.update(MAPPING_QPROCESSINGTYPE_FORMTYPE[qtype](**vmap).input_form)
+
 
             # For QgsProcessingParameterLimitedDataTypes:
             try:
@@ -95,7 +110,7 @@ class QProcessingModel(object):
                 }
             )
 
-    def render2json(self):
+    def render2dict(self):
         """
         Render properties to json
 
@@ -108,6 +123,8 @@ class QProcessingModel(object):
             'inputs': self.inputs,
             'outputs': self.outputs
         }
+
+
 
     def validate(self):
         """
