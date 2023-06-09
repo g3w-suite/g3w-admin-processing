@@ -17,9 +17,7 @@ from  .views import \
     QProcessingProjectsListView, \
     QProcessingProjectAddView, \
     QProcessingProjectUpdateView, \
-    QProcessingProjectDeleteView, \
-    QProcessingRunTest, \
-    QProcessingRunInfoTask
+    QProcessingProjectDeleteView
 
 G3W_SITETREE_I18N_ALIAS.append('qprocessing')
 
@@ -32,7 +30,4 @@ urlpatterns = [
          name='qprocessing-project-update'),
     path('projects/delete/<int:pk>/', login_required(QProcessingProjectDeleteView.as_view()),
          name='qprocessing-project-delete'),
-
-    path('projects/test/run/', QProcessingRunTest.as_view()),
-    path('projects/test/run/infotask/<str:task_id>/', QProcessingRunInfoTask.as_view())
 ]
