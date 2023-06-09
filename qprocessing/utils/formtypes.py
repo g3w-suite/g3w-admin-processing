@@ -121,6 +121,13 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
     """
 
     field_type = FORM_FIELD_TYPE_PRJVECTORLAYER
+    TYPES = {
+        5: 'nogeometry',
+        0: 'point',
+        1: 'line',
+        2: 'polygon',
+        -1: 'anygeometry'
+    }
 
     @property
     def input_form(self):
@@ -128,7 +135,7 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
             'input': {
                 'type': self.field_type,
                 'options': {
-                    'datatypes': [QgsWkbTypes.displayString(t) for t in self.data_types]
+                    'datatypes': [self.TYPES[t] for t in self.data_types]
                 }
             }
         }
