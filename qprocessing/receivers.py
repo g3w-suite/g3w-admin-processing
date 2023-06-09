@@ -36,10 +36,17 @@ def set_initconfig_value(sender, **kwargs):
     models = []
     for qpp in qpprojects:
         qpm = QProcessingModel(str(qpp.model.file))
-        models.append(qpm.render2dict())
+        dictmodel = qpm.render2dict()
+
+        # Adding QProcessingProject.pk
+        dictmodel.update({
+            'id': qpp.pk
+        })
+        models.append(dictmodel)
 
     toret['qprocessing'].update({
         'models': models
     })
+
 
     return toret
