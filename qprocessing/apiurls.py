@@ -15,9 +15,10 @@ from django.contrib.auth.decorators import login_required
 from .api.views import \
     QProcessingRunModelView, \
     QProcessingRunInfoTask
+from .configs import _BASE_RUN_MODEL_URL, _BASE_TASK_INFO_URL
 
 urlpatterns = [
-    path('api/run/<int:qgprocessingproject_pk>/<int:project_pk>', QProcessingRunModelView.as_view(),
+    path(f'{_BASE_RUN_MODEL_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>', QProcessingRunModelView.as_view(),
          name='qprocessing-run-model'),
-    path('api/infotask/<str:task_id>', QProcessingRunInfoTask.as_view(), name='qprocessing-infotask')
+    path(f'{_BASE_TASK_INFO_URL[1:]}/<str:task_id>', QProcessingRunInfoTask.as_view(), name='qprocessing-infotask')
 ]
