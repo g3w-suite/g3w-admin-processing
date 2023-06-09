@@ -11,9 +11,11 @@ __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
 from qgis.core import QgsProcessingModelAlgorithm
+from qdjango.models import Project as QdjangoProject
 from .formtypes import \
     MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
-    MAPPING_QPROCESSINGTYPE_FORMTYPE
+    MAPPING_QPROCESSINGTYPE_FORMTYPE, \
+    QgsProcessingParameterVectorLayer
 
 class QProcessingModel(object):
     """
@@ -59,7 +61,7 @@ class QProcessingModel(object):
         """
 
         # Get inputs of first algorithm
-        self.inputs = []
+        self.inputs = {}
         for op in self.model.orderedParameters():
             dop = self.model.parameterDefinition(op.parameterName())
             vmap = dop.toVariantMap()
@@ -95,7 +97,9 @@ class QProcessingModel(object):
             except:
                 pass
 
-            self.inputs.append(dt)
+            self.inputs.update({
+                vmap['name']: dt
+            })
 
     def _get_outputs(self):
         """
@@ -104,16 +108,15 @@ class QProcessingModel(object):
 
         :return: None
         """
-        self.outputs = []
+        self.outputs = {}
         for od in self.model.outputDefinitions():
-            self.outputs.append(
-                {
+            self.outputs.update({
+                od.name(): {
                     'name': od.name(),
                     'description': od.description(),
                     'type': od.type()
-
                 }
-            )
+            })
 
     ##
     def _read_flags(self, flags:int ):
@@ -139,9 +142,28 @@ class QProcessingModel(object):
         return {
             'name': self.name,
             'display_name': self.display_name,
-            'inputs': self.inputs,
-            'outputs': self.outputs
+            'inputs': list(self.inputs.values()),
+            'outputs': list(self.outputs)
         }
+
+    def make_model_params(self, form_data:dict, qproject:QdjangoProject):
+        """
+        Build and return a dict params for algorithm processing
+        :param form_data: dict data from g3w-client processing model form (usually request.data in a View).
+        :param qproject: An instace of qdjango.Project model instance.
+
+        Change the values of form_data input by model inputs type
+        """
+
+        qgs_project = qproject.qgis_project
+
+        for k, v in form_data.items():
+
+            # Case QgsProcessingParameterVectorLayer
+            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterVectorLayer('').type():
+                form_data[k] = qgs_project.mapLayer(form_data[k]).source()
+
+        return form_data
 
 
 

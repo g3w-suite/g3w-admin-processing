@@ -28,4 +28,11 @@ class QprocessingConfig(AppConfig):
         QGS_APPLICATION.processingRegistry().addProvider(
             GdalAlgorithmProvider())
 
+        from django.conf import settings
+        from qprocessing import configs
+
+        for a in dir(configs):
+            if not a.startswith('__') and not hasattr(settings, a):
+                setattr(settings, a, getattr(configs, a))
+
 

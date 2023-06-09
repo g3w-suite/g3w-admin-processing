@@ -14,6 +14,7 @@ __license__ = 'MPL 2.0'
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from qdjango.models import Project
+from .utils.data import QProcessingModel
 class QProcessingProject(models.Model):
     """
     Model to stor relation between QGIS processing model (.model3) and Qdjango Projects objects
@@ -22,3 +23,23 @@ class QProcessingProject(models.Model):
     model = models.FileField(_('QGIS processing model file (.model3)'), upload_to='qprocessing')
     projects = models.ManyToManyField(Project, help_text=_('Select one of more projects to link to this QGIS processing model'))
     note = models.TextField(_('Note'), null=True, blank=True)
+
+    def get_qprocessingmodel(self):
+        """
+        Return an instance of QProcessingModel utility object by self instance
+        """
+
+        if not self.model:
+            return None
+
+        return QProcessingModel(str(self.model.file))
+
+    def get_qdjango_project(self, project_pk:int):
+        """
+        Give a Qdjango project pk return qdjango.Project model instance
+        """
+
+        return self.projects.get(pk=project_pk)
+
+
+

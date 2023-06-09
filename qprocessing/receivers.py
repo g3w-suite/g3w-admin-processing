@@ -14,7 +14,7 @@ from django.dispatch import receiver
 from core.signals import initconfig_plugin_start
 from .models import QProcessingProject
 from .utils.data import QProcessingModel
-from .configs import _BASE_RUN_MODEL_URL, _BASE_TASK_INFO_URL
+from .configs import __BASE_RUN_MODEL_URL, __BASE_TASK_INFO_URL
 
 @receiver(initconfig_plugin_start)
 def set_initconfig_value(sender, **kwargs):
@@ -32,8 +32,8 @@ def set_initconfig_value(sender, **kwargs):
         'qprocessing': {
             'gid': f"{kwargs['projectType']}:{kwargs['project']}",
             'urls': {
-                'run': f'/qprocessing{_BASE_RUN_MODEL_URL}',
-                'taskinfo': f'/qprocessing{_BASE_TASK_INFO_URL}',
+                'run': f'/qprocessing{__BASE_RUN_MODEL_URL}',
+                'taskinfo': f'/qprocessing{__BASE_TASK_INFO_URL}',
             }
         }
     }

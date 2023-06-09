@@ -22,6 +22,7 @@ from core.api.views import G3WAPIView
 from core.api.authentication import CsrfExemptSessionAuthentication
 from qprocessing.utils.data import QProcessingModel
 from qprocessing.tasks import run_model_task, run_model, run_model_celery_task
+from qprocessing.models import QProcessingProject
 
 class QProcessingRunModelView(G3WAPIView):
 
@@ -35,13 +36,16 @@ class QProcessingRunModelView(G3WAPIView):
         :param project_pk: int, qdjango.Project model instance pk
         """
 
-        params = {}
+        qpp = QProcessingProject.objects.get(pk=kwargs['qprocessingproject_pk'])
+        qpm = QProcessingModel(str(qpp.model.file))
+        
+        params = qpm.make_model_params(form_data=request.data, qproject=qpp.get_qdjango_project(kwargs['project_pk']))
 
         # params = {'buffer_distance': 1000,
         #           'ingresso1': p.layer_set.get(qgs_layer_id='buildings_668620c2_602a_4ada_9b4f_546eb690db1c').datasource,
         #           'layer_bufferd': result_path}
 
-        task = run_model_task(kwargs['qprocessingproject_pk'], kwargs['project_pk'], params)
+        #task = run_model_task(qpp.pk, kwargs['project_pk'], params)
 
         self.results.results.update({
             'data': {

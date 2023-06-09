@@ -10,6 +10,15 @@ __date__ = '2023-06-07'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
+# Module internal settings
+# -------------------------------
+__BASE_RUN_MODEL_URL = '/api/run/'
+__BASE_TASK_INFO_URL = '/api/infotask/'
 
-_BASE_RUN_MODEL_URL = '/api/run/'
-_BASE_TASK_INFO_URL = '/api/infotask/'
+# Customizable settings
+# -------------------------------
+
+# Qprocessing apth directory for model output files
+QPROCESSING_OUTPUT_PATH = '/tmp/'
+QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'json'
+
