@@ -10,7 +10,8 @@ __date__ = '2023-06-07'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
-
+# Processing input types
+# ---------------------------------------
 from qgis.core import \
     QgsProcessingParameterDistance, \
     QgsProcessingParameterVectorLayer, \
@@ -35,7 +36,13 @@ from qgis.core import \
     QgsProcessingParameterDateTime, \
     QgsProcessingParameterCoordinateOperation, \
     QgsProcessingParameterRasterLayer, \
+    QgsProcessingOutputVectorLayer, \
     QgsWkbTypes
+
+# Processing ouput types
+# ---------------------------------------
+from qgis.core import \
+    QgsProcessingOutputVectorLayer
 
 from core.utils import structure
 

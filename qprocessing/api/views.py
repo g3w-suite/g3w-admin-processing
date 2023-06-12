@@ -45,7 +45,7 @@ class QProcessingRunModelView(G3WAPIView):
         #           'ingresso1': p.layer_set.get(qgs_layer_id='buildings_668620c2_602a_4ada_9b4f_546eb690db1c').datasource,
         #           'layer_bufferd': result_path}
 
-        #task = run_model_task(qpp.pk, kwargs['project_pk'], params)
+        task = run_model_task(qpp.pk, kwargs['project_pk'], params)
 
         self.results.results.update({
             'data': {

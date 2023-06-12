@@ -10,12 +10,14 @@ __date__ = '2023-05-09'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
+from django.conf import settings
 from qgis.core import QgsProcessingModelAlgorithm
 from qdjango.models import Project as QdjangoProject
 from .formtypes import \
     MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
     MAPPING_QPROCESSINGTYPE_FORMTYPE, \
-    QgsProcessingParameterVectorLayer
+    QgsProcessingParameterVectorLayer, \
+    QgsProcessingOutputVectorLayer
 
 class QProcessingModel(object):
     """
@@ -152,16 +154,27 @@ class QProcessingModel(object):
         :param form_data: dict data from g3w-client processing model form (usually request.data in a View).
         :param qproject: An instace of qdjango.Project model instance.
 
-        Change the values of form_data input by model inputs type
+        Change the values of form_data input by model inputs/outputs type
         """
 
         qgs_project = qproject.qgis_project
 
+
         for k, v in form_data.items():
 
+            # Input cases
+            # --------------------------------------
             # Case QgsProcessingParameterVectorLayer
             if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterVectorLayer('').type():
                 form_data[k] = qgs_project.mapLayer(form_data[k]).source()
+
+        # Outputs cases
+        for k, o in self.outputs.items():
+            if o['type'] == QgsProcessingOutputVectorLayer('').type():
+
+                # Make output vector file path
+                form_data[o['name']] = f"{settings.QPROCESSING_OUTPUT_PATH}{o['name']}." \
+                                       f"{settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT}"
 
         return form_data
 

@@ -17,11 +17,8 @@ from .api.views import \
     QProcessingRunInfoTask
 from .configs import __BASE_RUN_MODEL_URL, __BASE_TASK_INFO_URL
 
-
-#f'{__BASE_RUN_MODEL_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/'
-
 urlpatterns = [
-    path('api/run/<int:qprocessingproject_pk>/<int:project_pk>/', QProcessingRunModelView.as_view(),
+    path(f'{__BASE_RUN_MODEL_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/', QProcessingRunModelView.as_view(),
          name='qprocessing-run-model'),
-    path(f'{__BASE_TASK_INFO_URL[1:]}/<str:task_id>/', QProcessingRunInfoTask.as_view(), name='qprocessing-infotask')
+    path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/', QProcessingRunInfoTask.as_view(), name='qprocessing-infotask')
 ]

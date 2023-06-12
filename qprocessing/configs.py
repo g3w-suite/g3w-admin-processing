@@ -20,5 +20,5 @@ __BASE_TASK_INFO_URL = '/api/infotask/'
 
 # Qprocessing apth directory for model output files
 QPROCESSING_OUTPUT_PATH = '/tmp/'
-QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'json'
+QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'geojson'
 
