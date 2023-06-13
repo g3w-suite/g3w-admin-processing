@@ -27,6 +27,10 @@ from qprocessing.models import QProcessingProject
 
 from cryptography.fernet import Fernet
 
+import zipfile
+import os
+import io
+
 class QProcessingRunModelView(G3WAPIView):
 
     authentication_classes = (
@@ -42,7 +46,8 @@ class QProcessingRunModelView(G3WAPIView):
         qpp = QProcessingProject.objects.get(pk=kwargs['qprocessingproject_pk'])
         qpm = QProcessingModel(str(qpp.model.file))
         
-        params = qpm.make_model_params(form_data=request.data, qproject=qpp.get_qdjango_project(kwargs['project_pk']))
+        params = qpm.make_model_params(form_data=request.data, qproject=qpp.get_qdjango_project(kwargs['project_pk']),
+                                       **{'request': request})
         task = run_model_task(qpp.pk, kwargs['project_pk'], params)
 
 
@@ -109,6 +114,49 @@ class QProcessingRunInfoTaskView(G3WAPIView):
 
 class QProcessingDownLoadOutputView(G3WAPIView):
 
+    # Extensions for create zip file
+    shp_extentions = ('.shp', '.shx', '.dbf', '.prj')
+
+    def _create_zip_file(self, down_path, filename):
+        """
+        Make a zip file with shape files and send by django reponse.
+        """
+
+        # Case shp file
+        # Create a zip file
+        # ---------------------------------------------------
+
+        path = os.path.dirname(down_path)
+        filename_noext = filename.split('.')[0]
+        filenames = ["{}{}".format(filename_noext, ftype)
+                     for ftype in self.shp_extentions]
+
+        zip_filename = "{}.zip".format(filename_noext)
+
+        # Open BytesIO to grab in-memory ZIP contents
+        s = io.BytesIO()
+
+        # The zip compressor
+        zf = zipfile.ZipFile(s, "w")
+
+        for fpath in filenames:
+
+            # Add file, at correct path
+            ftoadd = os.path.join(path, fpath)
+            if os.path.exists(ftoadd):
+                zf.write(ftoadd, fpath)
+
+        # Must close zip for all contents to be written
+        zf.close()
+
+        # Grab ZIP file from in-memory, make response with correct MIME-type
+        response = HttpResponse(
+            s.getvalue(), content_type="application/x-zip-compressed")
+        response['Content-Disposition'] = 'attachment; filename=%s' % zip_filename
+        response.set_cookie('fileDownload', 'true')
+
+        return response
+
     def get(self, request, encpath):
         """
         Get encrypted path, download and return file if exists
@@ -121,8 +169,10 @@ class QProcessingDownLoadOutputView(G3WAPIView):
         ext = filename.split('.')[-1].lower()
 
         # Get content type by extension
-        if ext == 'zip':
-            content_type = 'application/zip'
+        if ext == 'shp':
+
+            # Custom response for shp
+            return self._create_zip_file(down_path, filename)
         elif ext == 'geojson':
             content_type = 'application/json'
         elif ext == 'gpkg':
@@ -131,6 +181,7 @@ class QProcessingDownLoadOutputView(G3WAPIView):
             content_type = 'application / vnd.sqlite3'
         else:
             content_type = 'application/octet-stream'
+
 
         response = HttpResponse(open(down_path, 'rb'), content_type=f'{content_type}')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'

@@ -182,7 +182,7 @@ class QProcessingModel(object):
 
         # Outputs cases
         for k, o in self.outputs.items():
-            if o['type'] == QgsProcessingOutputVectorLayer('').type():
+            if o['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
 
                 # Make directory by user Id
                 if 'request' in kwargs:
@@ -208,7 +208,7 @@ class QProcessingModel(object):
 
         out = {}
         for k, o in self.outputs.items():
-            if k in pres and o['type'] == QgsProcessingOutputVectorLayer('').type():
+            if k in pres and o['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
                 f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
                 out[k] = reverse('qprocessing-download-output', args=(f.encrypt(pres[k].encode()).decode(),))
 
