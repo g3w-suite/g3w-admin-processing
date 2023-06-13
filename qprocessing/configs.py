@@ -24,6 +24,15 @@ __BASE_OUTPUT_URL = '/api/download/'
 QPROCESSING_OUTPUT_PATH = '/tmp/'
 QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'geojson'
 
+# For Processing form type: input/output
+QPROCESSING_OUTPUT_VECTOR_FORMATS = {
+    'shp': 'Shapefile',
+    'geojson': 'GeoJSON',
+    'kmz': 'KML',
+    #'gpkg': 'GeoPackage', # g3w-client cannot read this format
+    #'sqlite': 'SpatiaLite' # g3w-client cannot read this format
+}
+
 # For download of ouputs
 QPROCESSING_CRYPTO_KEY = b'aAf72grwGaZYH9R7ZaGHgSSbtQVXPplXB4wpiMsKtJM='
 

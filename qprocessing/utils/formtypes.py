@@ -10,6 +10,9 @@ __date__ = '2023-06-07'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
+
+from django.conf import settings
+
 # Processing input types
 # ---------------------------------------
 from qgis.core import \
@@ -196,12 +199,7 @@ class QProcessingFormTypeOutputVector(QProcessingFormType):
             'input': {
                 'type': self.field_type,
                 'options': {
-                    'values': [
-                        'shp',
-                        'geojson',
-                        'gpkg',
-                        'sqlite'
-                    ]
+                    'values': settings.QPROCESSING_OUTPUT_VECTOR_FORMATS
                 }
             }
         }
