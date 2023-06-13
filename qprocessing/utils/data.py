@@ -95,14 +95,6 @@ class QProcessingModel(object):
                 dt.update(MAPPING_QPROCESSINGTYPE_FORMTYPE[qtype](**vmap).input_form)
 
 
-            # For QgsProcessingParameterLimitedDataTypes:
-            try:
-                dt.update({
-                    'data_types': dop.dataTypes()
-                })
-            except:
-                pass
-
             self.inputs.update({
                 vmap['name']: dt
             })
@@ -116,12 +108,28 @@ class QProcessingModel(object):
         """
         self.outputs = {}
         for od in self.model.outputDefinitions():
-            self.outputs.update({
-                od.name(): {
-                    'name': od.name(),
-                    'description': od.description(),
-                    'type': od.type()
+            qtype = od.type()
+            ot = {
+                'name': od.name(),
+                'description': od.description(),
+                'qprocessing_type': qtype,
+                'type': MAPPING_PROCESSING_PARAMS_FORM_TYPE[qtype],
+                'default': None,
+                'validate': {
+                    "required": True
+                },
+                'input': {
+                    'type': 'text',
+                    'options': {}
                 }
+            }
+
+            # Update `output` section by qtype
+            if qtype in MAPPING_QPROCESSINGTYPE_FORMTYPE:
+                ot.update(MAPPING_QPROCESSINGTYPE_FORMTYPE[qtype](**{}).input_form)
+
+            self.outputs.update({
+                od.name(): ot
             })
 
     ##
@@ -149,7 +157,7 @@ class QProcessingModel(object):
             'name': self.name,
             'display_name': self.display_name,
             'inputs': list(self.inputs.values()),
-            'outputs': list(self.outputs)
+            'outputs': list(self.outputs.values())
         }
 
     def make_model_params(self, form_data:dict, qproject:QdjangoProject, **kwargs):
