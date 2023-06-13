@@ -43,7 +43,6 @@ from qgis.core import \
 # ---------------------------------------
 from qgis.core import \
     QgsProcessingOutputVectorLayer
-
 from core.utils import structure
 
 # Mapping qprocessing parameters type

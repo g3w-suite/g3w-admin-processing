@@ -14,11 +14,18 @@ from django.urls import path
 from django.contrib.auth.decorators import login_required
 from .api.views import \
     QProcessingRunModelView, \
-    QProcessingRunInfoTask
-from .configs import __BASE_RUN_MODEL_URL, __BASE_TASK_INFO_URL
+    QProcessingRunInfoTaskView, \
+    QProcessingDownLoadOutputView
+from .configs import \
+    __BASE_RUN_MODEL_URL, \
+    __BASE_TASK_INFO_URL, \
+    __BASE_OUTPUT_URL
 
 urlpatterns = [
     path(f'{__BASE_RUN_MODEL_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/', QProcessingRunModelView.as_view(),
          name='qprocessing-run-model'),
-    path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/', QProcessingRunInfoTask.as_view(), name='qprocessing-infotask')
+    path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/', QProcessingRunInfoTaskView.as_view(), name='qprocessing-infotask'),
+
+    # Outputs
+    path(f'{__BASE_OUTPUT_URL[1:]}<str:encpath>/', QProcessingDownLoadOutputView.as_view(), name='qprocessing-download-output')
 ]

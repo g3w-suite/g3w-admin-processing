@@ -14,11 +14,17 @@ __license__ = 'MPL 2.0'
 # -------------------------------
 __BASE_RUN_MODEL_URL = '/api/run/'
 __BASE_TASK_INFO_URL = '/api/infotask/'
+__BASE_OUTPUT_URL = '/api/download/'
+
 
 # Customizable settings
 # -------------------------------
 
-# Qprocessing apth directory for model output files
+# Qprocessing path directory for model output files
 QPROCESSING_OUTPUT_PATH = '/tmp/'
 QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'geojson'
+
+# For download of ouputs
+QPROCESSING_CRYPTO_KEY = b'aAf72grwGaZYH9R7ZaGHgSSbtQVXPplXB4wpiMsKtJM='
+
 

@@ -55,6 +55,9 @@ def run_model(qprocessing_project_pk, project_pk, params):
 
     res = qpm.process_algorithm(params, ctx, ctf)
 
+    # Replace outputs
+    res = qpm.make_outputs(res)
+
     return res
 
 def close_db(fn):

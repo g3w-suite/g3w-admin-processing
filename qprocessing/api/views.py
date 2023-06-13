@@ -11,6 +11,7 @@ __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
 
+from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponse, JsonResponse
 from rest_framework.views import APIView
@@ -23,6 +24,8 @@ from core.api.authentication import CsrfExemptSessionAuthentication
 from qprocessing.utils.data import QProcessingModel
 from qprocessing.tasks import run_model_task, run_model, run_model_celery_task
 from qprocessing.models import QProcessingProject
+
+from cryptography.fernet import Fernet
 
 class QProcessingRunModelView(G3WAPIView):
 
@@ -40,17 +43,11 @@ class QProcessingRunModelView(G3WAPIView):
         qpm = QProcessingModel(str(qpp.model.file))
         
         params = qpm.make_model_params(form_data=request.data, qproject=qpp.get_qdjango_project(kwargs['project_pk']))
-
-        # params = {'buffer_distance': 1000,
-        #           'ingresso1': p.layer_set.get(qgs_layer_id='buildings_668620c2_602a_4ada_9b4f_546eb690db1c').datasource,
-        #           'layer_bufferd': result_path}
-
         task = run_model_task(qpp.pk, kwargs['project_pk'], params)
 
+
         self.results.results.update({
-            'data': {
                 'task_id': task.id
-            }
         })
 
         return Response(self.results.results)
@@ -58,7 +55,7 @@ class QProcessingRunModelView(G3WAPIView):
 
 
 
-class QProcessingRunInfoTask(G3WAPIView):
+class QProcessingRunInfoTaskView(G3WAPIView):
     """
     QProcessing view to get progess state ok a huey/celery task.
     """
@@ -109,3 +106,38 @@ class QProcessingRunInfoTask(G3WAPIView):
                 return JsonResponse({'result': True, 'status': 'pending'})
 
             return JsonResponse({'result': False, 'error': _('Task not found!')}, status=404)
+
+class QProcessingDownLoadOutputView(G3WAPIView):
+
+    def get(self, request, encpath):
+        """
+        Get encrypted path, download and return file if exists
+        """
+
+        # Get path
+        f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
+        down_path = f.decrypt(encpath.encode()).decode()
+        filename = down_path.split('/')[-1]
+        ext = filename.split('.')[-1].lower()
+
+        # Get content type by extension
+        if ext == 'zip':
+            content_type = 'application/zip'
+        elif ext == 'geojson':
+            content_type = 'application/json'
+        elif ext == 'gpkg':
+            content_type = 'application/geopackage+sqlite3'
+        elif ext == 'sqlite':
+            content_type = 'application / vnd.sqlite3'
+        else:
+            content_type = 'application/octet-stream'
+
+        response = HttpResponse(open(down_path, 'rb'), content_type=f'{content_type}')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+
+
+
+
+
+

@@ -11,6 +11,7 @@ __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
 from django.conf import settings
+from django.urls import reverse
 from qgis.core import QgsProcessingModelAlgorithm
 from qdjango.models import Project as QdjangoProject
 from .formtypes import \
@@ -18,6 +19,9 @@ from .formtypes import \
     MAPPING_QPROCESSINGTYPE_FORMTYPE, \
     QgsProcessingParameterVectorLayer, \
     QgsProcessingOutputVectorLayer
+
+import os
+from cryptography.fernet import Fernet
 
 class QProcessingModel(object):
     """
@@ -148,7 +152,7 @@ class QProcessingModel(object):
             'outputs': list(self.outputs)
         }
 
-    def make_model_params(self, form_data:dict, qproject:QdjangoProject):
+    def make_model_params(self, form_data:dict, qproject:QdjangoProject, **kwargs):
         """
         Build and return a dict params for algorithm processing
         :param form_data: dict data from g3w-client processing model form (usually request.data in a View).
@@ -172,11 +176,36 @@ class QProcessingModel(object):
         for k, o in self.outputs.items():
             if o['type'] == QgsProcessingOutputVectorLayer('').type():
 
+                # Make directory by user Id
+                if 'request' in kwargs:
+                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}{kwargs['request'].user.pk}/"
+                else:
+                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}nouser/"
+
+                if not os.path.exists(save_path):
+                    os.mkdir(save_path)
+
                 # Make output vector file path
-                form_data[o['name']] = f"{settings.QPROCESSING_OUTPUT_PATH}{o['name']}." \
+                form_data[o['name']] = f"{save_path}{o['name']}." \
                                        f"{settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT}"
 
         return form_data
+
+    def make_outputs(self, pres):
+        """
+        Refine processing running model output for g3w-client.
+        :param pres: Processing running model output dict.
+        :return: Return a dict with url to new geo data download.
+        """
+
+        out = {}
+        for k, o in self.outputs.items():
+            if k in pres and o['type'] == QgsProcessingOutputVectorLayer('').type():
+                f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
+                out[k] = reverse('qprocessing-download-output', args=(f.encrypt(pres[k].encode()).decode(),))
+
+        return out
+
 
 
 
