@@ -35,8 +35,12 @@ QPROCESSING_OUTPUT_VECTOR_FORMATS = [
         'key': 'GeoJSON'
     },
     {
-        'value': 'kmz',
+        'value': 'kml',
         'key': 'KML'
+    },
+    {
+        'value': 'kmz',
+        'key': 'KMZ'
     }
     #'gpkg': 'GeoPackage', # g3w-client cannot read this format
     #'sqlite': 'SpatiaLite' # g3w-client cannot read this format

@@ -32,7 +32,10 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
     Form for QprocessingPro model.
     """
 
+    # TODO: add ACL
+
     note = BleachField(required=False)
+
     class Meta:
         model = QProcessingProject
         fields = '__all__'
@@ -98,6 +101,8 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
 
         if not is_valid:
             raise ValidationError(_(f'[Model Validation Errors] - {"; ".join(errors)}'))
+
+        #TODO: validate output, only supported types
 
         return model
 

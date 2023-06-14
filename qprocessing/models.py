@@ -20,6 +20,8 @@ class QProcessingProject(models.Model):
     Model to stor relation between QGIS processing model (.model3) and Qdjango Projects objects
     """
 
+    #TODO: add new permission type, `can_run_model`
+
     model = models.FileField(_('QGIS processing model file (.model3)'), upload_to='qprocessing')
     projects = models.ManyToManyField(Project, help_text=_('Select one of more projects to link to this QGIS processing model'))
     note = models.TextField(_('Note'), null=True, blank=True)
