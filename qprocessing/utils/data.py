@@ -171,18 +171,21 @@ class QProcessingModel(object):
 
         qgs_project = qproject.qgis_project
 
+        params = {}
+        params.update(form_data['inputs'])
+        params.update(form_data['outputs'])
 
-        for k, v in form_data.items():
-
-            # Input cases
-            # --------------------------------------
+        # Input cases
+        # --------------------------------------
+        for k, v in form_data['inputs'].items():
             # Case QgsProcessingParameterVectorLayer
             if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterVectorLayer('').type():
-                form_data[k] = qgs_project.mapLayer(form_data[k]).source()
+                params[k] = qgs_project.mapLayer(params[k]).source()
 
         # Outputs cases
-        for k, o in self.outputs.items():
-            if o['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
+        # --------------------------------------
+        for k, o in form_data['outputs'].items():
+            if self.outputs[k]['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
 
                 # Make directory by user Id
                 if 'request' in kwargs:
@@ -194,10 +197,11 @@ class QProcessingModel(object):
                     os.mkdir(save_path)
 
                 # Make output vector file path
-                form_data[o['name']] = f"{save_path}{o['name']}." \
-                                       f"{settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT}"
+                ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS] else \
+                    settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
+                params[self.outputs[k]['name']] = f"{save_path}{self.outputs[k]['name']}.{ext}"
 
-        return form_data
+        return params
 
     def make_outputs(self, pres):
         """
