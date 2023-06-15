@@ -12,6 +12,8 @@ __license__ = 'MPL 2.0'
 
 from django.conf import settings
 from django.urls import reverse
+from django.utils.translation import gettext_lazy as _
+from django.utils.text import slugify
 from qgis.core import QgsProcessingModelAlgorithm
 from qdjango.models import Project as QdjangoProject
 from .formtypes import \
@@ -19,6 +21,7 @@ from .formtypes import \
     MAPPING_QPROCESSINGTYPE_FORMTYPE, \
     QgsProcessingParameterVectorLayer, \
     QgsProcessingOutputVectorLayer
+from .exceptions import QProcessingInputException
 
 import os
 from cryptography.fernet import Fernet
@@ -74,6 +77,10 @@ class QProcessingModel(object):
             qtype = vmap['parameter_type']
             flags = self._read_flags(vmap['flags'])
 
+            # Checking the type of processing if it is managed
+            if qtype not in MAPPING_PROCESSING_PARAMS_FORM_TYPE:
+                raise QProcessingInputException(_(f'Processing input type`{qtype}` is not managed.'))
+
             dt = {
                     'name': vmap['name'],
                     'label': vmap['description'],
@@ -111,7 +118,7 @@ class QProcessingModel(object):
             qtype = od.type()
             ot = {
                 'name': od.name(),
-                'description': od.description(),
+                'label': od.description(),
                 'qprocessing_type': qtype,
                 'type': MAPPING_PROCESSING_PARAMS_FORM_TYPE[qtype],
                 'default': None,
@@ -199,7 +206,7 @@ class QProcessingModel(object):
                 # Make output vector file path
                 ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS] else \
                     settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
-                params[self.outputs[k]['name']] = f"{save_path}{self.outputs[k]['name']}.{ext}"
+                params[self.outputs[k]['name']] = f"{save_path}{slugify(self.outputs[k]['name'])}.{ext}"
 
         return params
 
