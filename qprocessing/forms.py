@@ -23,6 +23,7 @@ from django_file_form.forms import FileFormMixin, UploadedFileField
 from core.mixins.forms import G3WRequestFormMixin, G3WFormMixin
 from .models import QProcessingProject
 from .utils.data import QProcessingModel
+from .utils.exceptions import QProcessingInputException
 import os
 
 
@@ -97,7 +98,10 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
                 model_file = model.file.name
 
         # Validate the model
-        is_valid, errors = QProcessingModel(model_file).validate()
+        try:
+            is_valid, errors = QProcessingModel(model_file).validate()
+        except QProcessingInputException as e:
+            raise ValidationError(e)
 
         if not is_valid:
             raise ValidationError(_(f'[Model Validation Errors] - {"; ".join(errors)}'))
