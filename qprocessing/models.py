@@ -15,10 +15,18 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from qdjango.models import Project
 from .utils.data import QProcessingModel
+
+
 class QProcessingProject(models.Model):
     """
     Model to stor relation between QGIS processing model (.model3) and Qdjango Projects objects
     """
+
+    class Meta:
+        permissions = (
+            ('run_model', 'Can run a QGIS processing model'),
+        )
+
 
     #TODO: add new permission type, `can_run_model`
 
