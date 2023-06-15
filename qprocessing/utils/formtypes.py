@@ -18,6 +18,7 @@ from django.conf import settings
 from qgis.core import \
     QgsProcessingParameterDistance, \
     QgsProcessingParameterVectorLayer, \
+    QgsProcessingParameterFeatureSource, \
     QgsProcessingParameterBand, \
     QgsProcessingParameterBoolean, \
     QgsProcessingParameterAggregate, \
@@ -58,7 +59,8 @@ MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
     QgsProcessingParameterRange('').type(): structure.FIELD_TYPE_INTEGER,
     QgsProcessingParameterNumber('').type(): structure.FIELD_TYPE_INTEGER,
     QgsProcessingParameterExtent('').type(): structure.FIELD_TYPE_VARCHAR,
-    QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR
+    QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingParameterFeatureSource('').type(): structure.FIELD_TYPE_VARCHAR
     #TODO: add other QgsParamenters type
 }
 
@@ -69,6 +71,7 @@ FORM_FIELD_TYPE_PRJVECTORLAYER = 'prjvectorlayer' # A vector layer belonging to 
 FORM_FIELD_TYPE_RASTERLAYER = 'rasterlayer' # A raster data layer which can be uploaded
 FORM_FIELD_TYPE_PRJRASTERLAYER = 'prjrasterlayer' # A raster layer belonging to the project
 FORM_FIELD_TYPE_EXTENT = 'extent' # Type to get extent values form layer, map, bookmarks or by hand
+FORM_FIELD_TYPE_FEATURESOURCE = 'prjvectorlayerfeature' # # A vector layer belonging to the project or feature selected
 
 # For outputs
 FORM_FIELD_TYPE_OUTPUT_VECTORLAYER = 'outputvectorlayer' # Type to get outputvector type
@@ -204,11 +207,20 @@ class QProcessingFormTypeOutputVector(QProcessingFormType):
             }
         }
 
+class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
+    """
+    FormType QProcessing class for type `vector` (QgsProcessingParameterVectorLayer)
+    """
+
+    field_type = FORM_FIELD_TYPE_FEATURESOURCE
+
+
 MAPPING_QPROCESSINGTYPE_FORMTYPE = {
     QgsProcessingParameterDistance('').type(): QProcessingFormTypeDistance,
     QgsProcessingParameterNumber('').type(): QProcessingFormTypeNumber,
     QgsProcessingParameterVectorLayer('').type(): QProcessingFormTypeVectorLayer,
     QgsProcessingParameterRasterLayer('').type(): QProcessingFormTypeRasterLayer,
     QgsProcessingParameterExtent('').type(): QProcessingFormTypeExtent,
-    QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector
+    QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
+    QgsProcessingParameterFeatureSource('').type(): QProcessingFormTypeFeatureSource
 }
