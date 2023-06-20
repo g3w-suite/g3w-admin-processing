@@ -25,6 +25,7 @@ from .exceptions import QProcessingInputException
 
 import os
 from cryptography.fernet import Fernet
+import datetime
 
 class QProcessingModel(object):
     """
@@ -204,9 +205,10 @@ class QProcessingModel(object):
                     os.mkdir(save_path)
 
                 # Make output vector file path
+                name = f"{self.outputs[k]['name']}-{datetime.datetime.now()}"
                 ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS] else \
                     settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
-                params[self.outputs[k]['name']] = f"{save_path}{slugify(self.outputs[k]['name'])}.{ext}"
+                params[self.outputs[k]['name']] = f"{save_path}{slugify(name)}.{ext}"
 
         return params
 
