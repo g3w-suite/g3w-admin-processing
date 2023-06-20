@@ -11,6 +11,7 @@ __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
 from django.dispatch import receiver
+from guardian.shortcuts import get_objects_for_user
 from core.signals import initconfig_plugin_start
 from .models import QProcessingProject
 from .utils.data import QProcessingModel
@@ -23,7 +24,8 @@ def set_initconfig_value(sender, **kwargs):
     """
 
     # Check if project has QGIS processing models linked.
-    qpprojects = QProcessingProject.objects.filter(projects__pk=kwargs['project'])
+    qpprojects = get_objects_for_user(sender.request.user, 'run_model', QProcessingProject).\
+        filter(projects__pk=kwargs['project'])
 
     if len(qpprojects) == 0:
         return None
