@@ -213,7 +213,7 @@ class QProcessingProjectViewerUsersView(G3WAPIView):
             vs = get_users_for_object(project, self.viewer_permission, [G3W_VIEWER1, G3W_VIEWER2], with_anonymous=True)
             viewers = viewers.union(set(vs))
 
-            viewers_run_model = []
+            viewers_run_model = set()
             if qpp:
                 vl = get_users_for_object(qpp, 'run_model', [G3W_VIEWER1, G3W_VIEWER2], with_anonymous=True)
                 viewers_run_model = viewers_run_model.union(set(vl))
@@ -222,7 +222,7 @@ class QProcessingProjectViewerUsersView(G3WAPIView):
             gs = get_user_groups_for_object(project, self.request.user, 'view_project', 'viewer')
             group_viewers = group_viewers.union(gs)
 
-            group_viewers_run_model = []
+            group_viewers_run_model = set()
             if qpp:
                 gm = get_user_groups_for_object(qpp, self.request.user, 'run_model', 'viewer')
                 group_viewers_run_model = group_viewers_run_model.union(gm)
