@@ -24,6 +24,7 @@ def set_initconfig_value(sender, **kwargs):
     """
 
     # Check if project has QGIS processing models linked.
+    # Get QProcessingProject instances by ACL
     qpprojects = get_objects_for_user(sender.request.user, 'run_model', QProcessingProject).\
         filter(projects__pk=kwargs['project'])
 
