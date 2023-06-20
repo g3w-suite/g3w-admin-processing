@@ -14,6 +14,9 @@ __license__ = 'MPL 2.0'
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from qdjango.models import Project
+from usersmanage.utils import get_users_for_object, get_groups_for_object, setPermissionUserObject
+from usersmanage.configs import G3W_VIEWER1, G3W_VIEWER2, G3W_EDITOR2, G3W_EDITOR1
+from usersmanage.models import User, Group as AuthGroup
 from .utils.data import QProcessingModel
 
 
@@ -50,6 +53,75 @@ class QProcessingProject(models.Model):
         """
 
         return self.projects.get(pk=project_pk)
+
+    # ACL
+    # ---------------------------------------------
+    def setPermissionToEditor(self):
+        """ Check and give or remove permission to editor level 1 and editor level 2"""
+
+        currentEditor = set()
+        for project in self.projects.all():
+            ce = get_users_for_object(project, 'change_project', [G3W_EDITOR1, G3W_EDITOR2],
+                                                 with_anonymous=False)
+            currentEditor = currentEditor.union(set(ce))
+
+        currentEditorPermission = get_users_for_object(self, 'run_model', [G3W_EDITOR1, G3W_EDITOR2],
+                                                       with_anonymous=False)
+        permissionEditorToRemove = list(set(currentEditorPermission) - currentEditor)
+
+        if len(currentEditor) > 0 :
+            for ce in currentEditor:
+                setPermissionUserObject(ce, self, ['run_model'])
+        if len(permissionEditorToRemove):
+            for per in permissionEditorToRemove:
+                setPermissionUserObject(per, self, ['run_model'], mode='remove')
+
+    def set_permissions_to_editor_user_groups(self):
+        """ Check and giv or remove permission to editor groups """
+
+        # current editor user groups with change permission on project
+        currentEditorGroup = set()
+        for project in self.projects.all():
+            ceg = get_groups_for_object(project, 'change_project', grouprole='editor')
+
+            currentEditorGroup = currentEditorGroup.union(ceg)
+
+        currentEditorGroupPermission = get_groups_for_object(self, 'run_model', grouprole='editor')
+        permissionEditorGroupToRemove = list(set(currentEditorGroupPermission) - currentEditorGroup)
+
+        if len(currentEditorGroup) > 0 :
+            for ceg in currentEditorGroup:
+                setPermissionUserObject(ceg, self, ['run_model'])
+        if len(permissionEditorGroupToRemove):
+            for pegr in permissionEditorGroupToRemove:
+                setPermissionUserObject(pegr, self, permissions=['run_model'],
+                                        mode='remove')
+
+    def addPermissionsToViewers(self, users_id):
+
+        for user_id in users_id:
+            setPermissionUserObject(User.objects.get(pk=user_id), self,
+                                    permissions='qprocessing.run_model')
+
+    def removePermissionsToViewers(self, users_id=None):
+
+        for user_id in users_id:
+            setPermissionUserObject(User.objects.get(pk=user_id), self,
+                            permissions='run_model', mode='remove')
+
+    def add_permissions_to_viewer_user_groups(self, groups_id):
+            self._permissions_to_user_groups_viewer(groups_id=groups_id)
+
+    def remove_permissions_to_viewer_user_groups(self, groups_id):
+            self._permissions_to_user_groups_viewer(groups_id=groups_id, mode='remove')
+
+    def _permissions_to_user_groups_viewer(self, groups_id, mode='add'):
+
+        for group_id in groups_id:
+            auth_group = AuthGroup.objects.get(pk=group_id)
+            setPermissionUserObject(auth_group, self, permissions=['run_model'],
+                                    mode=mode)
+
 
 
 

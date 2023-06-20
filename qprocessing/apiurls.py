@@ -15,7 +15,8 @@ from django.contrib.auth.decorators import login_required
 from .api.views import \
     QProcessingRunModelView, \
     QProcessingRunInfoTaskView, \
-    QProcessingDownLoadOutputView
+    QProcessingDownLoadOutputView, \
+    QProcessingProjectViewerUsersView
 from .configs import \
     __BASE_RUN_MODEL_URL, \
     __BASE_TASK_INFO_URL, \
@@ -27,5 +28,10 @@ urlpatterns = [
     path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/', QProcessingRunInfoTaskView.as_view(), name='qprocessing-infotask'),
 
     # Outputs
-    path(f'{__BASE_OUTPUT_URL[1:]}<str:encpath>/', QProcessingDownLoadOutputView.as_view(), name='qprocessing-download-output')
+    path(f'{__BASE_OUTPUT_URL[1:]}<str:encpath>/', QProcessingDownLoadOutputView.as_view(),
+         name='qprocessing-download-output'),
+
+    # For form users
+    path('jx/project/viewer_users/', login_required(QProcessingProjectViewerUsersView.as_view()),
+        name='qprocessing-viewer-users'),
 ]

@@ -16,6 +16,7 @@ from django.views.generic.detail import SingleObjectMixin
 from django.utils.decorators import method_decorator
 from django.urls import reverse_lazy
 from guardian.decorators import permission_required
+from usersmanage.utils import get_viewers_for_object, get_users_for_object, get_user_groups_for_object
 from core.mixins.views import G3WRequestViewMixin, G3WAjaxDeleteViewMixin
 from .models import QProcessingProject
 from .forms import QProcessingProjectForm
@@ -63,6 +64,22 @@ class QProcessingProjectUpdateView(G3WRequestViewMixin, UpdateView):
         permission_required('qprocessing.change_qprocessingproject', (QProcessingProject, 'pk', 'pk'), return_403=True))
     def dispatch(self, *args, **kwargs):
         return super().dispatch(*args, **kwargs)
+
+    def get_form_kwargs(self):
+        """
+        Returns the keyword arguments for instantiating the form.
+        """
+        self.get_object()
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'instance': self.object})
+
+        # give initial viewer users and viewer user groups
+        viewers = get_viewers_for_object(self.object, self.request.user, 'run_model')
+        kwargs['initial']['viewer_users'] = [o.id for o in viewers]
+        viewer_groups = get_user_groups_for_object(self.object, self.request.user, 'run_model', 'viewer')
+        kwargs['initial']['viewer_user_groups'] = [o.id for o in viewer_groups]
+
+        return kwargs
 
 class QProcessingProjectDeleteView(G3WAjaxDeleteViewMixin, SingleObjectMixin, View):
     """

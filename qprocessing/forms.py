@@ -17,8 +17,8 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML, Field
 from django_bleach.forms import BleachField
 from django_file_form.forms import FileFormMixin, UploadedFileField
-# from usersmanage.forms import G3WACLForm
-#from usersmanage.utils import crispyBoxACL, userHasGroups
+from usersmanage.forms import G3WACLForm
+from usersmanage.utils import crispyBoxACL
 #from usersmanage.configs import G3W_EDITOR1
 from core.mixins.forms import G3WRequestFormMixin, G3WFormMixin
 from .models import QProcessingProject
@@ -28,7 +28,7 @@ import os
 
 
 
-class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, ModelForm):
+class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WACLForm, G3WRequestFormMixin, ModelForm):
     """
     Form for QprocessingPro model.
     """
@@ -69,8 +69,13 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
                                             ),
                                             css_class='box box-success'
                                         ),
-                                        css_class='col-md-12'
+                                        css_class='col-md-8'
                                     ),
+                                    crispyBoxACL(self,
+                                                 editor_field_required=False,
+                                                 editor2_field_required=False,
+                                                 editor_groups_field_required=False,
+                                                 boxCssClass='col-md-4'),
                                     css_class='row'
                                 ),
                             )
@@ -109,5 +114,18 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WRequestFormMixin, M
         #TODO: validate output, only supported types
 
         return model
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+
+        # set permissions to editor1 and editor2
+        self.instance.setPermissionToEditor()
+
+        # set permissions to editor user groups
+        self.instance.set_permissions_to_editor_user_groups()
+
+        self._ACLPolicy()
+
+        return instance
 
 
