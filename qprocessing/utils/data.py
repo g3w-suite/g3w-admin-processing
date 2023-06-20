@@ -14,12 +14,16 @@ from django.conf import settings
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
-from qgis.core import QgsProcessingModelAlgorithm
+from qgis.core import \
+    QgsProcessingModelAlgorithm, \
+    QgsProcessingFeatureSourceDefinition
 from qdjango.models import Project as QdjangoProject
+from core.utils.qgisapi import get_layer_fids_from_server_fids
 from .formtypes import \
     MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
     MAPPING_QPROCESSINGTYPE_FORMTYPE, \
     QgsProcessingParameterVectorLayer, \
+    QgsProcessingParameterFeatureSource, \
     QgsProcessingOutputVectorLayer
 from .exceptions import QProcessingInputException
 
@@ -189,6 +193,19 @@ class QProcessingModel(object):
             # Case QgsProcessingParameterVectorLayer
             if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterVectorLayer('').type():
                 params[k] = qgs_project.mapLayer(params[k]).source()
+
+            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterFeatureSource('').type():
+
+                # Split by `:`
+                subparams = params[k].split(':')
+                if len(subparams) == 1:
+                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_project.mapLayer(params[k]).source())
+                else:
+                    qgs_layer = qgs_project.mapLayer(subparams[0])
+                    qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
+                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
+
+
 
         # Outputs cases
         # --------------------------------------
