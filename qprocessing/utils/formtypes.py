@@ -12,6 +12,7 @@ __license__ = 'MPL 2.0'
 
 
 from django.conf import settings
+from core.utils.structure import FORM_FIELD_TYPE_CHECK
 
 # Processing input types
 # ---------------------------------------
@@ -189,6 +190,31 @@ class QProcessingFormTypeExtent(QProcessingFormType):
             }
         }
 
+
+class QProcessingFormTypeBoolean(QProcessingFormType):
+    """
+     FormType QProcessing class for type `boolean` (QgsProcessingParameterBoolean)
+    """
+
+    field_type = FORM_FIELD_TYPE_CHECK
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+                'options': {
+                    'default': self.default,
+                    'values': [
+                        {'value': 'True', 'checked': True},
+                        {'value': 'False', 'checked': False},
+                    ]
+                }
+            }
+        }
+
+# OUTPUT PORCESSING
+# -------------------------------------------------------------
 class QProcessingFormTypeOutputVector(QProcessingFormType):
     """
     FormType QProcessing class for type `outputvector` (QgsProcessingOutputVectorLayer)
@@ -215,6 +241,8 @@ class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
     field_type = FORM_FIELD_TYPE_FEATURESOURCE
 
 
+
+
 MAPPING_QPROCESSINGTYPE_FORMTYPE = {
     QgsProcessingParameterDistance('').type(): QProcessingFormTypeDistance,
     QgsProcessingParameterNumber('').type(): QProcessingFormTypeNumber,
@@ -222,5 +250,6 @@ MAPPING_QPROCESSINGTYPE_FORMTYPE = {
     QgsProcessingParameterRasterLayer('').type(): QProcessingFormTypeRasterLayer,
     QgsProcessingParameterExtent('').type(): QProcessingFormTypeExtent,
     QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
-    QgsProcessingParameterFeatureSource('').type(): QProcessingFormTypeFeatureSource
+    QgsProcessingParameterFeatureSource('').type(): QProcessingFormTypeFeatureSource,
+    QgsProcessingParameterBoolean('').type(): QProcessingFormTypeBoolean
 }

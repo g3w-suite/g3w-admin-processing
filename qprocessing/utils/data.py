@@ -24,7 +24,8 @@ from .formtypes import \
     MAPPING_QPROCESSINGTYPE_FORMTYPE, \
     QgsProcessingParameterVectorLayer, \
     QgsProcessingParameterFeatureSource, \
-    QgsProcessingOutputVectorLayer
+    QgsProcessingOutputVectorLayer, \
+    QgsProcessingParameterBoolean
 from .exceptions import QProcessingInputException
 
 import os
@@ -191,20 +192,27 @@ class QProcessingModel(object):
         # --------------------------------------
         for k, v in form_data['inputs'].items():
             # Case QgsProcessingParameterVectorLayer
+            # ---------------------------------------
             if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterVectorLayer('').type():
                 params[k] = qgs_project.mapLayer(params[k]).source()
 
+            # Case QgsProcessingParameterFeatureSource
+            # ----------------------------------------
             if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterFeatureSource('').type():
 
                 # Split by `:`
                 subparams = params[k].split(':')
+                qgs_layer = qgs_project.mapLayer(subparams[0])
                 if len(subparams) == 1:
-                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_project.mapLayer(params[k]).source())
+                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_layer.source())
                 else:
-                    qgs_layer = qgs_project.mapLayer(subparams[0])
                     qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
                     params[k] = QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
 
+            # Case QgsProcessingParameterBoolean
+            # ----------------------------------
+            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterBoolean('').type():
+                params[k] = True if params[k].lower() == 'true' else False
 
 
         # Outputs cases
