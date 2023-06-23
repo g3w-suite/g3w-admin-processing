@@ -242,7 +242,7 @@ class QProcessingFormTypeField(QProcessingFormType):
                     'multiple': self.allow_multiple,
                     'parent_field': self.parent_layer,
                     'datatype': self.TYPES[self.data_type],
-                    'default_to_all_fields': self.default_to_alla_fields
+                    'default_to_all_fields': self.default_to_all_fields
                 }
             }
         }
@@ -285,5 +285,6 @@ MAPPING_QPROCESSINGTYPE_FORMTYPE = {
     QgsProcessingParameterExtent('').type(): QProcessingFormTypeExtent,
     QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
     QgsProcessingParameterFeatureSource('').type(): QProcessingFormTypeFeatureSource,
-    QgsProcessingParameterBoolean('').type(): QProcessingFormTypeBoolean
+    QgsProcessingParameterBoolean('').type(): QProcessingFormTypeBoolean,
+    QgsProcessingParameterField('').type(): QProcessingFormTypeField
 }
