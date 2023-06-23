@@ -224,7 +224,7 @@ class QProcessingFormTypeField(QProcessingFormType):
      FormType QProcessing class for type `field` (QgsProcessingParameterField)
     """
 
-    field_type = FORM_FIELD_TYPE_SELECT
+    field_type = FORM_FIELD_TYPE_FIELDCHOOSER
     TYPES = {
         QgsProcessingParameterField.String: 'string',
         QgsProcessingParameterField.Numeric: 'numeric',
