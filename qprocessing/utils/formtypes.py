@@ -242,7 +242,8 @@ class QProcessingFormTypeField(QProcessingFormType):
                     'multiple': self.allow_multiple,
                     'parent_field': self.parent_layer,
                     'datatype': self.TYPES[self.data_type],
-                    'default_to_all_fields': self.default_to_all_fields
+                    'default_to_all_fields': self.default_to_all_fields,
+                    'values': []
                 }
             }
         }
