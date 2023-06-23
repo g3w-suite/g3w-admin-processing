@@ -12,13 +12,16 @@ __license__ = 'MPL 2.0'
 
 
 from django.conf import settings
-from core.utils.structure import FORM_FIELD_TYPE_CHECK
+from core.utils.structure import \
+    FORM_FIELD_TYPE_CHECK, \
+    FORM_FIELD_TYPE_SELECT
 
 # Processing input types
 # ---------------------------------------
 from qgis.core import \
     QgsProcessingParameterDistance, \
     QgsProcessingParameterVectorLayer, \
+    QgsProcessingParameterField, \
     QgsProcessingParameterFeatureSource, \
     QgsProcessingParameterBand, \
     QgsProcessingParameterBoolean, \
@@ -61,7 +64,8 @@ MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
     QgsProcessingParameterNumber('').type(): structure.FIELD_TYPE_INTEGER,
     QgsProcessingParameterExtent('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
-    QgsProcessingParameterFeatureSource('').type(): structure.FIELD_TYPE_VARCHAR
+    QgsProcessingParameterFeatureSource('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingParameterField('').type(): structure.FIELD_TYPE_VARCHAR
     #TODO: add other QgsParamenters type
 }
 
@@ -72,7 +76,8 @@ FORM_FIELD_TYPE_PRJVECTORLAYER = 'prjvectorlayer' # A vector layer belonging to 
 FORM_FIELD_TYPE_RASTERLAYER = 'rasterlayer' # A raster data layer which can be uploaded
 FORM_FIELD_TYPE_PRJRASTERLAYER = 'prjrasterlayer' # A raster layer belonging to the project
 FORM_FIELD_TYPE_EXTENT = 'extent' # Type to get extent values form layer, map, bookmarks or by hand
-FORM_FIELD_TYPE_FEATURESOURCE = 'prjvectorlayerfeature' # # A vector layer belonging to the project or feature selected
+FORM_FIELD_TYPE_FEATURESOURCE = 'prjvectorlayerfeature' # A vector layer belonging to the project or feature selected
+FORM_FIELD_TYPE_FIELDCHOOSER = 'fieldchooser' # A select with multiple choosen or not belonging from other vectorlayer or prjvectorlayer field
 
 # For outputs
 FORM_FIELD_TYPE_OUTPUT_VECTORLAYER = 'outputvectorlayer' # Type to get outputvector type
@@ -213,7 +218,36 @@ class QProcessingFormTypeBoolean(QProcessingFormType):
             }
         }
 
-# OUTPUT PORCESSING
+
+class QProcessingFormTypeField(QProcessingFormType):
+    """
+     FormType QProcessing class for type `field` (QgsProcessingParameterField)
+    """
+
+    field_type = FORM_FIELD_TYPE_SELECT
+    TYPES = {
+        QgsProcessingParameterField.String: 'string',
+        QgsProcessingParameterField.Numeric: 'numeric',
+        QgsProcessingParameterField.DateTime: 'datetime',
+        QgsProcessingParameterField.Any: 'any'
+    }
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+                'options': {
+                    'default': self.default,
+                    'multiple': self.allow_multiple,
+                    'parent_field': self.parent_layer,
+                    'datatype': self.TYPES[self.data_type],
+                    'default_to_all_fields': self.default_to_alla_fields
+                }
+            }
+        }
+
+# OUTPUT PROCESSING
 # -------------------------------------------------------------
 class QProcessingFormTypeOutputVector(QProcessingFormType):
     """
