@@ -35,7 +35,7 @@ classifiers     = [
 [tool.setuptools]
 # Manual package discovery
 packages        = ["qprocessing"]
-package-dir     = { processing = "qprocessing" }
+package-dir     = { qprocessing = "qprocessing" }
 
 # Custom package discovery
 # [tool.setuptools.packages]
