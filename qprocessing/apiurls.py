@@ -16,7 +16,8 @@ from .api.views import \
     QProcessingRunModelView, \
     QProcessingRunInfoTaskView, \
     QProcessingDownLoadOutputView, \
-    QProcessingProjectViewerUsersView
+    QProcessingProjectViewerUsersView, \
+    QProcessingActionFieldsView
 from .configs import \
     __BASE_RUN_MODEL_URL, \
     __BASE_TASK_INFO_URL, \
@@ -35,7 +36,7 @@ urlpatterns = [
          name='qprocessing-download-output'),
 
     # Actions: fitler_fields
-    path(f'{__BASE_ACTION_URL[1:]}fields/<int:project_id>/<str:qgs_layer_id>/', QProcessingDownLoadOutputView.as_view(),
+    path(f'{__BASE_ACTION_URL[1:]}fields/<int:project_id>/<str:qgs_layer_id>/', QProcessingActionFieldsView.as_view(),
         name='qprocessing-action-fields'),
 
     # G3W-ADMIN API url:
