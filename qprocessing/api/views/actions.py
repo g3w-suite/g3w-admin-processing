@@ -39,7 +39,7 @@ class QProcessingActionFieldsView(G3WAPIView):
             raise APIException(e)
 
         # Get fields
-        if 'field_type' in request.GET:
+        if 'datatype' in request.GET:
 
             # get Type
             types = {}
