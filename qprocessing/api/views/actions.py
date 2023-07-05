@@ -50,10 +50,10 @@ class QProcessingActionFieldsView(G3WAPIView):
 
                 qpm = QgsFieldProxyModel()
                 qpm.sourceModel().setLayer(layer)
-                t = request.GET['field_type']
+                t = request.GET['dattype']
                 err_msg = f'the admissible values are: {", ".join([t for t in types.keys()])}'
                 if not t:
-                    raise APIException(f'For field_type {err_msg}')
+                    raise APIException(f'For datatype {err_msg}')
 
                 if types[t] == QgsProcessingParameterField.Numeric:
                     qpm.setFilters(QgsFieldProxyModel.Numeric)
@@ -63,7 +63,7 @@ class QProcessingActionFieldsView(G3WAPIView):
                     qpm.setFilters(QgsFieldProxyModel.Date | QgsFieldProxyModel.Time)
 
             except KeyError:
-                raise APIException(f'{t} is not a valid field_type, {err_msg}')
+                raise APIException(f'{t} is not a valid datatype, {err_msg}')
             except Exception as e:
                 raise APIException(e)
 
