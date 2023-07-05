@@ -20,9 +20,12 @@ from .api.views import \
 from .configs import \
     __BASE_RUN_MODEL_URL, \
     __BASE_TASK_INFO_URL, \
-    __BASE_OUTPUT_URL
+    __BASE_OUTPUT_URL, \
+    __BASE_ACTION_URL
 
 urlpatterns = [
+    # G3W-CLIENT API url:
+    # ------------------------------------------------------
     path(f'{__BASE_RUN_MODEL_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/', QProcessingRunModelView.as_view(),
          name='qprocessing-run-model'),
     path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/', QProcessingRunInfoTaskView.as_view(), name='qprocessing-infotask'),
@@ -31,6 +34,12 @@ urlpatterns = [
     path(f'{__BASE_OUTPUT_URL[1:]}<str:encpath>/', QProcessingDownLoadOutputView.as_view(),
          name='qprocessing-download-output'),
 
+    # Actions: fitler_fields
+    path(f'{__BASE_ACTION_URL[1:]}fields/<int:project_id>/<str:qgs_layer_id>/', QProcessingDownLoadOutputView.as_view(),
+        name='qprocessing-action-fields'),
+
+    # G3W-ADMIN API url:
+    # ------------------------------------------------------
     # For form users
     path('jx/project/viewer_users/', login_required(QProcessingProjectViewerUsersView.as_view()),
         name='qprocessing-viewer-users'),

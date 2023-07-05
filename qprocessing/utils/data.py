@@ -221,8 +221,8 @@ class QProcessingModel(object):
             if self.outputs[k]['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
 
                 # Make directory by user Id
-                if 'request' in kwargs:
-                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}{kwargs['request'].user.pk}/"
+                if 'user' in kwargs:
+                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}{kwargs['user'].pk}/"
                 else:
                     save_path = f"{settings.QPROCESSING_OUTPUT_PATH}nouser/"
 

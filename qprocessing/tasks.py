@@ -98,7 +98,7 @@ def db_task(*args, **kwargs):
     return decorator
 
 @db_task(context=True)
-def run_model_task(qprocessing_project_pk, project_pk, params, task):
+def run_model_task(url_params, form_data, task, **kwargs):
     """
     Run processing model
     """
@@ -108,7 +108,13 @@ def run_model_task(qprocessing_project_pk, project_pk, params, task):
         desc='Run Processing Model'
     )
 
-    return run_model(qprocessing_project_pk, project_pk, params)
+    qpp = QProcessingProject.objects.get(pk=url_params['qprocessingproject_pk'])
+    qpm = QProcessingModel(str(qpp.model.file))
+
+    params = qpm.make_model_params(form_data=form_data, qproject=qpp.get_qdjango_project(url_params['project_pk']),
+                                   **kwargs)
+
+    return run_model(qpp.pk, url_params['project_pk'], params)
 
 @shared_task(name='run_model', bind=True)
 def run_model_celery_task(self, qprocessing_project_pk, project_pk, params):

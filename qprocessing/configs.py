@@ -15,6 +15,7 @@ __license__ = 'MPL 2.0'
 __BASE_RUN_MODEL_URL = '/api/run/'
 __BASE_TASK_INFO_URL = '/api/infotask/'
 __BASE_OUTPUT_URL = '/api/download/'
+__BASE_ACTION_URL = '/api/action/'
 
 
 # Customizable settings
