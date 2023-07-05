@@ -69,10 +69,11 @@ class QProcessingActionFieldsView(G3WAPIView):
 
             fields = []
             for r in range(0, qpm.rowCount()):
-                fields.append(qpm.data(qpm.index(r,0)))
+                d = qpm.itemData(qpm.index(r,0))
+                fields.append({'key': d[0], 'value':d[2]})
 
         else:
-            fields = [f.name() for f in layer.fields()]
+            fields = [{'key': f.displayName(), 'value':f.name()} for f in layer.fields()]
 
         self.results.results.update({
             'fields': fields
