@@ -38,13 +38,18 @@ def run_model_test(qprocessing_project_pk, project_pk, params):
 
     return True
 
-def run_model(qprocessing_project_pk, project_pk, params):
+def run_model(url_params, form_data, **kwargs):
     """
     Run processing model
     """
 
-    qpp = QProcessingProject.objects.get(pk=qprocessing_project_pk)
-    prj = qpp.projects.get(pk=project_pk).qgis_project
+    qpp = QProcessingProject.objects.get(pk=url_params['qprocessingproject_pk'])
+    qpm = QProcessingModel(str(qpp.model.file))
+
+    params = qpm.make_model_params(form_data=form_data, qproject=qpp.get_qdjango_project(url_params['project_pk']),
+                                   **kwargs)
+
+    prj = qpp.projects.get(pk=url_params['project_pk']).qgis_project
 
     qpm = QProcessingModel(str(qpp.model.file))
 
@@ -108,13 +113,8 @@ def run_model_task(url_params, form_data, task, **kwargs):
         desc='Run Processing Model'
     )
 
-    qpp = QProcessingProject.objects.get(pk=url_params['qprocessingproject_pk'])
-    qpm = QProcessingModel(str(qpp.model.file))
-
-    params = qpm.make_model_params(form_data=form_data, qproject=qpp.get_qdjango_project(url_params['project_pk']),
-                                   **kwargs)
-
-    return run_model(qpp.pk, url_params['project_pk'], params)
+    #return run_model(qpp.pk, url_params['project_pk'], params)
+    return run_model(url_params, form_data, **kwargs)
 
 @shared_task(name='run_model', bind=True)
 def run_model_celery_task(self, qprocessing_project_pk, project_pk, params):
