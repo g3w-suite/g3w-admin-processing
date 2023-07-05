@@ -50,7 +50,7 @@ class QProcessingActionFieldsView(G3WAPIView):
 
                 qpm = QgsFieldProxyModel()
                 qpm.sourceModel().setLayer(layer)
-                t = request.GET['dattype']
+                t = request.GET['datatype']
                 err_msg = f'the admissible values are: {", ".join([t for t in types.keys()])}'
                 if not t:
                     raise APIException(f'For datatype {err_msg}')
