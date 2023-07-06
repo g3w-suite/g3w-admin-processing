@@ -16,6 +16,9 @@ from core.utils.structure import \
     FORM_FIELD_TYPE_CHECK, \
     FORM_FIELD_TYPE_SELECT
 
+from qdjango.utils.edittype import \
+    FORM_FIELD_TYPE_QGIS_RANGE
+
 # Processing input types
 # ---------------------------------------
 from qgis.core import \
@@ -111,7 +114,7 @@ class QProcessingFormTypeDistance(QProcessingFormType):
     def input_form(self):
         return {
             'input': {
-                'type': self.field_type,
+                'type': FORM_FIELD_TYPE_QGIS_RANGE,
                 'options': {
                     'min': self.min,
                     'max': self.max,
@@ -129,6 +132,7 @@ class QProcessingFormTypeNumber(QProcessingFormType):
     def input_form(self):
         return {
             'input': {
+                'type': FORM_FIELD_TYPE_QGIS_RANGE,
                 'options': {
                     'min': self.min,
                     'max': self.max,
