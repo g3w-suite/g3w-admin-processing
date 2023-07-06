@@ -116,9 +116,15 @@ class QProcessingFormTypeDistance(QProcessingFormType):
             'input': {
                 'type': FORM_FIELD_TYPE_QGIS_RANGE,
                 'options': {
-                    'min': self.min,
-                    'max': self.max,
-                    'default': self.default
+                    'values': [
+                        {
+                            'min': self.min,
+                            'max': self.max,
+                            'default': self.default,
+                            'step': 1
+                        }
+
+                    ]
                 }
             }
         }
@@ -134,9 +140,15 @@ class QProcessingFormTypeNumber(QProcessingFormType):
             'input': {
                 'type': FORM_FIELD_TYPE_QGIS_RANGE,
                 'options': {
-                    'min': self.min,
-                    'max': self.max,
-                    'default': self.default
+                    'values': [
+                        {
+                            'min': self.min,
+                            'max': self.max,
+                            'default': self.default,
+                            'step': 1
+                        }
+
+                    ]
                 }
             }
         }
