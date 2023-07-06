@@ -25,7 +25,8 @@ from .formtypes import \
     QgsProcessingParameterVectorLayer, \
     QgsProcessingParameterFeatureSource, \
     QgsProcessingOutputVectorLayer, \
-    QgsProcessingParameterBoolean
+    QgsProcessingParameterBoolean, \
+    QgsProcessingParameterField
 from .exceptions import QProcessingInputException
 
 import os
@@ -213,6 +214,11 @@ class QProcessingModel(object):
             # ----------------------------------
             if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterBoolean('').type():
                 params[k] = True if params[k].lower() == 'true' else False
+
+            # Case QProcessingFormTypeField
+            # ----------------------------------
+            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterField('').type():
+                params[k] = params[k].split(',')
 
 
         # Outputs cases
