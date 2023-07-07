@@ -13,7 +13,7 @@ __license__ = 'MPL 2.0'
 
 
 from rest_framework.response import Response
-from rest_framework.exceptions import APIException
+from rest_framework.exceptions import APIException, ValidationError
 from core.api.views import G3WAPIView
 from core.utils.qgisapi import get_qgis_layer
 from qdjango.models import Layer
@@ -53,7 +53,7 @@ class QProcessingActionFieldsView(G3WAPIView):
                 t = request.GET['datatype']
                 err_msg = f'the admissible values are: {", ".join([t for t in types.keys()])}'
                 if not t:
-                    raise APIException(f'For datatype {err_msg}')
+                    raise ValidationError(f'For datatype {err_msg}')
 
                 if types[t] == QgsProcessingParameterField.Numeric:
                     qpm.setFilters(QgsFieldProxyModel.Numeric)
@@ -63,9 +63,11 @@ class QProcessingActionFieldsView(G3WAPIView):
                     qpm.setFilters(QgsFieldProxyModel.Date | QgsFieldProxyModel.Time)
 
             except KeyError:
-                raise APIException(f'{t} is not a valid datatype, {err_msg}')
+                raise ValidationError(f'\'{t}\' is not a valid datatype, {err_msg}')
+            except ValidationError as e:
+                raise e
             except Exception as e:
-                raise APIException(e)
+                    raise APIException(e)
 
             fields = []
             for r in range(0, qpm.rowCount()):
