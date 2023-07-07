@@ -21,7 +21,7 @@
     <customproperties>
       <Option/>
     </customproperties>
-    <layer-tree-layer source="./buildings.geojson" legend_split_behavior="0" providerKey="ogr" patch_size="-1,-1" id="buildings_7783caca_93e9_4c17_9770_1fd8e82f7109" legend_exp="" name="buildings" checked="Qt::Checked" expanded="1">
+    <layer-tree-layer source="./project_data/buildings.geojson" legend_split_behavior="0" providerKey="ogr" patch_size="-1,-1" id="buildings_7783caca_93e9_4c17_9770_1fd8e82f7109" legend_exp="" name="buildings" checked="Qt::Checked" expanded="1">
       <customproperties>
         <Option/>
       </customproperties>
@@ -248,7 +248,7 @@
         <ymax>44.31039302472456853</ymax>
       </wgs84extent>
       <id>buildings_7783caca_93e9_4c17_9770_1fd8e82f7109</id>
-      <datasource>./buildings.geojson</datasource>
+      <datasource>./project_data/buildings.geojson</datasource>
       <keywordList>
         <value></value>
       </keywordList>

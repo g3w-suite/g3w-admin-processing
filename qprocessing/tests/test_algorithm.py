@@ -13,23 +13,19 @@ __license__ = 'MPL 2.0'
 
 from django.test import TestCase
 from qprocessing.utils.data import QProcessingModel
-from .base import CURRENT_PATH, TEST_BASE_PATH, MODEL_FILE_1, QGS_PROJECT_FILE
+from .base import CURRENT_PATH, TEST_BASE_PATH, TestQprocessingBase
+
 from qgis.core import QgsProcessingContext, QgsProcessingFeedback, QgsProject
 import os
 
-class TestQprocessingAlgorithm(TestCase):
+class TestQprocessingAlgorithm(TestQprocessingBase):
 
     databases = {}
 
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-
-        cls.model_file = os.path.join(CURRENT_PATH, TEST_BASE_PATH, MODEL_FILE_1)
-        cls.qgis_file = os.path.join(CURRENT_PATH, TEST_BASE_PATH, QGS_PROJECT_FILE)
-
     def test_run(self):
-
+        """
+        Test runnong QGIS processing running
+        """
         qpm = QProcessingModel(str(self.model_file))
         prj = QgsProject()
         loaded = prj.read(self.qgis_file)
@@ -41,19 +37,18 @@ class TestQprocessingAlgorithm(TestCase):
         ingresso1 = os.path.join(CURRENT_PATH, TEST_BASE_PATH, 'buildings.geojson')
         result_path = os.path.join(CURRENT_PATH, TEST_BASE_PATH, 'processing_result', 'out.shp')
 
-        params = {'buffer_distance': 1000,
-                  'ingresso1': ingresso1,
-                  'layer_bufferd': result_path}
-
-        print(params)
+        params = {
+            'buffer_distance': 1000,
+            'ingresso1': ingresso1,
+            'layer_bufferd': result_path
+        }
 
         ctx = QgsProcessingContext()
         ctf = QgsProcessingFeedback()
-
-        print(prj)
         ctx.setProject(prj)
 
         res = qpm.model.processAlgorithm(params, ctx, ctf)
 
-        print(res)
-        print(ctf.textLog())
+        aspected_res = {'CHILD_INPUTS': {'native:buffer_1': {'DISSOLVE': False, 'DISTANCE': 1000, 'END_CAP_STYLE': 0, 'INPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/buildings.geojson', 'JOIN_STYLE': 0, 'MITER_LIMIT': None, 'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp', 'SEGMENTS': None}}, 'CHILD_RESULTS': {'native:buffer_1': {'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}}, 'layer_bufferd': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}
+
+        self.assertEqual(res, aspected_res)
