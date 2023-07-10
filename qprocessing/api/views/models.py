@@ -28,6 +28,7 @@ from qdjango.models import Project
 from qprocessing.utils.data import QProcessingModel
 from qprocessing.tasks import run_model_task, run_model, run_model_celery_task
 from qprocessing.models import QProcessingProject
+from qprocessing.api.permissions import RunModelPermission
 
 from cryptography.fernet import Fernet
 
@@ -35,11 +36,18 @@ import zipfile
 import os
 import io
 
+
 class QProcessingRunModelView(G3WAPIView):
 
     authentication_classes = (
         CsrfExemptSessionAuthentication,
     )
+
+    permission_classes = (
+        RunModelPermission,
+    )
+
+    # TODO: add permission classes
 
     def post(self, request, **kwargs):
         """
