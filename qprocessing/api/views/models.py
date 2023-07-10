@@ -66,6 +66,7 @@ class QProcessingRunInfoTaskView(G3WAPIView):
     """
     QProcessing view to get progess state ok a huey/celery task.
     """
+
     def get(self, request, task_id):
 
         #TODO: add code for celery tasks.
@@ -116,6 +117,10 @@ class QProcessingRunInfoTaskView(G3WAPIView):
 
 class QProcessingDownLoadOutputView(G3WAPIView):
 
+    permission_classes = (
+        RunModelPermission,
+    )
+
     # Extensions for create zip file
     shp_extentions = ('.shp', '.shx', '.dbf', '.prj')
 
@@ -159,7 +164,7 @@ class QProcessingDownLoadOutputView(G3WAPIView):
 
         return response
 
-    def get(self, request, encpath):
+    def get(self, request, qprocessingproject_pk, project_pk, encpath):
         """
         Get encrypted path, download and return file if exists
         """

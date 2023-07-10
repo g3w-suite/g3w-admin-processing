@@ -61,7 +61,7 @@ def run_model(url_params, form_data, **kwargs):
     res = qpm.process_algorithm(params, ctx, ctf)
 
     # Replace outputs
-    res = qpm.make_outputs(res)
+    res = qpm.make_outputs(res, url_params['qprocessingproject_pk'], url_params['project_pk'])
 
     return res
 
