@@ -243,10 +243,12 @@ class QProcessingModel(object):
 
         return params
 
-    def make_outputs(self, pres):
+    def make_outputs(self, pres, qprocessingproject_pk, project_pk):
         """
         Refine processing running model output for g3w-client.
         :param pres: Processing running model output dict.
+        :param qprocessingproject_pk: QProcessingProject model instance pk.
+        :param project_pk: Qdjango Project model instance pk.
         :return: Return a dict with url to new geo data download.
         """
 
@@ -254,7 +256,8 @@ class QProcessingModel(object):
         for k, o in self.outputs.items():
             if k in pres and o['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
                 f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
-                out[k] = reverse('qprocessing-download-output', args=(f.encrypt(pres[k].encode()).decode(),))
+                out[k] = reverse('qprocessing-download-output', args=(qprocessingproject_pk, project_pk,
+                                                                      f.encrypt(pres[k].encode()).decode(),))
 
         return out
 

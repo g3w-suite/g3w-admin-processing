@@ -32,8 +32,8 @@ urlpatterns = [
     path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/', QProcessingRunInfoTaskView.as_view(), name='qprocessing-infotask'),
 
     # Outputs
-    path(f'{__BASE_OUTPUT_URL[1:]}<str:encpath>/', QProcessingDownLoadOutputView.as_view(),
-         name='qprocessing-download-output'),
+    path(f'{__BASE_OUTPUT_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/<str:encpath>/',
+         QProcessingDownLoadOutputView.as_view(), name='qprocessing-download-output'),
 
     # Actions: fitler_fields
     path(f'{__BASE_ACTION_URL[1:]}fields/<int:project_id>/<str:qgs_layer_id>/', QProcessingActionFieldsView.as_view(),
