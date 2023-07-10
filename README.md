@@ -32,6 +32,30 @@ G3WADMIN_LOCAL_MORE_APPS = [
 ]
 ```
 
+### Huey configuration
+To make `QProcessing` work in asynchronous mode (in batch mode) you need to configure Huey and have a message broker such as `Redis`. Here is an example Huey configuration using Redis as a message broker:
+
+```python
+HUEY = {
+    # Huey implementation to use.
+    'huey_class': 'huey.RedisExpireHuey',
+    'name': 'g3w-suite',
+    'url': 'redis://localhost:6379/?db=0',
+    'immediate': False,  # If True, run synchronously.
+    'consumer': {
+        'workers': 1,
+        'worker_type': 'process',
+    },
+}
+```
+
+To run Huey:
+```
+python3 manage.py tun_huey -k process
+```
+
+### Docker
+
 Refer to [g3w-suite-docker](https://github.com/g3w-suite/g3w-suite-docker) repository for more info about running this on a docker instance.
 
 **NB** On Ubuntu Jammy you could get an `UNKNOWN` package install instead of `g3w-admin-processing`, you can retry installing it as follows to fix it:
