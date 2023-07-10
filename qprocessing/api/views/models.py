@@ -47,8 +47,6 @@ class QProcessingRunModelView(G3WAPIView):
         RunModelPermission,
     )
 
-    # TODO: add permission classes
-
     def post(self, request, **kwargs):
         """
         :param qprocessingproject_pk: int, qprocessing.QProcessingProject model instance pk
