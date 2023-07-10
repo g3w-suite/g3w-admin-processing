@@ -43,7 +43,18 @@ QGS_PROJECT_QPROCESSING_FILE = 'qprocessing_qprocessing.qgs'
     LANGUAGE_CODE='en',
     LANGUAGES = (
         ('en', 'English'),
-    )
+    ),
+    HUEY={
+        # Huey implementation to use.
+        'huey_class': 'huey.RedisExpireHuey',
+        'name': 'g3w-suite',
+        'url': 'redis://localhost:6379/?db=0',
+        'immediate': True,
+        'consumer': {
+            'workers': 1,
+            'worker_type': 'process',
+        }
+    }
 )
 class TestQProcessingBase(TestCase):
     """
