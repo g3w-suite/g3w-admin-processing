@@ -13,12 +13,12 @@ __license__ = 'MPL 2.0'
 
 from django.test import TestCase
 from qprocessing.utils.data import QProcessingModel
-from .base import CURRENT_PATH, TEST_BASE_PATH, TestQprocessingBase
+from .base import CURRENT_PATH, TEST_BASE_PATH, TestQProcessingBase
 
 from qgis.core import QgsProcessingContext, QgsProcessingFeedback, QgsProject
 import os
 
-class TestQprocessingAlgorithm(TestQprocessingBase):
+class TestQprocessingAlgorithm(TestQProcessingBase):
 
     databases = {}
 

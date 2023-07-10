@@ -14,12 +14,12 @@ __license__ = 'MPL 2.0'
 from django.urls import reverse
 from core.utils.qgisapi import get_qgs_project
 from qprocessing.utils.data import QProcessingModel
-from .base import TestQprocessingBase
+from .base import TestQProcessingBase
 import json
 
 
 
-class TestQprocessingUtils(TestQprocessingBase):
+class TestQProcessingUtils(TestQProcessingBase):
 
 
     def test_data(self):
@@ -48,7 +48,7 @@ class TestQprocessingUtils(TestQprocessingBase):
 
 
 
-class TestQprocessingActionAPIREST(TestQprocessingBase):
+class TestQProcessingActionAPIREST(TestQProcessingBase):
     """
     Test for API REST general Actions
     """

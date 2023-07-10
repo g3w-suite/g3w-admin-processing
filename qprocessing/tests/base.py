@@ -45,7 +45,7 @@ QGS_PROJECT_QPROCESSING_FILE = 'qprocessing_qprocessing.qgs'
         ('en', 'English'),
     )
 )
-class TestQprocessingBase(TestCase):
+class TestQProcessingBase(TestCase):
     """
     Base class for QProcessing tests
     """
@@ -64,7 +64,11 @@ class TestQprocessingBase(TestCase):
 
         cls.model_file = os.path.join(CURRENT_PATH, TEST_BASE_PATH, MODEL_FILE)
         cls.qgis_file = os.path.join(CURRENT_PATH, TEST_BASE_PATH, QGS_PROJECT_FILE)
+
         cls.qgis_qprocessing_file = os.path.join(CURRENT_PATH, TEST_BASE_PATH, QGS_PROJECT_QPROCESSING_FILE)
+        cls.model_file_buffer = os.path.join(CURRENT_PATH, TEST_BASE_PATH, MODEL_FILE_BUFFER)
+        cls.model_file_intersections = os.path.join(CURRENT_PATH, TEST_BASE_PATH, MODEL_FILE_INTERSECTIONS)
+        cls.model_file_ponintspolygons = os.path.join(CURRENT_PATH, TEST_BASE_PATH, MODEL_FILE_POINTSPOLYGONS)
 
     @classmethod
     def setUp(cls):
