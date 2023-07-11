@@ -14,7 +14,7 @@ from django.core.files import File
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from qprocessing.models import QProcessingProject
-from .base import TestQProcessingBase
+from .base import TestQProcessingBase, MODEL_FILE_BUFFER, MODEL_FILE_POINTSPOLYGONS
 
 from qgis.core import QgsVectorLayer, QgsWkbTypes
 from qgis.PyQt.QtCore import QTemporaryDir
@@ -35,12 +35,24 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
 
         super().setUp()
 
+        # Create QProcessingProject
+        # --------------------------------------------
+
         # Create testing object and data
         with open(cls.model_file_buffer, 'r') as f:
-            cls.qpp_buffer = QProcessingProject(model=File(f, name='qbuffer.model3'))
+            cls.qpp_buffer = QProcessingProject(model=File(f, name=MODEL_FILE_BUFFER.split('/')[1]))
             cls.qpp_buffer.save()
 
         cls.qpp_buffer.projects.add(cls.project.instance)
+
+        with open(cls.model_file_ponintspolygons, 'r') as f:
+            cls.qpp_pointspolygons = QProcessingProject(model=File(f, name=MODEL_FILE_POINTSPOLYGONS.split('/')[1]))
+            cls.qpp_pointspolygons.save()
+
+        cls.qpp_pointspolygons.projects.add(cls.project.instance)
+
+        # Create API REST post data
+        # --------------------------------------------
 
         cls.buffer_post_data = {
             "inputs": {
@@ -53,13 +65,34 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
             }
         }
 
+        cls.pointspolygons_post_data = {
+            "inputs": {
+                "points_layer": "qprocessing_2f527e7f_4c58_485a_a8b3_6370801c37ae",
+                "polygon_layer": "poligono2_ca3f4152_353f_471b_a7dc_5fd1b1b0bffe",
+                "weight_fileds": "value"
+            },
+            "outputs": {
+                "native:countpointsinpolygon_1:Points in polygons":"geojson"
+            }
+        }
+
+        cls.pointspolygons_features_post_data = {
+            "inputs": {
+                "points_layer": "qprocessing_2f527e7f_4c58_485a_a8b3_6370801c37ae",
+                "polygon_layer": "poligono2_ca3f4152_353f_471b_a7dc_5fd1b1b0bffe:1",
+                "weight_fileds": "value"
+            },
+            "outputs": {
+                "native:countpointsinpolygon_1:Points in polygons": "geojson"
+            }
+        }
+
+
+
     def test_run_model(self):
         """
         Testing run models
         """
-
-        # Create QProcessingProject
-        # --------------------------------------------
 
 
         url = reverse('qprocessing-run-model', args=[self.qpp_buffer.pk, self.project.instance.pk])
@@ -68,6 +101,8 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         # ----------------------------------------------
         self.client.login(username=self.test_admin1.username, password=self.test_admin1.username)
 
+        # Testing MODEL_FILE_BUFFER processing model
+        #_____________________________________________
         res = self.client.post(url,data=self.buffer_post_data, content_type='application/json')
         self.assertEqual(res.status_code, 200)
         jres = json.loads(res.content)
@@ -80,8 +115,6 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         self.assertEqual(res.status_code, 200)
 
         jres = json.loads(res.content)
-
-        print(jres)
 
         self.assertEqual(jres['status'], 'complete')
         self.assertEqual(jres['exception'], '')
@@ -108,6 +141,73 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         self.assertEqual(fields[1].name(), 'name')
         self.assertEqual(fields[2].name(), 'value')
 
+        self.assertEqual(QgsWkbTypes.geometryDisplayString(vl.geometryType()), 'Polygon')
+
+        # Testing MODEL_FILE_POINTSPOLYGONS processing model
+        #______________________________________________________
+        url = reverse('qprocessing-run-model', args=[self.qpp_pointspolygons.pk, self.project.instance.pk])
+        res = self.client.post(url, data=self.pointspolygons_post_data, content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        jres = json.loads(res.content)
+
+        # Wait for processing result
+        time.sleep(1)
+        task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
+
+        res = self.client.get(task_info_url)
+        self.assertEqual(res.status_code, 200)
+
+        jres = json.loads(res.content)
+
+        self.assertEqual(jres['status'], 'complete')
+        self.assertEqual(jres['exception'], '')
+        self.assertEqual(jres['progress'], 0)
+
+        # Get file result file GeoJson
+        res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
+        self.assertTrue(res.status_code, 200)
+
+        temp = QTemporaryDir()
+        z.extractall(temp.path())
+        result_file = f'{temp.path()}/result.geojson'
+        with open(result_file, 'w') as f:
+            f.write(res.content.decode())
+        vl = QgsVectorLayer(result_file)
+        self.assertTrue(vl.isValid())
+
+        self.assertEqual(vl.featureCount(), 4)
+        self.assertEqual(QgsWkbTypes.geometryDisplayString(vl.geometryType()), 'Polygon')
+
+        res = self.client.post(url, data=self.pointspolygons_features_post_data, content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        jres = json.loads(res.content)
+
+        # Wait for processing result
+        time.sleep(1)
+        task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
+
+        res = self.client.get(task_info_url)
+        self.assertEqual(res.status_code, 200)
+
+        jres = json.loads(res.content)
+
+        self.assertEqual(jres['status'], 'complete')
+        self.assertEqual(jres['exception'], '')
+        self.assertEqual(jres['progress'], 0)
+
+        # Get file result file GeoJson
+        res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
+        self.assertTrue(res.status_code, 200)
+
+        temp = QTemporaryDir()
+        z.extractall(temp.path())
+        result_file = f'{temp.path()}/result.geojson'
+        with open(result_file, 'w') as f:
+            f.write(res.content.decode())
+        vl = QgsVectorLayer(result_file)
+        self.assertTrue(vl.isValid())
+
+        self.assertEqual(vl.featureCount(), 1)
         self.assertEqual(QgsWkbTypes.geometryDisplayString(vl.geometryType()), 'Polygon')
 
         self.client.logout()
