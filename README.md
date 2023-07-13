@@ -1,6 +1,34 @@
 # G3W-ADMIN-PROCESSING
 
 A G3W-ADMIN module to use processing features fo QGIS application inside G3W-SUITE framework.
+Is possible upload a QGIS processing model file `.model3` inside G3W-ADMIN to get the Processing form available 
+on G3W-CLIENT.
+
+![QGIS desktop](doc/images/qgis.png)
+![G3W-SUITE](doc/images/g3w-suite.png)
+
+## QGIS processing features
+
+At the moment the follow inputs and outputs feature of QGIS processing are supported:
+
+#### Inputs
+
+- VectorLayer (*QgsProcessingParameterVectorLayer*)
+- VectorFeatures (*QgsProcessingParameterFeatureSource*)
+- VectorField (*QgsProcessingParameterField*)
+- RasterLayer (*QgsProcessingParameterRasterLayer*)
+- Distance (*QgsProcessingParameterDistance*) 
+- DateTime (*QgsProcessingParameterDateTime*) 
+- Boolean (*QgsProcessingParameterBoolean*)
+- Range (*QgsProcessingParameterRange*) 
+- Number (*QgsProcessingParameterNumber*) 
+- Extent (*QgsProcessingParameterExtent*)
+
+#### Outputs
+
+- VectorLayer (*QgsProcessingOutputVectorLayer*)
+
+
 
 ## Installation
 
