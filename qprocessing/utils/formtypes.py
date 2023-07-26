@@ -68,7 +68,8 @@ MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
     QgsProcessingParameterExtent('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingParameterFeatureSource('').type(): structure.FIELD_TYPE_VARCHAR,
-    QgsProcessingParameterField('').type(): structure.FIELD_TYPE_VARCHAR
+    QgsProcessingParameterField('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingParameterGeometry('').type(): structure.FIELD_TYPE_VARCHAR
     #TODO: add other QgsParamenters type
 }
 
@@ -81,6 +82,7 @@ FORM_FIELD_TYPE_PRJRASTERLAYER = 'prjrasterlayer' # A raster layer belonging to 
 FORM_FIELD_TYPE_EXTENT = 'extent' # Type to get extent values form layer, map, bookmarks or by hand
 FORM_FIELD_TYPE_FEATURESOURCE = 'prjvectorlayerfeature' # A vector layer belonging to the project or feature selected
 FORM_FIELD_TYPE_FIELDCHOOSER = 'fieldchooser' # A select with multiple choosen or not belonging from other vectorlayer or prjvectorlayer field
+FORM_FIELD_TYPE_GEOMETRY =  'geometry' # A WKT input
 
 # For outputs
 FORM_FIELD_TYPE_OUTPUT_VECTORLAYER = 'outputvectorlayer' # Type to get outputvector type
