@@ -49,6 +49,7 @@ from qgis.core import \
     QgsProcessingParameterRasterLayer, \
     QgsProcessingOutputVectorLayer, \
     QgsProcessingOutputRasterLayer, \
+    QgsProcessingOutputFile, \
     QgsWkbTypes)
 
 # Processing ouput types
@@ -74,6 +75,7 @@ MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
     # Outputs
     QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingOutputRasterLayer('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingOutputFile('').type(): structure.FIELD_TYPE_VARCHAR,
     #TODO: add other QgsProcessingOutput* type
 }
 
@@ -90,6 +92,7 @@ FORM_FIELD_TYPE_FIELDCHOOSER = 'fieldchooser' # A select with multiple choosen o
 # For outputs
 FORM_FIELD_TYPE_OUTPUT_VECTORLAYER = 'outputvectorlayer' # Type to get outputvector type
 FORM_FIELD_TYPE_OUTPUT_RASTERLAYER = 'outputrasterlayer' # Type to get outputraster type
+FORM_FIELD_TYPE_OUTPUT_FILE = 'outputfile' # Type to get outputfile type
 
 
 class QProcessingFormType(object):
@@ -294,6 +297,21 @@ class QProcessingFormTypeOutputRaster(QProcessingFormType):
             }
         }
 
+class QProcessingFormTypeOutputFile(QProcessingFormType):
+    """
+    FormType QProcessing class for type `outputfile` (QgsProcessingOutputFile)
+    """
+
+    field_type = FORM_FIELD_TYPE_OUTPUT_FILE
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+            }
+        }
+
 class QProcessingFormTypeOutputVector(QProcessingFormType):
     """
     FormType QProcessing class for type `outputvector` (QgsProcessingOutputVectorLayer)
@@ -326,4 +344,6 @@ MAPPING_QPROCESSINGTYPE_FORMTYPE = {
     # Outputs
     QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
     QgsProcessingOutputRasterLayer('').type(): QProcessingFormTypeOutputRaster,
+    QgsProcessingOutputFile('').type(): QProcessingFormTypeOutputFile,
+
 }
