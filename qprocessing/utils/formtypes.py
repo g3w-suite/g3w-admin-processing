@@ -22,7 +22,7 @@ from qdjango.utils.edittype import \
 # Processing input types
 # ---------------------------------------
 from qgis.core import \
-    QgsProcessingParameterDistance, \
+    (QgsProcessingParameterDistance, \
     QgsProcessingParameterVectorLayer, \
     QgsProcessingParameterField, \
     QgsProcessingParameterFeatureSource, \
@@ -48,7 +48,8 @@ from qgis.core import \
     QgsProcessingParameterCoordinateOperation, \
     QgsProcessingParameterRasterLayer, \
     QgsProcessingOutputVectorLayer, \
-    QgsWkbTypes
+    QgsProcessingOutputRasterLayer, \
+    QgsWkbTypes)
 
 # Processing ouput types
 # ---------------------------------------
@@ -58,6 +59,7 @@ from core.utils import structure
 
 # Mapping qprocessing parameters type
 MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
+    # Inputs
     QgsProcessingParameterDistance('').type(): structure.FIELD_TYPE_FLOAT,
     QgsProcessingParameterDateTime('').type(): structure.FIELD_TYPE_DATETIME,
     QgsProcessingParameterBoolean('').type(): structure.FIELD_TYPE_BOOLEAN,
@@ -66,10 +68,13 @@ MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
     QgsProcessingParameterRange('').type(): structure.FIELD_TYPE_INTEGER,
     QgsProcessingParameterNumber('').type(): structure.FIELD_TYPE_INTEGER,
     QgsProcessingParameterExtent('').type(): structure.FIELD_TYPE_VARCHAR,
-    QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingParameterFeatureSource('').type(): structure.FIELD_TYPE_VARCHAR,
-    QgsProcessingParameterField('').type(): structure.FIELD_TYPE_VARCHAR
-    #TODO: add other QgsParamenters type
+    QgsProcessingParameterField('').type(): structure.FIELD_TYPE_VARCHAR,
+    #TODO: add other QgsProcessingParamenter* type
+    # Outputs
+    QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingOutputRasterLayer('').type(): structure.FIELD_TYPE_VARCHAR,
+    #TODO: add other QgsProcessingOutput* type
 }
 
 # Specific Form Field Types for QProcessing client forms
@@ -84,6 +89,7 @@ FORM_FIELD_TYPE_FIELDCHOOSER = 'fieldchooser' # A select with multiple choosen o
 
 # For outputs
 FORM_FIELD_TYPE_OUTPUT_VECTORLAYER = 'outputvectorlayer' # Type to get outputvector type
+FORM_FIELD_TYPE_OUTPUT_RASTERLAYER = 'outputrasterlayer' # Type to get outputraster type
 
 
 class QProcessingFormType(object):
@@ -264,8 +270,30 @@ class QProcessingFormTypeField(QProcessingFormType):
             }
         }
 
+class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
+    """
+    FormType QProcessing class for type `vector` (QgsProcessingParameterVectorLayer)
+    """
+
+    field_type = FORM_FIELD_TYPE_FEATURESOURCE
+
 # OUTPUT PROCESSING
 # -------------------------------------------------------------
+class QProcessingFormTypeOutputRaster(QProcessingFormType):
+    """
+    FormType QProcessing class for type `outputraster` (QgsProcessingOutputRasterLayer)
+    """
+
+    field_type = FORM_FIELD_TYPE_OUTPUT_RASTERLAYER
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+            }
+        }
+
 class QProcessingFormTypeOutputVector(QProcessingFormType):
     """
     FormType QProcessing class for type `outputvector` (QgsProcessingOutputVectorLayer)
@@ -284,24 +312,18 @@ class QProcessingFormTypeOutputVector(QProcessingFormType):
             }
         }
 
-class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
-    """
-    FormType QProcessing class for type `vector` (QgsProcessingParameterVectorLayer)
-    """
-
-    field_type = FORM_FIELD_TYPE_FEATURESOURCE
-
-
-
 
 MAPPING_QPROCESSINGTYPE_FORMTYPE = {
+    # Inputs
     QgsProcessingParameterDistance('').type(): QProcessingFormTypeDistance,
     QgsProcessingParameterNumber('').type(): QProcessingFormTypeNumber,
     QgsProcessingParameterVectorLayer('').type(): QProcessingFormTypeVectorLayer,
     QgsProcessingParameterRasterLayer('').type(): QProcessingFormTypeRasterLayer,
     QgsProcessingParameterExtent('').type(): QProcessingFormTypeExtent,
-    QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
     QgsProcessingParameterFeatureSource('').type(): QProcessingFormTypeFeatureSource,
     QgsProcessingParameterBoolean('').type(): QProcessingFormTypeBoolean,
-    QgsProcessingParameterField('').type(): QProcessingFormTypeField
+    QgsProcessingParameterField('').type(): QProcessingFormTypeField,
+    # Outputs
+    QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
+    QgsProcessingOutputRasterLayer('').type(): QProcessingFormTypeOutputRaster,
 }
