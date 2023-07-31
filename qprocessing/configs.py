@@ -54,6 +54,29 @@ QPROCESSING_OUTPUT_FILE_FORMATS = [
     },
 ]
 
+QPROCESSING_OUTPUT_RASTER_FORMATS = [
+    {
+        'value': 'vrt',
+        'key': 'VRT'
+    },
+    {
+        'value': 'tiff',
+        'key': 'TIFF'
+    },
+    {
+        'value': 'png',
+        'key': 'PNG'
+    },
+    {
+        'value': 'jpeg',
+        'key': 'JPEG'
+    },
+    {
+        'value': 'jpg',
+        'key': 'JPG'
+    },
+]
+
 # For download of ouputs
 QPROCESSING_CRYPTO_KEY = b'aAf72grwGaZYH9R7ZaGHgSSbtQVXPplXB4wpiMsKtJM='
 
