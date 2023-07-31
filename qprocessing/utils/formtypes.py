@@ -50,6 +50,7 @@ from qgis.core import \
     QgsProcessingOutputVectorLayer, \
     QgsProcessingOutputRasterLayer, \
     QgsProcessingOutputFile, \
+    QgsProcessingOutputHtml, \
     QgsWkbTypes)
 
 # Processing ouput types
@@ -76,6 +77,7 @@ MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
     QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingOutputRasterLayer('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingOutputFile('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingOutputHtml('').type(): structure.FIELD_TYPE_VARCHAR,
     #TODO: add other QgsProcessingOutput* type
 }
 
@@ -93,6 +95,7 @@ FORM_FIELD_TYPE_FIELDCHOOSER = 'fieldchooser' # A select with multiple choosen o
 FORM_FIELD_TYPE_OUTPUT_VECTORLAYER = 'outputvectorlayer' # Type to get outputvector type
 FORM_FIELD_TYPE_OUTPUT_RASTERLAYER = 'outputrasterlayer' # Type to get outputraster type
 FORM_FIELD_TYPE_OUTPUT_FILE = 'outputfile' # Type to get outputfile type
+FORM_FIELD_TYPE_OUTPUT_HTML = 'outputhtml' # Type to get outputfile type
 
 
 class QProcessingFormType(object):
@@ -319,6 +322,24 @@ class QProcessingFormTypeOutputFile(QProcessingFormType):
             }
         }
 
+class QProcessingFormTypeOutputHtml(QProcessingFormType):
+    """
+    FormType QProcessing class for type `outputhtml` (QgsProcessingOutputhtml)
+    """
+
+    field_type = FORM_FIELD_TYPE_OUTPUT_HTML
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+                'options': {
+                    'values': settings.QPROCESSING_OUTPUT_HTML_FORMATS
+                }
+            }
+        }
+
 class QProcessingFormTypeOutputVector(QProcessingFormType):
     """
     FormType QProcessing class for type `outputvector` (QgsProcessingOutputVectorLayer)
@@ -352,5 +373,5 @@ MAPPING_QPROCESSINGTYPE_FORMTYPE = {
     QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
     QgsProcessingOutputRasterLayer('').type(): QProcessingFormTypeOutputRaster,
     QgsProcessingOutputFile('').type(): QProcessingFormTypeOutputFile,
-
+    QgsProcessingOutputHtml('').type(): QProcessingFormTypeOutputHtml,
 }
