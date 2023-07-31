@@ -20,14 +20,19 @@ from qgis.core import \
 from qdjango.models import Project as QdjangoProject
 from core.utils.qgisapi import get_layer_fids_from_server_fids
 from .formtypes import \
-    MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
+    (MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
     MAPPING_QPROCESSINGTYPE_FORMTYPE, \
     QgsProcessingParameterVectorLayer, \
     QgsProcessingParameterFeatureSource, \
     QgsProcessingOutputVectorLayer, \
     QgsProcessingParameterBoolean, \
-    QgsProcessingParameterField
-from .exceptions import QProcessingInputException
+    QgsProcessingParameterField,
+    QgsProcessingParameterRasterLayer,
+     QgsProcessingOutputRasterLayer,
+     QgsProcessingOutputFile)
+from .exceptions import (
+    QProcessingInputException,
+    QProcessingOutputException)
 
 import os
 from cryptography.fernet import Fernet
@@ -123,6 +128,11 @@ class QProcessingModel(object):
         self.outputs = {}
         for od in self.model.outputDefinitions():
             qtype = od.type()
+
+            # Checking the type of processing if it is managed
+            if qtype not in MAPPING_PROCESSING_PARAMS_FORM_TYPE:
+                raise QProcessingOutputException(_(f'Processing output type`{qtype}` is not managed.'))
+
             ot = {
                 'name': od.name(),
                 'label': od.description(),
@@ -192,9 +202,13 @@ class QProcessingModel(object):
         # Input cases
         # --------------------------------------
         for k, v in form_data['inputs'].items():
-            # Case QgsProcessingParameterVectorLayer
+            # Case:
+            # QgsProcessingParameterVectorLayer
+            # QgsProcessingParameterRasterLayer
             # ---------------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterVectorLayer('').type():
+            if self.inputs[k]['qprocessing_type'] in (
+                    QgsProcessingParameterVectorLayer('').type(),
+                    QgsProcessingParameterRasterLayer('').type()):
                 params[k] = qgs_project.mapLayer(params[k]).source()
 
             # Case QgsProcessingParameterFeatureSource
@@ -224,7 +238,12 @@ class QProcessingModel(object):
         # Outputs cases
         # --------------------------------------
         for k, o in form_data['outputs'].items():
-            if self.outputs[k]['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
+            otype = self.outputs[k]['qprocessing_type']
+            if otype in [
+                QgsProcessingOutputVectorLayer('').type(),
+                QgsProcessingOutputRasterLayer('').type(),
+                QgsProcessingOutputFile('').type(),
+            ]:
 
                 # Make directory by user Id
                 if 'user' in kwargs:
@@ -237,8 +256,16 @@ class QProcessingModel(object):
 
                 # Make output vector file path
                 name = f"{self.outputs[k]['label']}-{datetime.datetime.now()}"
-                ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS] else \
-                    settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
+
+                if otype == QgsProcessingOutputVectorLayer('').type():
+                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS] else \
+                            settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
+                elif otype == QgsProcessingOutputRasterLayer('').type():
+                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_RASTER_FORMATS] else \
+                            settings.QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT
+                else:
+                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_FILE_FORMATS] else \
+                            settings.QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT
                 params[self.outputs[k]['name']] = f"{save_path}{slugify(name)}.{ext}"
 
         return params
@@ -254,7 +281,11 @@ class QProcessingModel(object):
 
         out = {}
         for k, o in self.outputs.items():
-            if k in pres and o['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
+            if k in pres and o['qprocessing_type'] in [
+                QgsProcessingOutputVectorLayer('').type(),
+                QgsProcessingOutputRasterLayer('').type(),
+                QgsProcessingOutputFile('').type(),
+            ]:
                 f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
                 out[k] = reverse('qprocessing-download-output', args=(qprocessingproject_pk, project_pk,
                                                                       f.encrypt(pres[k].encode()).decode(),))

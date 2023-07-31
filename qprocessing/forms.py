@@ -23,7 +23,9 @@ from usersmanage.utils import crispyBoxACL
 from core.mixins.forms import G3WRequestFormMixin, G3WFormMixin
 from .models import QProcessingProject
 from .utils.data import QProcessingModel
-from .utils.exceptions import QProcessingInputException
+from .utils.exceptions import (
+    QProcessingInputException,
+    QProcessingOutputException)
 import os
 
 
@@ -107,11 +109,11 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WACLForm, G3WRequest
             is_valid, errors = QProcessingModel(model_file).validate()
         except QProcessingInputException as e:
             raise ValidationError(e)
+        except QProcessingOutputException as e:
+            raise ValidationError(e)
 
         if not is_valid:
             raise ValidationError(_(f'[Model Validation Errors] - {"; ".join(errors)}'))
-
-        #TODO: validate output, only supported types
 
         return model
 
