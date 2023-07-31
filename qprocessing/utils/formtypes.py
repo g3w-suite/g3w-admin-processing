@@ -199,6 +199,7 @@ class QProcessingFormTypeRasterLayer(QProcessingFormType):
         return {
             'input': {
                 'type': self.field_type,
+                'options': {}
             }
         }
 
