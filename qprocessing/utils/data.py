@@ -289,6 +289,7 @@ class QProcessingModel(object):
             if k in pres and o['qprocessing_type'] in [
                 QgsProcessingOutputVectorLayer('').type(),
                 QgsProcessingOutputRasterLayer('').type(),
+                QgsProcessingOutputHtml('').type(),
                 QgsProcessingOutputFile('').type(),
             ]:
                 f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
