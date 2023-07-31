@@ -294,6 +294,7 @@ class QProcessingFormTypeOutputRaster(QProcessingFormType):
         return {
             'input': {
                 'type': self.field_type,
+                'options': {}
             }
         }
 
@@ -309,6 +310,7 @@ class QProcessingFormTypeOutputFile(QProcessingFormType):
         return {
             'input': {
                 'type': self.field_type,
+                'options': {}
             }
         }
 
