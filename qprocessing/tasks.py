@@ -57,7 +57,6 @@ def run_model(url_params, form_data, **kwargs):
     ctf = QgsProcessingFeedback()
 
     ctx.setProject(prj)
-
     res = qpm.process_algorithm(params, ctx, ctf)
 
     # Replace outputs

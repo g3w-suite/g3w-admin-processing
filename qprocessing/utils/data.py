@@ -20,15 +20,16 @@ from qgis.core import \
 from qdjango.models import Project as QdjangoProject
 from core.utils.qgisapi import get_layer_fids_from_server_fids
 from .formtypes import \
-    (MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
-    MAPPING_QPROCESSINGTYPE_FORMTYPE, \
-    QgsProcessingParameterVectorLayer, \
-    QgsProcessingParameterFeatureSource, \
-    QgsProcessingOutputVectorLayer, \
-    QgsProcessingParameterBoolean, \
+    (MAPPING_PROCESSING_PARAMS_FORM_TYPE,
+    MAPPING_QPROCESSINGTYPE_FORMTYPE,
+    QgsProcessingParameterVectorLayer,
+    QgsProcessingParameterFeatureSource,
+    QgsProcessingOutputVectorLayer,
+    QgsProcessingParameterBoolean,
     QgsProcessingParameterField,
     QgsProcessingParameterRasterLayer,
      QgsProcessingOutputRasterLayer,
+     QgsProcessingOutputHtml,
      QgsProcessingOutputFile)
 from .exceptions import (
     QProcessingInputException,
@@ -242,6 +243,7 @@ class QProcessingModel(object):
             if otype in [
                 QgsProcessingOutputVectorLayer('').type(),
                 QgsProcessingOutputRasterLayer('').type(),
+                QgsProcessingOutputHtml('').type(),
                 QgsProcessingOutputFile('').type(),
             ]:
 
@@ -263,6 +265,9 @@ class QProcessingModel(object):
                 elif otype == QgsProcessingOutputRasterLayer('').type():
                     ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_RASTER_FORMATS] else \
                             settings.QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT
+                elif otype == QgsProcessingOutputHtml('').type():
+                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_HTML_FORMATS] else \
+                            settings.QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT
                 else:
                     ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_FILE_FORMATS] else \
                             settings.QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT
