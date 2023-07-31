@@ -311,7 +311,9 @@ class QProcessingFormTypeOutputFile(QProcessingFormType):
         return {
             'input': {
                 'type': self.field_type,
-                'options': {}
+                'options': {
+                    'values': settings.QPROCESSING_OUTPUT_FILE_FORMATS
+                }
             }
         }
 

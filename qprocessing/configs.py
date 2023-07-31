@@ -47,6 +47,13 @@ QPROCESSING_OUTPUT_VECTOR_FORMATS = [
     #'sqlite': 'SpatiaLite' # g3w-client cannot read this format
 ]
 
+QPROCESSING_OUTPUT_FILE_FORMATS = [
+    {
+        'value': 'pdf',
+        'key': 'PDF'
+    },
+]
+
 # For download of ouputs
 QPROCESSING_CRYPTO_KEY = b'aAf72grwGaZYH9R7ZaGHgSSbtQVXPplXB4wpiMsKtJM='
 
