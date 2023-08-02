@@ -203,37 +203,9 @@ class QProcessingModel(object):
         # Input cases
         # --------------------------------------
         for k, v in form_data['inputs'].items():
-            # Case:
-            # QgsProcessingParameterVectorLayer
-            # QgsProcessingParameterRasterLayer
-            # ---------------------------------------
-            if self.inputs[k]['qprocessing_type'] in (
-                    QgsProcessingParameterVectorLayer('').type(),
-                    QgsProcessingParameterRasterLayer('').type()):
-                params[k] = qgs_project.mapLayer(params[k]).source()
 
-            # Case QgsProcessingParameterFeatureSource
-            # ----------------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterFeatureSource('').type():
-
-                # Split by `:`
-                subparams = params[k].split(':')
-                qgs_layer = qgs_project.mapLayer(subparams[0])
-                if len(subparams) == 1:
-                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_layer.source())
-                else:
-                    qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
-                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
-
-            # Case QgsProcessingParameterBoolean
-            # ----------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterBoolean('').type():
-                params[k] = True if params[k].lower() == 'true' else False
-
-            # Case QProcessingFormTypeField
-            # ----------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterField('').type():
-                params[k] = params[k].split(',')
+            formtype = MAPPING_QPROCESSINGTYPE_FORMTYPE[self.inputs[k]['qprocessing_type']]
+            params[k] = formtype.create_model_params(qgs_project, params[k])
 
 
         # Outputs cases

@@ -51,13 +51,15 @@ from qgis.core import \
     QgsProcessingOutputRasterLayer, \
     QgsProcessingOutputFile, \
     QgsProcessingOutputHtml, \
-    QgsWkbTypes)
+    QgsWkbTypes,
+    QgsProcessingFeatureSourceDefinition)
 
 # Processing ouput types
 # ---------------------------------------
 from qgis.core import \
     QgsProcessingOutputVectorLayer
 from core.utils import structure
+from core.utils.qgisapi import get_layer_fids_from_server_fids
 
 # Mapping qprocessing parameters type
 MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
@@ -114,6 +116,18 @@ class QProcessingFormType(object):
     @property
     def input_form(self):
         return dict()
+
+    @staticmethod
+    def create_model_params(qgs_project, parameter):
+        '''
+        Method to make parameters for running model.
+        :params qgs_project: qdjango.model.Project instance.
+        :params parameter: POST data coming from g3w-client.
+        :return: Str, Object, ... for model running.
+        '''
+
+        return parameter
+
 
 class QProcessingFormTypeDistance(QProcessingFormType):
     """
@@ -179,6 +193,10 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
         -1: 'anygeometry'
     }
 
+    @staticmethod
+    def create_model_params(qgs_project, parameter):
+        return qgs_project.mapLayer(parameter).source()
+
     @property
     def input_form(self):
         return {
@@ -196,6 +214,10 @@ class QProcessingFormTypeRasterLayer(QProcessingFormType):
     """
 
     field_type = FORM_FIELD_TYPE_PRJRASTERLAYER
+
+    @staticmethod
+    def create_model_params(qgs_project, parameter):
+        return qgs_project.mapLayer(parameter).source()
 
     @property
     def input_form(self):
@@ -232,6 +254,10 @@ class QProcessingFormTypeBoolean(QProcessingFormType):
 
     field_type = FORM_FIELD_TYPE_CHECK
 
+    @staticmethod
+    def create_model_params(qgs_project, parameter):
+        return True if parameter.lower() == 'true' else False
+
     @property
     def input_form(self):
         return {
@@ -261,6 +287,10 @@ class QProcessingFormTypeField(QProcessingFormType):
         QgsProcessingParameterField.Any: 'any'
     }
 
+    @staticmethod
+    def create_model_params(qgs_project, parameter):
+        return parameter.split(',')
+
     @property
     def input_form(self):
         return {
@@ -283,6 +313,17 @@ class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
     """
 
     field_type = FORM_FIELD_TYPE_FEATURESOURCE
+
+    @staticmethod
+    def create_model_params(qgs_project, parameter):
+        # Split by `:`
+        subparams = parameter.split(':')
+        qgs_layer = qgs_project.mapLayer(subparams[0])
+        if len(subparams) == 1:
+            return QgsProcessingFeatureSourceDefinition(qgs_layer.source())
+        else:
+            qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
+            return QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
 
 # OUTPUT PROCESSING
 # -------------------------------------------------------------
