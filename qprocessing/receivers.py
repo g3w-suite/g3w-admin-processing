@@ -49,7 +49,8 @@ def set_initconfig_value(sender, **kwargs):
 
         # Adding QProcessingProject.pk
         dictmodel.update({
-            'id': qpp.pk
+            'id': qpp.pk,
+            'results': []
         })
         models.append(dictmodel)
 
