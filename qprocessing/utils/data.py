@@ -15,19 +15,13 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 from qgis.core import \
-    QgsProcessingModelAlgorithm, \
-    QgsProcessingFeatureSourceDefinition
+    QgsProcessingModelAlgorithm
 from qdjango.models import Project as QdjangoProject
 from core.utils.qgisapi import get_layer_fids_from_server_fids
 from .formtypes import \
     (MAPPING_PROCESSING_PARAMS_FORM_TYPE,
     MAPPING_QPROCESSINGTYPE_FORMTYPE,
-    QgsProcessingParameterVectorLayer,
-    QgsProcessingParameterFeatureSource,
     QgsProcessingOutputVectorLayer,
-    QgsProcessingParameterBoolean,
-    QgsProcessingParameterField,
-    QgsProcessingParameterRasterLayer,
      QgsProcessingOutputRasterLayer,
      QgsProcessingOutputHtml,
      QgsProcessingOutputFile)
@@ -205,45 +199,26 @@ class QProcessingModel(object):
         for k, v in form_data['inputs'].items():
 
             formtype = MAPPING_QPROCESSINGTYPE_FORMTYPE[self.inputs[k]['qprocessing_type']]
-            params[k] = formtype.create_model_params(qgs_project, params[k])
+            params[k] = formtype.update_model_params(qgs_project, params[k])
 
 
         # Outputs cases
         # --------------------------------------
+
+        # Make directory by user Id
+        if 'user' in kwargs:
+            save_path = f"{settings.QPROCESSING_OUTPUT_PATH}{kwargs['user'].pk}/"
+        else:
+            save_path = f"{settings.QPROCESSING_OUTPUT_PATH}nouser/"
+
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+
         for k, o in form_data['outputs'].items():
-            otype = self.outputs[k]['qprocessing_type']
-            if otype in [
-                QgsProcessingOutputVectorLayer('').type(),
-                QgsProcessingOutputRasterLayer('').type(),
-                QgsProcessingOutputHtml('').type(),
-                QgsProcessingOutputFile('').type(),
-            ]:
 
-                # Make directory by user Id
-                if 'user' in kwargs:
-                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}{kwargs['user'].pk}/"
-                else:
-                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}nouser/"
-
-                if not os.path.exists(save_path):
-                    os.mkdir(save_path)
-
-                # Make output vector file path
-                name = f"{self.outputs[k]['label']}-{datetime.datetime.now()}"
-
-                if otype == QgsProcessingOutputVectorLayer('').type():
-                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS] else \
-                            settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
-                elif otype == QgsProcessingOutputRasterLayer('').type():
-                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_RASTER_FORMATS] else \
-                            settings.QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT
-                elif otype == QgsProcessingOutputHtml('').type():
-                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_HTML_FORMATS] else \
-                            settings.QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT
-                else:
-                    ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_FILE_FORMATS] else \
-                            settings.QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT
-                params[self.outputs[k]['name']] = f"{save_path}{slugify(name)}.{ext}"
+            formtype = MAPPING_QPROCESSINGTYPE_FORMTYPE[self.outputs[k]['qprocessing_type']]
+            params[self.outputs[k]['name']] = formtype.update_model_params(qgs_project, o, self.outputs[k],
+                                                                           save_path=save_path)
 
         return params
 
