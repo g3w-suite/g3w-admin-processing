@@ -15,19 +15,19 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 from qgis.core import \
-    QgsProcessingModelAlgorithm, \
-    QgsProcessingFeatureSourceDefinition
+    QgsProcessingModelAlgorithm
 from qdjango.models import Project as QdjangoProject
 from core.utils.qgisapi import get_layer_fids_from_server_fids
 from .formtypes import \
-    MAPPING_PROCESSING_PARAMS_FORM_TYPE, \
-    MAPPING_QPROCESSINGTYPE_FORMTYPE, \
-    QgsProcessingParameterVectorLayer, \
-    QgsProcessingParameterFeatureSource, \
-    QgsProcessingOutputVectorLayer, \
-    QgsProcessingParameterBoolean, \
-    QgsProcessingParameterField
-from .exceptions import QProcessingInputException
+    (MAPPING_PROCESSING_PARAMS_FORM_TYPE,
+    MAPPING_QPROCESSINGTYPE_FORMTYPE,
+    QgsProcessingOutputVectorLayer,
+     QgsProcessingOutputRasterLayer,
+     QgsProcessingOutputHtml,
+     QgsProcessingOutputFile)
+from .exceptions import (
+    QProcessingInputException,
+    QProcessingOutputException)
 
 import os
 from cryptography.fernet import Fernet
@@ -123,6 +123,11 @@ class QProcessingModel(object):
         self.outputs = {}
         for od in self.model.outputDefinitions():
             qtype = od.type()
+
+            # Checking the type of processing if it is managed
+            if qtype not in MAPPING_PROCESSING_PARAMS_FORM_TYPE:
+                raise QProcessingOutputException(_(f'Processing output type`{qtype}` is not managed.'))
+
             ot = {
                 'name': od.name(),
                 'label': od.description(),
@@ -192,54 +197,28 @@ class QProcessingModel(object):
         # Input cases
         # --------------------------------------
         for k, v in form_data['inputs'].items():
-            # Case QgsProcessingParameterVectorLayer
-            # ---------------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterVectorLayer('').type():
-                params[k] = qgs_project.mapLayer(params[k]).source()
 
-            # Case QgsProcessingParameterFeatureSource
-            # ----------------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterFeatureSource('').type():
-
-                # Split by `:`
-                subparams = params[k].split(':')
-                qgs_layer = qgs_project.mapLayer(subparams[0])
-                if len(subparams) == 1:
-                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_layer.source())
-                else:
-                    qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
-                    params[k] = QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
-
-            # Case QgsProcessingParameterBoolean
-            # ----------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterBoolean('').type():
-                params[k] = True if params[k].lower() == 'true' else False
-
-            # Case QProcessingFormTypeField
-            # ----------------------------------
-            if self.inputs[k]['qprocessing_type'] == QgsProcessingParameterField('').type():
-                params[k] = params[k].split(',')
+            formtype = MAPPING_QPROCESSINGTYPE_FORMTYPE[self.inputs[k]['qprocessing_type']]
+            params[k] = formtype.update_model_params(qgs_project, params[k])
 
 
         # Outputs cases
         # --------------------------------------
+
+        # Make directory by user Id
+        if 'user' in kwargs:
+            save_path = f"{settings.QPROCESSING_OUTPUT_PATH}{kwargs['user'].pk}/"
+        else:
+            save_path = f"{settings.QPROCESSING_OUTPUT_PATH}nouser/"
+
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+
         for k, o in form_data['outputs'].items():
-            if self.outputs[k]['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
 
-                # Make directory by user Id
-                if 'user' in kwargs:
-                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}{kwargs['user'].pk}/"
-                else:
-                    save_path = f"{settings.QPROCESSING_OUTPUT_PATH}nouser/"
-
-                if not os.path.exists(save_path):
-                    os.mkdir(save_path)
-
-                # Make output vector file path
-                name = f"{self.outputs[k]['label']}-{datetime.datetime.now()}"
-                ext = o if o in [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS] else \
-                    settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
-                params[self.outputs[k]['name']] = f"{save_path}{slugify(name)}.{ext}"
+            formtype = MAPPING_QPROCESSINGTYPE_FORMTYPE[self.outputs[k]['qprocessing_type']]
+            params[self.outputs[k]['name']] = formtype.update_model_params(qgs_project, o, self.outputs[k],
+                                                                           save_path=save_path)
 
         return params
 
@@ -254,7 +233,12 @@ class QProcessingModel(object):
 
         out = {}
         for k, o in self.outputs.items():
-            if k in pres and o['qprocessing_type'] == QgsProcessingOutputVectorLayer('').type():
+            if k in pres and o['qprocessing_type'] in [
+                QgsProcessingOutputVectorLayer('').type(),
+                QgsProcessingOutputRasterLayer('').type(),
+                QgsProcessingOutputHtml('').type(),
+                QgsProcessingOutputFile('').type(),
+            ]:
                 f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
                 out[k] = reverse('qprocessing-download-output', args=(qprocessingproject_pk, project_pk,
                                                                       f.encrypt(pres[k].encode()).decode(),))

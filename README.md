@@ -27,6 +27,7 @@ At the moment the follow inputs and outputs feature of QGIS processing are suppo
 #### Outputs
 
 - VectorLayer (*QgsProcessingOutputVectorLayer*)
+- RasterLayer (*QgsProcessingOutputRasterLayer*)
 
 
 

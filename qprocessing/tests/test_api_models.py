@@ -14,7 +14,11 @@ from django.core.files import File
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from qprocessing.models import QProcessingProject
-from .base import TestQProcessingBase, MODEL_FILE_BUFFER, MODEL_FILE_POINTSPOLYGONS
+from .base import \
+    TestQProcessingBase, \
+    MODEL_FILE_BUFFER, \
+    MODEL_FILE_POINTSPOLYGONS, \
+    MODEL_FILE_INTERSECTIONS
 
 from qgis.core import QgsVectorLayer, QgsWkbTypes
 from qgis.PyQt.QtCore import QTemporaryDir
@@ -50,6 +54,12 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
             cls.qpp_pointspolygons.save()
 
         cls.qpp_pointspolygons.projects.add(cls.project.instance)
+
+        with open(cls.model_file_intersections, 'r') as f:
+            cls.qpp_intesections = QProcessingProject(model=File(f, name=MODEL_FILE_INTERSECTIONS.split('/')[1]))
+            cls.qpp_intesections.save()
+
+        cls.qpp_intesections.projects.add(cls.project.instance)
 
         # Create API REST post data
         # --------------------------------------------

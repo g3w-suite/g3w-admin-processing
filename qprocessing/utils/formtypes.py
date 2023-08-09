@@ -12,6 +12,7 @@ __license__ = 'MPL 2.0'
 
 
 from django.conf import settings
+from django.utils.text import slugify
 from core.utils.structure import \
     FORM_FIELD_TYPE_CHECK, \
     FORM_FIELD_TYPE_SELECT
@@ -22,7 +23,7 @@ from qdjango.utils.edittype import \
 # Processing input types
 # ---------------------------------------
 from qgis.core import \
-    QgsProcessingParameterDistance, \
+    (QgsProcessingParameterDistance, \
     QgsProcessingParameterVectorLayer, \
     QgsProcessingParameterField, \
     QgsProcessingParameterFeatureSource, \
@@ -48,16 +49,25 @@ from qgis.core import \
     QgsProcessingParameterCoordinateOperation, \
     QgsProcessingParameterRasterLayer, \
     QgsProcessingOutputVectorLayer, \
-    QgsWkbTypes
+    QgsProcessingOutputRasterLayer, \
+    QgsProcessingOutputFile, \
+    QgsProcessingOutputHtml, \
+    QgsWkbTypes,
+    QgsProcessingFeatureSourceDefinition)
 
 # Processing ouput types
 # ---------------------------------------
 from qgis.core import \
     QgsProcessingOutputVectorLayer
 from core.utils import structure
+from core.utils.qgisapi import get_layer_fids_from_server_fids
+
+import datetime
+import os
 
 # Mapping qprocessing parameters type
 MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
+    # Inputs
     QgsProcessingParameterDistance('').type(): structure.FIELD_TYPE_FLOAT,
     QgsProcessingParameterDateTime('').type(): structure.FIELD_TYPE_DATETIME,
     QgsProcessingParameterBoolean('').type(): structure.FIELD_TYPE_BOOLEAN,
@@ -66,10 +76,15 @@ MAPPING_PROCESSING_PARAMS_FORM_TYPE = {
     QgsProcessingParameterRange('').type(): structure.FIELD_TYPE_INTEGER,
     QgsProcessingParameterNumber('').type(): structure.FIELD_TYPE_INTEGER,
     QgsProcessingParameterExtent('').type(): structure.FIELD_TYPE_VARCHAR,
-    QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
     QgsProcessingParameterFeatureSource('').type(): structure.FIELD_TYPE_VARCHAR,
-    QgsProcessingParameterField('').type(): structure.FIELD_TYPE_VARCHAR
-    #TODO: add other QgsParamenters type
+    QgsProcessingParameterField('').type(): structure.FIELD_TYPE_VARCHAR,
+    #TODO: add other QgsProcessingParamenter* type
+    # Outputs
+    QgsProcessingOutputVectorLayer('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingOutputRasterLayer('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingOutputFile('').type(): structure.FIELD_TYPE_VARCHAR,
+    QgsProcessingOutputHtml('').type(): structure.FIELD_TYPE_VARCHAR,
+    #TODO: add other QgsProcessingOutput* type
 }
 
 # Specific Form Field Types for QProcessing client forms
@@ -84,6 +99,9 @@ FORM_FIELD_TYPE_FIELDCHOOSER = 'fieldchooser' # A select with multiple choosen o
 
 # For outputs
 FORM_FIELD_TYPE_OUTPUT_VECTORLAYER = 'outputvectorlayer' # Type to get outputvector type
+FORM_FIELD_TYPE_OUTPUT_RASTERLAYER = 'outputrasterlayer' # Type to get outputraster type
+FORM_FIELD_TYPE_OUTPUT_FILE = 'outputfile' # Type to get outputfile type
+FORM_FIELD_TYPE_OUTPUT_HTML = 'outputhtml' # Type to get outputfile type
 
 
 class QProcessingFormType(object):
@@ -102,6 +120,22 @@ class QProcessingFormType(object):
     @property
     def input_form(self):
         return dict()
+
+    @staticmethod
+    def update_model_params(qgs_project, parameter=None, output=None,**kwargs):
+        '''
+        Method to make parameters for running model.
+        :params qgs_project: qdjango.model.Project instance.
+        :params parameter: POST data coming from g3w-client.
+        :params output: Dict about outputs model.
+        :return: Str, Object, ... for model running.
+        '''
+
+        if parameter and output:
+            return output
+        else:
+            return parameter
+
 
 class QProcessingFormTypeDistance(QProcessingFormType):
     """
@@ -167,6 +201,10 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
         -1: 'anygeometry'
     }
 
+    @staticmethod
+    def update_model_params(qgs_project, parameter):
+        return qgs_project.mapLayer(parameter).source()
+
     @property
     def input_form(self):
         return {
@@ -185,11 +223,16 @@ class QProcessingFormTypeRasterLayer(QProcessingFormType):
 
     field_type = FORM_FIELD_TYPE_PRJRASTERLAYER
 
+    @staticmethod
+    def update_model_params(qgs_project, parameter):
+        return qgs_project.mapLayer(parameter).source()
+
     @property
     def input_form(self):
         return {
             'input': {
                 'type': self.field_type,
+                'options': {}
             }
         }
 
@@ -218,6 +261,10 @@ class QProcessingFormTypeBoolean(QProcessingFormType):
     """
 
     field_type = FORM_FIELD_TYPE_CHECK
+
+    @staticmethod
+    def update_model_params(qgs_project, parameter):
+        return True if parameter.lower() == 'true' else False
 
     @property
     def input_form(self):
@@ -248,6 +295,10 @@ class QProcessingFormTypeField(QProcessingFormType):
         QgsProcessingParameterField.Any: 'any'
     }
 
+    @staticmethod
+    def update_model_params(qgs_project, parameter):
+        return parameter.split(',')
+
     @property
     def input_form(self):
         return {
@@ -264,14 +315,119 @@ class QProcessingFormTypeField(QProcessingFormType):
             }
         }
 
+class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
+    """
+    FormType QProcessing class for type `vector` (QgsProcessingParameterVectorLayer)
+    """
+
+    field_type = FORM_FIELD_TYPE_FEATURESOURCE
+
+    @staticmethod
+    def update_model_params(qgs_project, parameter):
+        # Split by `:`
+        subparams = parameter.split(':')
+        qgs_layer = qgs_project.mapLayer(subparams[0])
+        if len(subparams) == 1:
+            return QgsProcessingFeatureSourceDefinition(qgs_layer.source())
+        else:
+            qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
+            return QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
+
 # OUTPUT PROCESSING
 # -------------------------------------------------------------
+class QProcessingFormTypeOutputRaster(QProcessingFormType):
+    """
+    FormType QProcessing class for type `outputraster` (QgsProcessingOutputRasterLayer)
+    """
+
+    field_type = FORM_FIELD_TYPE_OUTPUT_RASTERLAYER
+
+    @staticmethod
+    def update_model_params(qgs_project, parameter=None, output=None, **kwargs):
+        name = f"{output['label']}-{datetime.datetime.now()}"
+        vector_formats = [f['value'] for f in settings.QPROCESSING_OUTPUT_RASTER_FORMATS]
+        ext = parameter if parameter in vector_formats else settings.QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT
+
+        return f"{kwargs['save_path']}{slugify(name)}.{ext}"
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+                'options': {
+                    'values': settings.QPROCESSING_OUTPUT_RASTER_FORMATS
+                }
+            }
+        }
+
+class QProcessingFormTypeOutputFile(QProcessingFormType):
+    """
+    FormType QProcessing class for type `outputfile` (QgsProcessingOutputFile)
+    """
+
+    field_type = FORM_FIELD_TYPE_OUTPUT_FILE
+
+    @staticmethod
+    def update_model_params(qgs_project, parameter=None, output=None, **kwargs):
+        name = f"{output['label']}-{datetime.datetime.now()}"
+        vector_formats = [f['value'] for f in settings.QPROCESSING_OUTPUT_FILE_FORMATS]
+        ext = parameter if parameter in vector_formats else settings.QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT
+
+        return f"{kwargs['save_path']}{slugify(name)}.{ext}"
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+                'options': {
+                    'values': settings.QPROCESSING_OUTPUT_FILE_FORMATS
+                }
+            }
+        }
+
+class QProcessingFormTypeOutputHtml(QProcessingFormType):
+    """
+    FormType QProcessing class for type `outputhtml` (QgsProcessingOutputhtml)
+    """
+
+    field_type = FORM_FIELD_TYPE_OUTPUT_HTML
+
+    @staticmethod
+    def update_model_params(qgs_project, parameter=None, output=None, **kwargs):
+        name = f"{output['label']}-{datetime.datetime.now()}"
+        vector_formats = [f['value'] for f in settings.QPROCESSING_OUTPUT_HTML_FORMATS]
+        ext = parameter if parameter in vector_formats else settings.QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT
+
+        return f"{kwargs['save_path']}{slugify(name)}.{ext}"
+
+    @property
+    def input_form(self):
+        return {
+            'input': {
+                'type': self.field_type,
+                'options': {
+                    'values': settings.QPROCESSING_OUTPUT_HTML_FORMATS
+                }
+            }
+        }
+
 class QProcessingFormTypeOutputVector(QProcessingFormType):
     """
     FormType QProcessing class for type `outputvector` (QgsProcessingOutputVectorLayer)
     """
 
     field_type = FORM_FIELD_TYPE_OUTPUT_VECTORLAYER
+
+    @staticmethod
+    def update_model_params(qgs_project, parameter=None, output=None, **kwargs):
+
+        name = f"{output['label']}-{datetime.datetime.now()}"
+        vector_formats = [f['value'] for f in settings.QPROCESSING_OUTPUT_VECTOR_FORMATS]
+        ext = parameter if parameter in vector_formats else settings.QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
+
+        return f"{kwargs['save_path']}{slugify(name)}.{ext}"
 
     @property
     def input_form(self):
@@ -284,24 +440,20 @@ class QProcessingFormTypeOutputVector(QProcessingFormType):
             }
         }
 
-class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
-    """
-    FormType QProcessing class for type `vector` (QgsProcessingParameterVectorLayer)
-    """
-
-    field_type = FORM_FIELD_TYPE_FEATURESOURCE
-
-
-
 
 MAPPING_QPROCESSINGTYPE_FORMTYPE = {
+    # Inputs
     QgsProcessingParameterDistance('').type(): QProcessingFormTypeDistance,
     QgsProcessingParameterNumber('').type(): QProcessingFormTypeNumber,
     QgsProcessingParameterVectorLayer('').type(): QProcessingFormTypeVectorLayer,
     QgsProcessingParameterRasterLayer('').type(): QProcessingFormTypeRasterLayer,
     QgsProcessingParameterExtent('').type(): QProcessingFormTypeExtent,
-    QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
     QgsProcessingParameterFeatureSource('').type(): QProcessingFormTypeFeatureSource,
     QgsProcessingParameterBoolean('').type(): QProcessingFormTypeBoolean,
-    QgsProcessingParameterField('').type(): QProcessingFormTypeField
+    QgsProcessingParameterField('').type(): QProcessingFormTypeField,
+    # Outputs
+    QgsProcessingOutputVectorLayer('').type(): QProcessingFormTypeOutputVector,
+    QgsProcessingOutputRasterLayer('').type(): QProcessingFormTypeOutputRaster,
+    QgsProcessingOutputFile('').type(): QProcessingFormTypeOutputFile,
+    QgsProcessingOutputHtml('').type(): QProcessingFormTypeOutputHtml,
 }

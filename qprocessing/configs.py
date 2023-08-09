@@ -24,6 +24,9 @@ __BASE_ACTION_URL = '/api/action/'
 # Qprocessing path directory for model output files
 QPROCESSING_OUTPUT_PATH = '/tmp/'
 QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'geojson'
+QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT = 'tiff'
+QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT = 'pdf'
+QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT = 'html'
 
 # For Processing form type: input/output
 QPROCESSING_OUTPUT_VECTOR_FORMATS = [
@@ -45,6 +48,43 @@ QPROCESSING_OUTPUT_VECTOR_FORMATS = [
     }
     #'gpkg': 'GeoPackage', # g3w-client cannot read this format
     #'sqlite': 'SpatiaLite' # g3w-client cannot read this format
+]
+
+QPROCESSING_OUTPUT_FILE_FORMATS = [
+    {
+        'value': 'pdf',
+        'key': 'PDF'
+    },
+]
+
+QPROCESSING_OUTPUT_HTML_FORMATS = [
+    {
+        'value': 'html',
+        'key': 'HTML'
+    },
+]
+
+QPROCESSING_OUTPUT_RASTER_FORMATS = [
+    {
+        'value': 'vrt',
+        'key': 'VRT'
+    },
+    {
+        'value': 'tiff',
+        'key': 'TIFF'
+    },
+    {
+        'value': 'png',
+        'key': 'PNG'
+    },
+    {
+        'value': 'jpeg',
+        'key': 'JPEG'
+    },
+    {
+        'value': 'jpg',
+        'key': 'JPG'
+    },
 ]
 
 # For download of ouputs

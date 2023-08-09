@@ -15,3 +15,6 @@ class QProcessingException(Exception):
 
 class QProcessingInputException(QProcessingException):
     pass
+
+class QProcessingOutputException(QProcessingException):
+    pass
