@@ -10,10 +10,13 @@ __date__ = '2023-06-07'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
+from django.conf import settings
 from django.dispatch import receiver
+from django.db.models.signals import post_delete
+from django.core.files.storage import FileSystemStorage
 from guardian.shortcuts import get_objects_for_user
 from core.signals import initconfig_plugin_start
-from .models import QProcessingProject
+from .models import QProcessingProject, QProcessingInputUpload
 from .utils.data import QProcessingModel
 from .configs import __BASE_RUN_MODEL_URL, __BASE_TASK_INFO_URL, __BASE_ACTION_URL, __BASE_UPLOAD_URL
 
@@ -59,5 +62,12 @@ def set_initconfig_value(sender, **kwargs):
         'models': models
     })
 
-
     return toret
+
+@receiver(post_delete, sender=QProcessingInputUpload)
+def delete_input_upload_file(sender, **kwargs):
+
+    base_url = f"{kwargs['instance'].user.pk}/" if kwargs['instance'].user else f"nouser/"
+    base_url += "uploads/"
+    storage = FileSystemStorage(location=settings.QPROCESSING_INPUT_UPLOAD_PATH)
+    storage.delete(f"{base_url}{kwargs['instance'].name}")

@@ -15,7 +15,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import HttpResponseServerError
 from django.core.files import File
-from django.core.files.storage import default_storage, FileSystemStorage
+from django.core.files.storage import FileSystemStorage
 from rest_framework.response import Response
 from core.api.views import G3WAPIView
 from core.api.authentication import CsrfExemptSessionAuthentication
