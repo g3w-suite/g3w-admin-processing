@@ -211,7 +211,8 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
             'input': {
                 'type': self.field_type,
                 'options': {
-                    'datatypes': [self.TYPES[t] for t in self.data_types]
+                    'datatypes': [self.TYPES[t] for t in self.data_types],
+                    'values': []
                 }
             }
         }
@@ -232,7 +233,9 @@ class QProcessingFormTypeRasterLayer(QProcessingFormType):
         return {
             'input': {
                 'type': self.field_type,
-                'options': {}
+                'options': {
+                    'values': []
+                }
             }
         }
 
