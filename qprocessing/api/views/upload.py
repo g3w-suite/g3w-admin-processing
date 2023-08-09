@@ -79,7 +79,8 @@ class QProcessingInputUploadView(G3WAPIView):
 
         # Save file
         # -------------------------------------------------
-        save_path = f"{self.request.user.pk}/" if hasattr(self.request, 'user') else f"nouser/"
+        save_path = f"{self.request.user.pk}/" if hasattr(self.request, 'user') and not self.request.user.is_anonymous \
+            else f"nouser/"
         save_path += "uploads/"
 
         if not os.path.isdir(save_path):
@@ -92,10 +93,12 @@ class QProcessingInputUploadView(G3WAPIView):
 
         # Save data into db
         # -------------------------------------------------
-        qpia = QProcessingInputUpload.objects.create(user=self.request.user,
-                                      name=path.split('/')[-1],
-                                      qpp_id=kwargs['qprocessingproject_pk'],
-                                      input_name=kwargs['input_name'])
+        qpia = QProcessingInputUpload.objects.create(
+            user=self.request.user if not self.request.user.is_anonymous else None,
+            name=path.split('/')[-1],
+            qpp_id=kwargs['qprocessingproject_pk'],
+            input_name=kwargs['input_name']
+        )
 
         return qpia.uuid
 

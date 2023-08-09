@@ -133,7 +133,7 @@ class QProcessingInputUpload(TimeStampedModel):
     """
 
     name = models.TextField()
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     uuid = UUIDField(editable=True)
     input_name = models.CharField(max_length=400)
     qpp = models.ForeignKey(QProcessingProject, on_delete=models.CASCADE)
