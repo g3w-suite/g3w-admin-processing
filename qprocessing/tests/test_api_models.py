@@ -14,11 +14,17 @@ from django.core.files import File
 from django.urls import reverse
 from guardian.shortcuts import assign_perm
 from qprocessing.models import QProcessingProject
-from .base import \
-    TestQProcessingBase, \
-    MODEL_FILE_BUFFER, \
-    MODEL_FILE_POINTSPOLYGONS, \
-    MODEL_FILE_INTERSECTIONS
+from .base import (
+    TestQProcessingBase,
+    MODEL_FILE_BUFFER,
+    MODEL_FILE_POINTSPOLYGONS,
+    MODEL_FILE_INTERSECTIONS,
+    UPLOAD_FILE_POINT,
+    UPLOAD_FILE_POLYGON,
+    UPLOAD_FILE_LINESTRING,
+    UPLOAD_FILE_SHP_POLYGON_ZIP
+)
+
 
 from qgis.core import QgsVectorLayer, QgsWkbTypes
 from qgis.PyQt.QtCore import QTemporaryDir
@@ -253,5 +259,23 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
 
         res = self.client.post(url, data=self.buffer_post_data, content_type='application/json')
         self.assertEqual(res.status_code, 200)
+
+        self.client.logout()
+
+    def test_input_upload(self):
+        """
+        Test input upload API REST
+        """
+
+        url = reverse('qprocessing-action-input-upload', args=[self.qpp_buffer.pk, 'buffer_layer2'])
+
+
+        # Login as admin01
+        # ----------------------------------------------
+        self.client.login(
+            username=self.test_admin1.username, password=self.test_admin1.username
+        )
+
+        self.client.post(url, data={})
 
         self.client.logout()

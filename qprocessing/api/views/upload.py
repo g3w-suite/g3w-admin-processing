@@ -15,7 +15,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.http.response import HttpResponseServerError
 from django.core.files import File
-from django.core.files.storage import default_storage
+from django.core.files.storage import default_storage, FileSystemStorage
 from rest_framework.response import Response
 from core.api.views import G3WAPIView
 from core.api.authentication import CsrfExemptSessionAuthentication
@@ -41,9 +41,10 @@ class QProcessingInputUploadView(G3WAPIView):
 
     def post(self, request, *args, **kwargs):
 
+        response_status = 200
         try:
             if not request.FILES:
-                return HttpResponseServerError('No FILES are uploaded!')
+                return Exception('No FILES are uploaded!')
 
             to_ret = {}
 
@@ -55,11 +56,13 @@ class QProcessingInputUploadView(G3WAPIView):
                 'data': to_ret
             })
 
-        except HttpResponseServerError as e:
+        except Exception as e:
             self.results.result = False
-            self.results.update({'error': str(e)})
+            self.results.update({"error": str(e)})
+            response_status = 500
 
-        return Response(self.results.results)
+
+        return Response(self.results.results, status=response_status)
 
     def handle_file(self, f, **kwargs):
 
@@ -76,20 +79,21 @@ class QProcessingInputUploadView(G3WAPIView):
 
         # Save file
         # -------------------------------------------------
-        save_path = f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}"
-        save_path += f"{self.request.user.pk}/" if hasattr(self.request, 'user') else f"nouser/"
+        save_path = f"{self.request.user.pk}/" if hasattr(self.request, 'user') else f"nouser/"
         save_path += "uploads/"
 
         if not os.path.isdir(save_path):
             os.makedirs(save_path)
 
         File(f)
-        path = default_storage.save('{}/{}'.format(save_path, f.name), f)
+        storage  = FileSystemStorage(location=settings.QPROCESSING_INPUT_UPLOAD_PATH, base_url=save_path)
+        path = storage.save('{}/{}'.format(save_path, f.name), f)
+
 
         # Save data into db
         # -------------------------------------------------
         qpia = QProcessingInputUpload.objects.create(user=self.request.user,
-                                      name=f.name,
+                                      name=path.split('/')[-1],
                                       qpp_id=kwargs['qprocessingproject_pk'],
                                       input_name=kwargs['input_name'])
 

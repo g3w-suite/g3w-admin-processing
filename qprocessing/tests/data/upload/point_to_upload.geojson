@@ -1,0 +1,10 @@
+{
+"type": "FeatureCollection",
+"name": "point_to_upload",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "name": "Mars" }, "geometry": { "type": "Point", "coordinates": [ 1118743.978042365983129, 6002646.006447710096836 ] } },
+{ "type": "Feature", "properties": { "id": 2, "name": "Moon" }, "geometry": { "type": "Point", "coordinates": [ 1437037.682793735992163, 5864718.734388783574104 ] } },
+{ "type": "Feature", "properties": { "id": 3, "name": "Jupiter" }, "geometry": { "type": "Point", "coordinates": [ 1150573.34851750312373, 5758620.832804992794991 ] } }
+]
+}
