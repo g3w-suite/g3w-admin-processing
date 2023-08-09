@@ -12,36 +12,52 @@ __license__ = 'MPL 2.0'
 
 from django.urls import path
 from django.contrib.auth.decorators import login_required
-from .api.views import \
-    QProcessingRunModelView, \
-    QProcessingRunInfoTaskView, \
-    QProcessingDownLoadOutputView, \
-    QProcessingProjectViewerUsersView, \
-    QProcessingActionFieldsView
-from .configs import \
-    __BASE_RUN_MODEL_URL, \
-    __BASE_TASK_INFO_URL, \
-    __BASE_OUTPUT_URL, \
-    __BASE_ACTION_URL
+from .api.views import (
+    QProcessingRunModelView,
+    QProcessingRunInfoTaskView,
+    QProcessingDownLoadOutputView,
+    QProcessingProjectViewerUsersView,
+    QProcessingActionFieldsView,
+    QProcessingInputUploadView
+)
+from .configs import (
+    __BASE_RUN_MODEL_URL,
+    __BASE_TASK_INFO_URL,
+    __BASE_OUTPUT_URL,
+    __BASE_ACTION_URL,
+    __BASE_UPLOAD_URL
+ )
 
 urlpatterns = [
     # G3W-CLIENT API url:
     # ------------------------------------------------------
-    path(f'{__BASE_RUN_MODEL_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/', QProcessingRunModelView.as_view(),
+    path(f'{__BASE_RUN_MODEL_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/',
+         QProcessingRunModelView.as_view(),
          name='qprocessing-run-model'),
-    path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/', QProcessingRunInfoTaskView.as_view(), name='qprocessing-infotask'),
+
+    path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/',
+         QProcessingRunInfoTaskView.as_view(),
+         name='qprocessing-infotask'),
 
     # Outputs
     path(f'{__BASE_OUTPUT_URL[1:]}<int:qprocessingproject_pk>/<int:project_pk>/<str:encpath>/',
-         QProcessingDownLoadOutputView.as_view(), name='qprocessing-download-output'),
+         QProcessingDownLoadOutputView.as_view(),
+         name='qprocessing-download-output'),
 
-    # Actions: fitler_fields
-    path(f'{__BASE_ACTION_URL[1:]}fields/<int:project_id>/<str:qgs_layer_id>/', QProcessingActionFieldsView.as_view(),
+    # Actions: filter_fields
+    path(f'{__BASE_ACTION_URL[1:]}fields/<int:project_id>/<str:qgs_layer_id>/',
+         QProcessingActionFieldsView.as_view(),
         name='qprocessing-action-fields'),
+
+    # Actions: upload input file
+    path(f'{__BASE_UPLOAD_URL[1:]}inputupload/<int:qprocessingproject_pk>/<str:input_name>/',
+         QProcessingInputUploadView.as_view(),
+        name='qprocessing-action-input-upload'),
 
     # G3W-ADMIN API url:
     # ------------------------------------------------------
     # For form users
-    path('jx/project/viewer_users/', login_required(QProcessingProjectViewerUsersView.as_view()),
+    path('jx/project/viewer_users/',
+         login_required(QProcessingProjectViewerUsersView.as_view()),
         name='qprocessing-viewer-users'),
 ]
