@@ -50,7 +50,7 @@ urlpatterns = [
         name='qprocessing-action-fields'),
 
     # Actions: upload input file
-    path(f'{__BASE_UPLOAD_URL[1:]}inputupload/<int:qprocessingproject_pk>/<str:input_name>/',
+    path(f'{__BASE_UPLOAD_URL[1:]}/<int:qprocessingproject_pk>/<str:input_name>/',
          QProcessingInputUploadView.as_view(),
         name='qprocessing-action-input-upload'),
 
