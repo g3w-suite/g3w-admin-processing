@@ -53,7 +53,8 @@ from qgis.core import \
     QgsProcessingOutputFile, \
     QgsProcessingOutputHtml, \
     QgsWkbTypes,
-    QgsProcessingFeatureSourceDefinition)
+    QgsProcessingFeatureSourceDefinition,
+    QgsVectorLayer)
 
 # Processing ouput types
 # ---------------------------------------
@@ -136,6 +137,12 @@ class QProcessingFormType(object):
             return output
         else:
             return parameter
+
+    def validate_type(self, file_path):
+        """
+        Validate input type
+        """
+        pass
 
 
 class QProcessingFormTypeDistance(QProcessingFormType):
@@ -223,6 +230,25 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
             return base_path
         except:
             return None
+
+    def validate_type(self, file_path):
+        """
+        Check for correct geometry
+        """
+
+        vlayer = QgsVectorLayer(file_path)
+        if not vlayer.isValid():
+            raise Exception(f'{file_path} is no valid')
+
+        # If self.data_types contain -1 (anygeometry), return True
+        if -1 in self.data_types:
+            return True
+
+        if vlayer.geometryType() not in self.data_types:
+            raise Exception(f"Input file {file_path} must have a geometry type of:"
+                            f" {','.join([self.TYPES[t] for t in self.data_types])}")
+
+
     @property
     def input_form(self):
         return {
