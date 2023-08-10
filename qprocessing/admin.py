@@ -10,9 +10,12 @@ class QProcessingProjectAdmin(GuardedModelAdmin):
     )
 
 @admin.register(QProcessingInputUpload)
-class QProcessingInputUploadAdmin(GuardedModelAdmin):
+class QProcessingInputUploadAdmin(admin.ModelAdmin):
     list_display = (
         'uuid',
         'name',
-        'user'
+        'user',
+        'created'
     )
+
+    ordering = ['created']
