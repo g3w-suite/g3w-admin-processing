@@ -20,6 +20,8 @@ from .models import QProcessingProject, QProcessingInputUpload
 from .utils.data import QProcessingModel
 from .configs import __BASE_RUN_MODEL_URL, __BASE_TASK_INFO_URL, __BASE_ACTION_URL, __BASE_UPLOAD_URL
 
+import os
+
 @receiver(initconfig_plugin_start)
 def set_initconfig_value(sender, **kwargs):
     """
@@ -70,4 +72,11 @@ def delete_input_upload_file(sender, **kwargs):
     base_url = f"{kwargs['instance'].user.pk}/" if kwargs['instance'].user else f"nouser/"
     base_url += "uploads/"
     storage = FileSystemStorage(location=settings.QPROCESSING_INPUT_UPLOAD_PATH)
-    storage.delete(f"{base_url}{kwargs['instance'].name}")
+    if os.path.splitext(kwargs['instance'].name)[-1][1:].lower() == 'shp':
+
+        # Delete every shapefile files
+        for ext in settings.QPROCESSING_INPUT_SHP_EXTS + ['qix', 'cpg']:
+            fname = f"{os.path.splitext(kwargs['instance'].name)[0]}.{ext}"
+            storage.delete(f"{base_url}{fname}")
+    else:
+        storage.delete(f"{base_url}{kwargs['instance'].name}")

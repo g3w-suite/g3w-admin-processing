@@ -22,8 +22,12 @@ from core.api.authentication import CsrfExemptSessionAuthentication
 from qprocessing.api.permissions import RunModelPermission
 from qprocessing.models import QProcessingInputUpload
 
+from zipfile import ZipFile
 import os
+import tempfile
 
+#Try to fix
+os.path.sep = os.sep
 
 class QProcessingInputUploadView(G3WAPIView):
     """
@@ -79,16 +83,44 @@ class QProcessingInputUploadView(G3WAPIView):
 
         # Save file
         # -------------------------------------------------
-        save_path = f"{self.request.user.pk}/" if hasattr(self.request, 'user') and not self.request.user.is_anonymous \
+        save_path = (
+            f"{self.request.user.pk}/"
+            if hasattr(self.request, "user") and not self.request.user.is_anonymous
             else f"nouser/"
+        )
         save_path += "uploads/"
 
-        if not os.path.isdir(save_path):
-            os.makedirs(save_path)
+        if not os.path.isdir(f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{save_path}"):
+            os.makedirs(f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{save_path}")
 
-        File(f)
-        storage  = FileSystemStorage(location=settings.QPROCESSING_INPUT_UPLOAD_PATH, base_url=save_path)
-        path = storage.save('{}/{}'.format(save_path, f.name), f)
+        # Zip case for shp files
+        # --------------------------------------------------
+        if ext == 'zip':
+            zipf = ZipFile(f, mode='r')
+
+            # Check for shape files list
+            zip_filelist = [os.path.splitext(zf.filename)[-1][1:].lower() for zf in zipf.infolist()]
+            diff = set(settings.QPROCESSING_INPUT_SHP_EXTS) - set(zip_filelist)
+            if len(diff):
+                raise Exception(
+                    f"Zip file for shape files is not correct. " 
+                    f'Missing the following files type: {", ".join(diff)}'
+                )
+
+            # Unzip
+            for zf in zipf.infolist():
+
+                # Get path for QProcessingInputUpload
+                if os.path.splitext(zf.filename)[-1][1:].lower() == 'shp':
+                    path = f"{save_path}{zf.filename}"
+
+            zipf.extractall(path=f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{save_path}")
+            zipf.close()
+
+        else:
+            File(f)
+            storage  = FileSystemStorage(location=settings.QPROCESSING_INPUT_UPLOAD_PATH, base_url=save_path)
+            path = storage.save('{}/{}'.format(save_path, f.name), f)
 
 
         # Save data into db
