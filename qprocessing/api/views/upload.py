@@ -110,9 +110,10 @@ class QProcessingInputUploadView(G3WAPIView):
             else f"nouser/"
         )
         save_path += "uploads/"
+        absolute_save_path = f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{save_path}"
 
-        if not os.path.isdir(f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{save_path}"):
-            os.makedirs(f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{save_path}")
+        if not os.path.isdir(absolute_save_path):
+            os.makedirs(absolute_save_path)
 
         # Zip case for shp files
         # --------------------------------------------------
@@ -135,7 +136,7 @@ class QProcessingInputUploadView(G3WAPIView):
                 if os.path.splitext(zf.filename)[-1][1:].lower() == 'shp':
                     path = f"{save_path}{zf.filename}"
 
-            zipf.extractall(path=f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{save_path}")
+            zipf.extractall(path=absolute_save_path)
             zipf.close()
 
         else:
