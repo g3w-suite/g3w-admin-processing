@@ -21,7 +21,7 @@ from core.api.views import G3WAPIView
 from core.api.authentication import CsrfExemptSessionAuthentication
 from qprocessing.api.permissions import RunModelPermission
 from qprocessing.models import QProcessingInputUpload, QProcessingProject
-from qprocessing.utils.formtypes import MAPPING_QPROCESSINGTYPE_FORMTYPE
+from qprocessing.utils.formtypes import MAPPING_QPROCESSINGTYPE_FORMTYPE, QProcessingFormTypeException
 
 from zipfile import ZipFile
 import os
@@ -80,6 +80,11 @@ class QProcessingInputUploadView(G3WAPIView):
             self.results.update({
                 'data': to_ret
             })
+
+        except QProcessingInputUploadValidationException as e:
+            self.results.result = False
+            self.results.update({"error": str(e)})
+            response_status = 400
 
         except Exception as e:
             self.results.result = False
@@ -147,10 +152,13 @@ class QProcessingInputUploadView(G3WAPIView):
 
         # Check input data by type
         # --------------------------------------------------------------
-        dop = self.qpm.model.parameterDefinition(self.qpi.parameterName())
-        vmap = dop.toVariantMap()
-        ftype = MAPPING_QPROCESSINGTYPE_FORMTYPE[vmap['parameter_type']](**vmap)
-        ftype.validate_type(f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{path}")
+        try:
+            dop = self.qpm.model.parameterDefinition(self.qpi.parameterName())
+            vmap = dop.toVariantMap()
+            ftype = MAPPING_QPROCESSINGTYPE_FORMTYPE[vmap['parameter_type']](**vmap)
+            ftype.validate_type(f"{settings.QPROCESSING_INPUT_UPLOAD_PATH}{path}")
+        except QProcessingFormTypeException as e:
+            raise QProcessingInputUploadValidationException(e)
 
 
         # Save data into db

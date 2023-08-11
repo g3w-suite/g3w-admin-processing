@@ -106,6 +106,9 @@ FORM_FIELD_TYPE_OUTPUT_FILE = 'outputfile' # Type to get outputfile type
 FORM_FIELD_TYPE_OUTPUT_HTML = 'outputhtml' # Type to get outputfile type
 
 
+class QProcessingFormTypeException(Exception):
+    pass
+
 class QProcessingFormType(object):
     """
     Base class to render form config structure for g3w-client
@@ -238,14 +241,14 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
 
         vlayer = QgsVectorLayer(file_path)
         if not vlayer.isValid():
-            raise Exception(f'{file_path} is no valid')
+            raise QProcessingFormTypeException(f'{file_path} is no valid')
 
         # If self.data_types contain -1 (anygeometry), return True
         if -1 in self.data_types:
             return True
 
         if vlayer.geometryType() not in self.data_types:
-            raise Exception(f"Input file {file_path} must have a geometry type of:"
+            raise QProcessingFormTypeException(f"Input file {file_path} must have a geometry type of:"
                             f" {','.join([self.TYPES[t] for t in self.data_types])}")
 
 
