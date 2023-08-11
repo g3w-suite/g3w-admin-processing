@@ -9,7 +9,7 @@ body:
       description: >
         Please confirm the following:
       options:
-        - label: I've searched through the [current issues](https://github.com/g3w-suite/g3w-admin/issues) to make sure this feature hasn't been requested already.
+        - label: I've searched through the [current issues](https://github.com/g3w-suite/g3w-admin-processing/issues) to make sure this feature hasn't been requested already.
           required: false
 
   - type: textarea
