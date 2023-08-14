@@ -127,7 +127,8 @@ class QProcessingInputUploadView(G3WAPIView):
 
             # Check for shape files list
             zip_filelist = [os.path.splitext(zf.filename)[-1][1:].lower() for zf in zipf.infolist()]
-            diff = set(settings.QPROCESSING_INPUT_SHP_EXTS) - set(zip_filelist)
+            diff = list(set(settings.QPROCESSING_INPUT_SHP_EXTS) - set(zip_filelist))
+            diff.sort()
             if len(diff):
                 raise QProcessingInputUploadValidationException(
                     f"Zip file for shape files is not correct. " 

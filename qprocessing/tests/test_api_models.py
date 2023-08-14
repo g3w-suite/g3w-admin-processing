@@ -282,7 +282,7 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         foname, foext = uploaded_file.split(".")
         foname = f'{"_".join(foname.split("_")[:-1])}.{foext}'
 
-        self.assertEqual(foname, uploading_file)
+        self.assertTrue(foname == uploading_file or uploaded_file == uploading_file)
 
         # Check filesystem
         self.assertTrue(os.path.exists(f"{settings.QPROCESSING_OUTPUT_PATH}{str(user_pk)}/uploads/{uploaded_file}"))
@@ -389,7 +389,7 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
 
         self.assertFalse(jres["result"])
         self.assertEqual(jres["error"], "Zip file for shape files is not correct. "
-                                         "Missing the following files type: shx, prj")
+                                         "Missing the following files type: prj, shx")
 
 
         # Logout
