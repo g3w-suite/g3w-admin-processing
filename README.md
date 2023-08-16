@@ -1,4 +1,4 @@
-# G3W-ADMIN-PROCESSING
+# G3W-ADMIN-QPROCESSING v1.0.1-beta.0
 
 A G3W-ADMIN module to use processing features fo QGIS application inside G3W-SUITE framework.
 Is possible upload a QGIS processing model file `.model3` inside G3W-ADMIN to get the Processing form available 
