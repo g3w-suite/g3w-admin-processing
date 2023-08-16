@@ -10,15 +10,26 @@ __date__ = '2023-07-07'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
+from django.conf import settings
 from django.core.files import File
 from django.urls import reverse
+from django.core.files.uploadedfile import SimpleUploadedFile
 from guardian.shortcuts import assign_perm
-from qprocessing.models import QProcessingProject
-from .base import \
-    TestQProcessingBase, \
-    MODEL_FILE_BUFFER, \
-    MODEL_FILE_POINTSPOLYGONS, \
-    MODEL_FILE_INTERSECTIONS
+from qprocessing.models import QProcessingProject, QProcessingInputUpload
+from .base import (
+    CURRENT_PATH,
+    TEST_BASE_PATH,
+    TestQProcessingBase,
+    MODEL_FILE_BUFFER,
+    MODEL_FILE_POINTSPOLYGONS,
+    MODEL_FILE_INTERSECTIONS,
+    UPLOAD_FILE_POINT,
+    UPLOAD_FILE_POLYGON,
+    UPLOAD_FILE_LINESTRING,
+    UPLOAD_FILE_SHP_POLYGON_ZIP,
+    UPLOAD_FILE_SHP_POLYGON_ZIP_FAIL
+)
+
 
 from qgis.core import QgsVectorLayer, QgsWkbTypes
 from qgis.PyQt.QtCore import QTemporaryDir
@@ -27,6 +38,7 @@ import json
 import zipfile
 import time
 from io import BytesIO
+import os
 
 
 class TestQProcessingModelsAPIREST(TestQProcessingBase):
@@ -254,4 +266,132 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         res = self.client.post(url, data=self.buffer_post_data, content_type='application/json')
         self.assertEqual(res.status_code, 200)
 
+        self.client.logout()
+
+    def __check_filename_uploaded(self, uploading_file:str, uploaded_file:str, user_pk:int) -> None:
+        """
+        Private method for comparison of uploading file name and uploaded file name.
+        Is used Django FileSystemStorage class that replace file name if a file with same name exists:
+            - uploding_file = 'point_to_upload.geojson'
+            - uploaded_file = 'point_to_upload_zTF77Rn.geojson'
+        """
+
+        if "/" in uploading_file:
+            uploading_file = uploading_file.split("/")[1]
+
+        foname, foext = uploaded_file.split(".")
+        foname = f'{"_".join(foname.split("_")[:-1])}.{foext}'
+
+        self.assertTrue(foname == uploading_file or uploaded_file == uploading_file)
+
+        # Check filesystem
+        self.assertTrue(os.path.exists(f"{settings.QPROCESSING_OUTPUT_PATH}{str(user_pk)}/uploads/{uploaded_file}"))
+
+
+    def __create_simplesploadedsile(self, file_to_upload:str, mime_type:str="application/json") -> list:
+        """
+        Create a list of SimpleUploadedFile instance for self.client.post data
+        """
+
+        with open(os.path.join(CURRENT_PATH, TEST_BASE_PATH, file_to_upload), 'rb') as f:
+            geofile = [
+                SimpleUploadedFile(file_to_upload.split('/')[1], f.read(), content_type=mime_type)
+            ]
+        return geofile
+
+    def __deleted_upaded_files(self, uploaded_filed:list) -> None:
+        pass
+
+    def test_input_upload(self):
+        """
+        Test input upload API REST
+        """
+
+        url = reverse(
+            'qprocessing-action-input-upload',
+            args=[self.qpp_buffer.pk, self.project.instance.pk, 'buffer_layer2']
+        )
+
+
+        # Login as admin01
+        # ----------------------------------------------
+        self.client.login(
+            username=self.test_admin1.username, password=self.test_admin1.username
+        )
+
+        # Check for input buffer_layer2: point and polygon
+        # ------------------------------------------------
+        # Point
+        geofile = self.__create_simplesploadedsile(UPLOAD_FILE_POINT)
+
+        res = self.client.post(url, data={'file': geofile})
+
+        self.assertEqual(res.status_code, 200)
+        jres = json.loads(res.content)
+
+        self.assertTrue(jres['result'])
+
+        qpiu = QProcessingInputUpload.objects.get(uuid= jres['data']['file'])
+        self.__check_filename_uploaded(UPLOAD_FILE_POINT, qpiu.name, self.test_admin1.pk)
+
+        # Polygon
+        geofile = self.__create_simplesploadedsile(UPLOAD_FILE_POLYGON)
+        
+        res = self.client.post(url, data={"file": geofile})
+        
+        self.assertEqual(res.status_code, 200)
+        jres = json.loads(res.content)
+        
+        self.assertTrue(jres["result"])
+        
+        qpiu = QProcessingInputUpload.objects.get(uuid=jres["data"]["file"])
+        self.__check_filename_uploaded(UPLOAD_FILE_POLYGON, qpiu.name, self.test_admin1.pk)
+
+        # Line: not possible
+        geofile = self.__create_simplesploadedsile(UPLOAD_FILE_LINESTRING)
+        
+        res = self.client.post(url, data={"file": geofile})
+        
+        self.assertEqual(res.status_code, 400)
+        jres = json.loads(res.content)
+        
+        self.assertFalse(jres["result"])
+        self.assertTrue("must have a geometry type of: point,polygon" in jres["error"])
+
+
+        # Check upload ZIP file for SHP
+        geofile = self.__create_simplesploadedsile(UPLOAD_FILE_SHP_POLYGON_ZIP)
+        
+        res = self.client.post(url, data={"file": geofile})
+        
+        self.assertEqual(res.status_code, 200)
+        jres = json.loads(res.content)
+        
+        self.assertTrue(jres["result"])
+        
+        qpiu = QProcessingInputUpload.objects.get(uuid=jres["data"]["file"])
+        self.assertEqual(f'{UPLOAD_FILE_SHP_POLYGON_ZIP.split("/")[-1].split(".")[0]}.shp', qpiu.name)
+
+        for ext in settings.QPROCESSING_INPUT_SHP_EXTS:
+            self.assertTrue(
+                os.path.exists(
+                    f"{settings.QPROCESSING_OUTPUT_PATH}{str(self.test_admin1.pk)}/uploads/{qpiu.name.split('.')[0]}.{ext}"
+                )
+            )
+        
+        # Upload not correct ZIP file for shp
+        geofile = self.__create_simplesploadedsile(UPLOAD_FILE_SHP_POLYGON_ZIP_FAIL)
+        
+        res = self.client.post(url, data={"file": geofile})
+        
+        self.assertEqual(res.status_code, 400)
+        jres = json.loads(res.content)
+
+        self.assertFalse(jres["result"])
+        self.assertEqual(jres["error"], "Zip file for shape files is not correct. "
+                                         "Missing the following files type: prj, shx")
+
+
+        # Logout
+        # ----------------------------------------------
         self.client.logout()

@@ -1,4 +1,4 @@
-# G3W-ADMIN-PROCESSING
+# G3W-ADMIN-QPROCESSING v1.0.1-beta.0
 
 A dedicated [QGIS Processing](https://docs.qgis.org/3.28/en/docs/training_manual/processing/index.html) module for G3W-SUITE framework:
 

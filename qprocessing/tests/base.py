@@ -31,6 +31,13 @@ MODEL_FILE_POINTSPOLYGONS = 'models/qpointspolygons.model3'
 QGS_PROJECT_FILE = 'test_qgis_328.qgs'
 QGS_PROJECT_QPROCESSING_FILE = 'qprocessing_qprocessing.qgs'
 
+# Upload file
+UPLOAD_FILE_POINT = 'upload/point_to_upload.geojson'
+UPLOAD_FILE_POLYGON = 'upload/polygon_to_upload.geojson'
+UPLOAD_FILE_LINESTRING = 'upload/linestring_to_upload.geojson'
+UPLOAD_FILE_SHP_POLYGON_ZIP = 'upload/shp_to_upload.zip'
+UPLOAD_FILE_SHP_POLYGON_ZIP_FAIL = 'upload/fail_shp_to_upload.zip'
+
 
 @override_settings(
     CACHES={

@@ -20,8 +20,6 @@ import os
 
 class TestQprocessingAlgorithm(TestQProcessingBase):
 
-    databases = {}
-
     def test_run(self):
         """
         Test runnong QGIS processing running
@@ -34,7 +32,7 @@ class TestQprocessingAlgorithm(TestQProcessingBase):
         self.assertTrue(prj.mapLayer('buildings_7783caca_93e9_4c17_9770_1fd8e82f7109').isValid())
 
         #ingresso1 = './buildings.geojson'
-        ingresso1 = os.path.join(CURRENT_PATH, TEST_BASE_PATH, 'buildings.geojson')
+        ingresso1 = os.path.join(CURRENT_PATH, TEST_BASE_PATH, 'project_data/buildings.geojson')
         result_path = os.path.join(CURRENT_PATH, TEST_BASE_PATH, 'processing_result', 'out.shp')
 
         params = {
@@ -49,6 +47,6 @@ class TestQprocessingAlgorithm(TestQProcessingBase):
 
         res = qpm.model.processAlgorithm(params, ctx, ctf)
 
-        aspected_res = {'CHILD_INPUTS': {'native:buffer_1': {'DISSOLVE': False, 'DISTANCE': 1000, 'END_CAP_STYLE': 0, 'INPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/buildings.geojson', 'JOIN_STYLE': 0, 'MITER_LIMIT': None, 'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp', 'SEGMENTS': None}}, 'CHILD_RESULTS': {'native:buffer_1': {'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}}, 'layer_bufferd': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}
+        aspected_res = {'CHILD_INPUTS': {'native:buffer_1': {'DISSOLVE': False, 'DISTANCE': 1000, 'END_CAP_STYLE': 0, 'INPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/project_data/buildings.geojson', 'JOIN_STYLE': 0, 'MITER_LIMIT': None, 'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp', 'SEGMENTS': None}}, 'CHILD_RESULTS': {'native:buffer_1': {'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}}, 'layer_bufferd': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}
 
         self.assertEqual(res, aspected_res)

@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "linestring_to_upload",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:EPSG::3857" } },
+"features": [
+{ "type": "Feature", "properties": { "id": 1, "name": "Sword" }, "geometry": { "type": "LineString", "coordinates": [ [ 1118743.978042365983129, 6002646.006447710096836 ], [ 1004158.244331872672774, 6242427.264027075842023 ], [ 1146329.432454151567072, 6335793.417420811019838 ], [ 1171792.928834260907024, 6520403.766176605597138 ] ] } },
+{ "type": "Feature", "properties": { "id": 2, "name": "Knife" }, "geometry": { "type": "LineString", "coordinates": [ [ 1307598.242861512117088, 5699206.007918071001768 ], [ 1492208.59161730716005, 5909279.853053974919021 ], [ 1721380.059038293547928, 5786206.287216778844595 ] ] } }
+]
+}

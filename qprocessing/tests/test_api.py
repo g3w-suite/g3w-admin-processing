@@ -36,8 +36,7 @@ class TestQProcessingUtils(TestQProcessingBase):
         qpm = QProcessingModel(self.model_file)
 
         # Testing render2dict
-        aspected_dict = {'name': 'test_buffer_all_inputs', 'display_name': 'test_buffer_all_inputs', 'inputs': [{'name': 'buffer_distance', 'label': 'Buffer distance', 'type': 'float', 'qprocessing_type': 'distance', 'default': 1000.0, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'range', 'options': {'default': 1000.0, 'values': [{'min': 10.0, 'max': 20000.0, 'step': 1}]}}}, {'name': 'buffer_miter_limit', 'label': 'Buffer miter limit', 'type': 'integer', 'qprocessing_type': 'number', 'default': 2.0, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'range', 'options': {'default': 2.0, 'values': [{'min': 0.0, 'max': 10.0, 'step': 1}]}}}, {'name': 'buffer_segments', 'label': 'Buffer segments', 'type': 'integer', 'qprocessing_type': 'number', 'default': 2.0, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'range', 'options': {'default': 2.0, 'values': [{'min': 0.0, 'max': 10.0, 'step': 1}]}}}, {'name': 'ingresso1', 'label': 'Ingresso1', 'type': 'varchar', 'qprocessing_type': 'vector', 'default': None, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'prjvectorlayer', 'options': {'datatypes': ['polygon']}}}], 'outputs': [{'name': 'layer_bufferd', 'label': 'Layer bufferd', 'qprocessing_type': 'outputVector', 'type': 'varchar', 'default': None, 'validate': {'required': True}, 'input': {'type': 'outputvectorlayer', 'options': {'values': [{'value': 'shp', 'key': 'Shapefile'}, {'value': 'geojson', 'key': 'GeoJSON'}, {'value': 'kml', 'key': 'KML'}, {'value': 'kmz', 'key': 'KMZ'}]}}}]}
-
+        aspected_dict = {'name': 'test_buffer_all_inputs', 'display_name': 'test_buffer_all_inputs', 'inputs': [{'name': 'buffer_distance', 'label': 'Buffer distance', 'type': 'float', 'qprocessing_type': 'distance', 'default': 1000.0, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'range', 'options': {'default': 1000.0, 'values': [{'min': 10.0, 'max': 20000.0, 'step': 1}]}}}, {'name': 'buffer_miter_limit', 'label': 'Buffer miter limit', 'type': 'integer', 'qprocessing_type': 'number', 'default': 2.0, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'range', 'options': {'default': 2.0, 'values': [{'min': 0.0, 'max': 10.0, 'step': 1}]}}}, {'name': 'buffer_segments', 'label': 'Buffer segments', 'type': 'integer', 'qprocessing_type': 'number', 'default': 2.0, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'range', 'options': {'default': 2.0, 'values': [{'min': 0.0, 'max': 10.0, 'step': 1}]}}}, {'name': 'ingresso1', 'label': 'Ingresso1', 'type': 'varchar', 'qprocessing_type': 'vector', 'default': None, 'editable': True, 'validate': {'required': True}, 'input': {'type': 'prjvectorlayer', 'options': {'datatypes': ['polygon'], 'values': []}}}], 'outputs': [{'name': 'layer_bufferd', 'label': 'Layer bufferd', 'qprocessing_type': 'outputVector', 'type': 'varchar', 'default': None, 'validate': {'required': True}, 'input': {'type': 'outputvectorlayer', 'options': {'values': [{'value': 'shp', 'key': 'Shapefile'}, {'value': 'geojson', 'key': 'GeoJSON'}, {'value': 'kml', 'key': 'KML'}, {'value': 'kmz', 'key': 'KMZ'}]}}}]}
         self.assertEqual(qpm.render2dict(), aspected_dict)
 
         # Testing make_model_params
@@ -167,6 +166,7 @@ class TestQProcessingActionAPIREST(TestQProcessingBase):
         self.assertEqual(jres, aspected_all)
 
         self.client.logout()
+
 
 
 

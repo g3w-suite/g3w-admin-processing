@@ -165,6 +165,13 @@ class QProcessingModel(object):
 
         return [flag for flag in fit_bits(flags)]
 
+    def get_qgsprocessingparameter(self, name):
+        """
+        Return the QgsProcessingModelParameter by name
+        """
+
+        return self.model.parameterComponent(name)
+
     def render2dict(self):
         """
         Render properties to json

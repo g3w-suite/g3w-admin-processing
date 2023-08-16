@@ -14,6 +14,8 @@ __license__ = 'MPL 2.0'
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from qdjango.models import Project
+from model_utils.models import TimeStampedModel
+from model_utils.fields import UUIDField
 from usersmanage.utils import get_users_for_object, get_groups_for_object, setPermissionUserObject
 from usersmanage.configs import G3W_VIEWER1, G3W_VIEWER2, G3W_EDITOR2, G3W_EDITOR1
 from usersmanage.models import User, Group as AuthGroup
@@ -121,6 +123,20 @@ class QProcessingProject(models.Model):
             auth_group = AuthGroup.objects.get(pk=group_id)
             setPermissionUserObject(auth_group, self, permissions=['run_model'],
                                     mode=mode)
+
+
+
+
+class QProcessingInputUpload(TimeStampedModel):
+    """
+    Model to save information about files uploaded for processing inputs.
+    """
+
+    name = models.TextField()
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    uuid = UUIDField(editable=True)
+    input_name = models.CharField(max_length=400)
+    qpp = models.ForeignKey(QProcessingProject, on_delete=models.CASCADE)
 
 
 

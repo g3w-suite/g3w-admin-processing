@@ -53,7 +53,8 @@ from qgis.core import \
     QgsProcessingOutputFile, \
     QgsProcessingOutputHtml, \
     QgsWkbTypes,
-    QgsProcessingFeatureSourceDefinition)
+    QgsProcessingFeatureSourceDefinition,
+    QgsVectorLayer)
 
 # Processing ouput types
 # ---------------------------------------
@@ -61,6 +62,7 @@ from qgis.core import \
     QgsProcessingOutputVectorLayer
 from core.utils import structure
 from core.utils.qgisapi import get_layer_fids_from_server_fids
+
 
 import datetime
 import os
@@ -104,6 +106,9 @@ FORM_FIELD_TYPE_OUTPUT_FILE = 'outputfile' # Type to get outputfile type
 FORM_FIELD_TYPE_OUTPUT_HTML = 'outputhtml' # Type to get outputfile type
 
 
+class QProcessingFormTypeException(Exception):
+    pass
+
 class QProcessingFormType(object):
     """
     Base class to render form config structure for g3w-client
@@ -135,6 +140,12 @@ class QProcessingFormType(object):
             return output
         else:
             return parameter
+
+    def validate_type(self, file_path):
+        """
+        Validate input type
+        """
+        pass
 
 
 class QProcessingFormTypeDistance(QProcessingFormType):
@@ -203,7 +214,43 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
 
     @staticmethod
     def update_model_params(qgs_project, parameter):
-        return qgs_project.mapLayer(parameter).source()
+
+        # Case uploaded input file
+        # --------------------------------------------
+        # Split by `:`
+        subparams = parameter.split(":")
+        if len(subparams) == 0:
+            return qgs_project.mapLayer(parameter).source()
+
+        # Build path to file
+        from qprocessing.models import QProcessingInputUpload
+        try:
+            qpiu = QProcessingInputUpload.objects.get(uuid=subparams[1])
+            base_path = settings.QPROCESSING_INPUT_UPLOAD_PATH
+            base_path += f"{qpiu.user.pk}/" if qpiu.user else f"nouser/"
+            base_path += f"uploads/{qpiu.name}"
+
+            return base_path
+        except:
+            return None
+
+    def validate_type(self, file_path):
+        """
+        Check for correct geometry
+        """
+
+        vlayer = QgsVectorLayer(file_path)
+        if not vlayer.isValid():
+            raise QProcessingFormTypeException(f'{file_path} is no valid')
+
+        # If self.data_types contain -1 (anygeometry), return True
+        if -1 in self.data_types:
+            return True
+
+        if vlayer.geometryType() not in self.data_types:
+            raise QProcessingFormTypeException(f"Input file {file_path} must have a geometry type of:"
+                            f" {','.join([self.TYPES[t] for t in self.data_types])}")
+
 
     @property
     def input_form(self):
@@ -211,7 +258,8 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
             'input': {
                 'type': self.field_type,
                 'options': {
-                    'datatypes': [self.TYPES[t] for t in self.data_types]
+                    'datatypes': [self.TYPES[t] for t in self.data_types],
+                    'values': []
                 }
             }
         }
@@ -232,7 +280,9 @@ class QProcessingFormTypeRasterLayer(QProcessingFormType):
         return {
             'input': {
                 'type': self.field_type,
-                'options': {}
+                'options': {
+                    'values': []
+                }
             }
         }
 

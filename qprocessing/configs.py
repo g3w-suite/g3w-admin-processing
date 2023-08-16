@@ -16,6 +16,7 @@ __BASE_RUN_MODEL_URL = '/api/run/'
 __BASE_TASK_INFO_URL = '/api/infotask/'
 __BASE_OUTPUT_URL = '/api/download/'
 __BASE_ACTION_URL = '/api/action/'
+__BASE_UPLOAD_URL = '/api/upload/'
 
 
 # Customizable settings
@@ -23,10 +24,39 @@ __BASE_ACTION_URL = '/api/action/'
 
 # Qprocessing path directory for model output files
 QPROCESSING_OUTPUT_PATH = '/tmp/'
+QPROCESSING_INPUT_UPLOAD_PATH = QPROCESSING_OUTPUT_PATH
 QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'geojson'
 QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT = 'tiff'
 QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT = 'pdf'
 QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT = 'html'
+
+QPROCESSING_INPUT_SHP_EXTS = ['shp', 'shx', 'prj', 'dbf', 'shx']
+
+# Formats available for input upload
+QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS = [
+    {
+        'value': 'zip',
+        'key': 'Shapefile'
+    },
+    {
+        'value': 'geojson',
+        'key': 'GeoJSON'
+    },
+    {
+        'value': 'kml',
+        'key': 'KML'
+    },
+    {
+        'value': 'gpkg',
+        'key': 'GeoPackage'
+    },
+    {
+        'value': 'sqlite',
+        'key': 'Sqlite/Spatialite'
+    }
+
+]
+
 
 # For Processing form type: input/output
 QPROCESSING_OUTPUT_VECTOR_FORMATS = [
