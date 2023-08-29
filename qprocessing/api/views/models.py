@@ -26,7 +26,7 @@ from usersmanage.configs import G3W_VIEWER2, G3W_VIEWER1
 from usersmanage.forms import label_users
 from qdjango.models import Project
 from qprocessing.utils.data import QProcessingModel
-from qprocessing.tasks import run_model_task, run_model, run_model_celery_task
+from qprocessing.tasks import run_model_task, run_model, run_model_celery_task, run_model_celery_task
 from qprocessing.models import QProcessingProject
 from qprocessing.api.permissions import RunModelPermission
 
@@ -54,6 +54,12 @@ class QProcessingRunModelView(G3WAPIView):
         """
 
         task = run_model_task(kwargs, request.data, **{'user': request.user})
+
+        # Test celery
+        # class tsk:
+        #     pass
+        # task = tsk()
+        # task.id = run_model_celery_task.delay(kwargs, request.data, **{'user_pk': request.user.pk})
 
         self.results.results.update({
                 'task_id': task.id

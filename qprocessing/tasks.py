@@ -13,6 +13,7 @@ __license__ = 'MPL 2.0'
 from functools import wraps
 
 from django.db import close_old_connections
+from django.contrib.auth.models import User
 from huey.contrib.djhuey import HUEY
 from huey_monitor.tqdm import ProcessInfo
 from celery import shared_task, current_task
@@ -115,7 +116,9 @@ def run_model_task(url_params, form_data, task, **kwargs):
     #return run_model(qpp.pk, url_params['project_pk'], params)
     return run_model(url_params, form_data, **kwargs)
 
-@shared_task(name='run_model', bind=True)
-def run_model_celery_task(self, qprocessing_project_pk, project_pk, params):
+@shared_task(name='run_model_celery', bind=True)
+def run_model_celery_task(self, url_params, form_data, **kwargs):
 
-    return run_model(qprocessing_project_pk, project_pk, params)
+
+    model =  run_model(url_params, form_data, **{'user': User.objects.get(pk=kwargs['user_pk'])})
+    return {}

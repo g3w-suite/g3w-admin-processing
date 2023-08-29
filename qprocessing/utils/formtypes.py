@@ -219,7 +219,7 @@ class QProcessingFormTypeVectorLayer(QProcessingFormType):
         # --------------------------------------------
         # Split by `:`
         subparams = parameter.split(":")
-        if len(subparams) == 0:
+        if len(subparams) == 1:
             return qgs_project.mapLayer(parameter).source()
 
         # Build path to file
@@ -380,8 +380,20 @@ class QProcessingFormTypeFeatureSource(QProcessingFormTypeVectorLayer):
         if len(subparams) == 1:
             return QgsProcessingFeatureSourceDefinition(qgs_layer.source())
         else:
-            qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
-            return QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
+            if subparams[0] == 'file':
+                from qprocessing.models import QProcessingInputUpload
+                try:
+                    qpiu = QProcessingInputUpload.objects.get(uuid=subparams[1])
+                    base_path = settings.QPROCESSING_INPUT_UPLOAD_PATH
+                    base_path += f"{qpiu.user.pk}/" if qpiu.user else f"nouser/"
+                    base_path += f"uploads/{qpiu.name}"
+
+                    return base_path
+                except:
+                    return None
+            else:
+                qgs_layer.selectByIds(get_layer_fids_from_server_fids(subparams[1].split(','), qgs_layer))
+                return QgsProcessingFeatureSourceDefinition(qgs_layer.source(), selectedFeaturesOnly=True)
 
 # OUTPUT PROCESSING
 # -------------------------------------------------------------
