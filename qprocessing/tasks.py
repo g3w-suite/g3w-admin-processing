@@ -25,7 +25,7 @@ from qgis.core import QgsProcessingContext, QgsProcessingFeedback
 
 import logging
 
-logger = logging.getLogger('processing')
+logger = logging.getLogger('qprocessing')
 
 task = HUEY.task
 
