@@ -64,12 +64,8 @@ def run_model(url_params, form_data, **kwargs):
     ctx.setProject(prj)
     res = qpm.process_algorithm(params, ctx, ctf)
 
-    # Log results feedback
-    logger.info(ctf.textLog())
-
-
     # Replace outputs
-    res = qpm.make_outputs(res, url_params['qprocessingproject_pk'], url_params['project_pk'], ctf)
+    res = qpm.make_outputs(res, url_params['qprocessingproject_pk'], url_params['project_pk'])
 
     return res
 

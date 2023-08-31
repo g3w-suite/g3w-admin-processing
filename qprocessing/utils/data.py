@@ -229,7 +229,7 @@ class QProcessingModel(object):
 
         return params
 
-    def make_outputs(self, pres, qprocessingproject_pk, project_pk, fbk):
+    def make_outputs(self, pres, qprocessingproject_pk, project_pk):
         """
         Refine processing running model output for g3w-client.
         :param pres: Processing running model output dict.
