@@ -229,7 +229,7 @@ class QProcessingModel(object):
 
         return params
 
-    def make_outputs(self, pres, qprocessingproject_pk, project_pk):
+    def make_outputs(self, pres, qprocessingproject_pk, project_pk, fbk):
         """
         Refine processing running model output for g3w-client.
         :param pres: Processing running model output dict.
@@ -250,6 +250,7 @@ class QProcessingModel(object):
                 out[k] = reverse('qprocessing-download-output', args=(qprocessingproject_pk, project_pk,
                                                                       f.encrypt(pres[k].encode()).decode(),))
 
+        out['processing_log'] = fbk.textLog()
         return out
 
 
