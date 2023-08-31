@@ -249,8 +249,6 @@ class QProcessingModel(object):
                 f = Fernet(settings.QPROCESSING_CRYPTO_KEY)
                 out[k] = reverse('qprocessing-download-output', args=(qprocessingproject_pk, project_pk,
                                                                       f.encrypt(pres[k].encode()).decode(),))
-
-        out['processing_log'] = fbk.textLog()
         return out
 
 

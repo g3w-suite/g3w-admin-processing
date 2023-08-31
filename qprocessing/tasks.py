@@ -23,6 +23,10 @@ from .utils.data import QProcessingModel
 from qgis.core import QgsProcessingContext, QgsProcessingFeedback
 
 
+import logging
+
+logger = logging.getLogger('processing')
+
 task = HUEY.task
 
 celery_logger = get_task_logger(__name__)
@@ -59,6 +63,10 @@ def run_model(url_params, form_data, **kwargs):
 
     ctx.setProject(prj)
     res = qpm.process_algorithm(params, ctx, ctf)
+
+    # Log results feedback
+    logger.info(ctf.textLog())
+
 
     # Replace outputs
     res = qpm.make_outputs(res, url_params['qprocessingproject_pk'], url_params['project_pk'], ctf)
