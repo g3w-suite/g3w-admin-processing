@@ -26,7 +26,7 @@ from usersmanage.configs import G3W_VIEWER2, G3W_VIEWER1
 from usersmanage.forms import label_users
 from qdjango.models import Project
 from qprocessing.utils.data import QProcessingModel
-from qprocessing.tasks import run_model_task, run_model, run_model_celery_task, run_model_celery_task
+from qprocessing.tasks import run_model_task, run_model, run_model_celery_task
 from qprocessing.models import QProcessingProject
 from qprocessing.api.permissions import RunModelPermission
 
@@ -53,19 +53,31 @@ class QProcessingRunModelView(G3WAPIView):
         :param project_pk: int, qdjango.Project model instance pk
         """
 
-        task = run_model_task(kwargs, request.data, **{'user': request.user})
+        # Asyncronous run
+        if settings.QPROCESSING_ASYNC_RUN:
 
-        # Test celery
-        # class tsk:
-        #     pass
-        # task = tsk()
-        # task.id = run_model_celery_task.delay(kwargs, request.data, **{'user_pk': request.user.pk})
+            task = run_model_task(kwargs, request.data, **{'user': request.user})
 
-        self.results.results.update({
-                'task_id': task.id
-        })
+            # Test celery
+            # class tsk:
+            #     pass
+            # task = tsk()
+            # task.id = run_model_celery_task.delay(kwargs, request.data, **{'user_pk': request.user.pk})
+
+            self.results.results.update({
+                    'task_id': task.id
+            })
+
+        # Synchronous run
+        else:
+
+            res = run_model(kwargs, request.data, **{'user': request.user})
+            self.results.results.update({
+                'data': res
+            })
 
         return Response(self.results.results)
+
 
 
 class QProcessingRunInfoTaskView(G3WAPIView):
@@ -199,9 +211,4 @@ class QProcessingDownLoadOutputView(G3WAPIView):
         response = HttpResponse(open(down_path, 'rb'), content_type=f'{content_type}')
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         return response
-
-
-
-
-
 

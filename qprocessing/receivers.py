@@ -39,6 +39,7 @@ def set_initconfig_value(sender, **kwargs):
     toret = {
         'qprocessing': {
             'gid': f"{kwargs['projectType']}:{kwargs['project']}",
+            'async': settings.QPROCESSING_ASYNC_RUN,
             'urls': {
                 'run': f'/qprocessing{__BASE_RUN_MODEL_URL}',
                 'taskinfo': f'/qprocessing{__BASE_TASK_INFO_URL}',

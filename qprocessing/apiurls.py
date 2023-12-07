@@ -35,6 +35,7 @@ urlpatterns = [
          QProcessingRunModelView.as_view(),
          name='qprocessing-run-model'),
 
+    # Use for asyncronous task
     path(f'{__BASE_TASK_INFO_URL[1:]}<str:task_id>/',
          QProcessingRunInfoTaskView.as_view(),
          name='qprocessing-infotask'),

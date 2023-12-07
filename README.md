@@ -73,9 +73,14 @@ pip3 install ...
 ```
 
 ### Configuration
-To make `QProcessing` work in asynchronous mode (in batch mode) you need to configure Huey and have a message broker such as [`Redis`](https://redis.io/), here it is an example:
+
+By default `Qprocessing` works sin **synchronous mode** 
+
+To make `QProcessing` works in **asynchronous mode** (in batch mode) you need set  setting `QPROCESSING_ASYNC_RUN` TO `True` and  Huey and have a message broker such as [`Redis`](https://redis.io/), here it is an example:
 
 ```python
+QPROCESSING_ASYNC_RUN = True 
+
 HUEY = {                                   # Huey implementation to use.
     'huey_class': 'huey.RedisExpireHuey',
     'name': 'g3w-suite',
@@ -93,11 +98,138 @@ Then start huey:
 python3 manage.py tun_huey -k process
 ```
 
----
+#### Other settings:
+
+##### QPROCESSING_ASYNC_RUN
+Activate/deactivate the asynchronous mode running models.
+
+##### QPROCESSING_OUTPUT_PATH
+Directory to save the processing outputs. Default *'/tmp/'*.
+
+##### QPROCESSING_INPUT_UPLOAD_PATH
+Directory to upload the processing inputs. Default same value of  *QPROCESSING_OUTPUT_PATH*.
+
+##### QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
+Default processing output vector format. Default *'geojson'*
+
+##### QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT
+Default processing output raster format. Default *'tiff'*
+
+##### QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT
+Default processing output file format. Default *'pdf'*
+
+##### QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT
+Default processing output html format. Default *'html'*
+
+##### QPROCESSING_INPUT_SHP_EXTS
+List of input shapefile extensions. Default *['shp', 'shx', 'prj', 'dbf', 'shx']*
+
+### QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS
+List of input vector formats to upload. Default:
+``` python
+[
+    {
+        'value': 'zip',
+        'key': 'Shapefile'
+    },
+    {
+        'value': 'geojson',
+        'key': 'GeoJSON'
+    },
+    {
+        'value': 'kml',
+        'key': 'KML'
+    },
+    {
+        'value': 'gpkg',
+        'key': 'GeoPackage'
+    },
+    {
+        'value': 'sqlite',
+        'key': 'Sqlite/Spatialite'
+    }
+
+]
+```
+
+##### QPROCESSING_OUTPUT_VECTOR_FORMATS
+List of output vector formats. Default:
+``` python
+[
+    {
+        'value': 'zip',
+        'key': 'Shapefile'
+    },
+    {
+        'value': 'geojson',
+        'key': 'GeoJSON'
+    },
+    {
+        'value': 'kml',
+        'key': 'KML'
+    },
+    {
+        'value': 'gpkg',
+        'key': 'GeoPackage'
+    }, 
+]
+```
+
+##### QPROCESSING_OUTPUT_FILE_FORMATS
+List of output file formats. Default:
+``` python
+[
+    {
+        'value': 'pdf',
+        'key': 'PDF'
+    },
+]
+```
+
+##### QPROCESSING_OUTPUT_HTML_FORMATS
+List of output html formats. Default:
+``` python
+[
+    {
+        'value': 'html',
+        'key': 'HTML'
+    },
+]
+```
+
+##### QPROCESSING_OUTPUT_RASTER_FORMATS
+List of output raster formats. Default:
+``` python
+[
+    {
+        'value': 'vrt',
+        'key': 'VRT'
+    },
+    {
+        'value': 'tiff',
+        'key': 'TIFF'
+    },
+    {
+        'value': 'png',
+        'key': 'PNG'
+    },
+    {
+        'value': 'jpeg',
+        'key': 'JPEG'
+    },
+    {
+        'value': 'jpg',
+        'key': 'JPG'
+    },
+]
+```
+
+##### QPROCESSING_CRYPTO_KEY
+Encryption key for download links.
 
 **Compatibile with:**
-[![g3w-admin version](https://img.shields.io/badge/g3w--admin-3.6-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-admin/tree/v.3.6.x)
-[![g3w-suite-docker version](https://img.shields.io/badge/g3w--suite--docker-3.6-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-suite-docker/tree/v3.6.x)
+[![g3w-admin version](https://img.shields.io/badge/g3w--admin-3.7-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-admin/tree/v.3.7.x)
+[![g3w-suite-docker version](https://img.shields.io/badge/g3w--suite--docker-3.7-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-suite-docker/tree/v3.6.x)
 
 ---
 

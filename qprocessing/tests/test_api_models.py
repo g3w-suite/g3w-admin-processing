@@ -11,6 +11,7 @@ __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
 from django.conf import settings
+from django.test.utils import override_settings
 from django.core.files import File
 from django.urls import reverse
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -109,13 +110,7 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
             }
         }
 
-
-
-    def test_run_model(self):
-        """
-        Testing run models
-        """
-
+    def _test_models_results(self):
 
         url = reverse('qprocessing-run-model', args=[self.qpp_buffer.pk, self.project.instance.pk])
 
@@ -124,30 +119,41 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         self.client.login(username=self.test_admin1.username, password=self.test_admin1.username)
 
         # Testing MODEL_FILE_BUFFER processing model
-        #_____________________________________________
-        res = self.client.post(url,data=self.buffer_post_data, content_type='application/json')
+        # _____________________________________________
+        res = self.client.post(url, data=self.buffer_post_data, content_type='application/json')
         self.assertEqual(res.status_code, 200)
         jres = json.loads(res.content)
-
-        # Wait for processing result
-        time.sleep(1)
-        task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
-
-        res = self.client.get(task_info_url)
-        self.assertEqual(res.status_code, 200)
-
-        jres = json.loads(res.content)
-
-        self.assertEqual(jres['status'], 'complete')
-        self.assertEqual(jres['exception'], '')
-        self.assertEqual(jres['progress'], 0)
-        #self.assertEqual(jres['task_result'], {'native:buffer_1:Buffer results': '/qprocessing/api/download/gAAAAABkq-KAS1ExRItPOBL1Bi8CTBcl0INK6VL9ipYiQjy-48Fmo4r-2ERNDMa0paQcG_2vzFVFY11Lgmcl_qCN1qsykovFOQFf67CtJhK3OLvPU7HjqygYSX0rdJrwv0NE_xADuBdZ02orxcH_IxU24-bib8YMsw==/'})
-
-
-        # Get file result file ZIP
-        res = self.client.get(jres['task_result']['native:buffer_1:Buffer results'])
-
         self.assertTrue(res.status_code, 200)
+
+        if settings.QPROCESSING_ASYNC_RUN:
+
+            # Wait for processing result
+            time.sleep(1)
+            task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
+
+            res = self.client.get(task_info_url)
+            self.assertEqual(res.status_code, 200)
+
+            jres = json.loads(res.content)
+
+            self.assertEqual(jres['status'], 'complete')
+            self.assertEqual(jres['exception'], '')
+            self.assertEqual(jres['progress'], 0)
+            # self.assertEqual(jres['task_result'], {'native:buffer_1:Buffer results': '/qprocessing/api/download/gAAAAABkq-KAS1ExRItPOBL1Bi8CTBcl0INK6VL9ipYiQjy-48Fmo4r-2ERNDMa0paQcG_2vzFVFY11Lgmcl_qCN1qsykovFOQFf67CtJhK3OLvPU7HjqygYSX0rdJrwv0NE_xADuBdZ02orxcH_IxU24-bib8YMsw==/'})
+
+            # Get file result file ZIP
+            res = self.client.get(jres['task_result']['native:buffer_1:Buffer results'])
+
+        else:
+
+            self.assertTrue(jres['result'])
+
+            # Download the result
+            res = self.client.get(jres['data']['native:buffer_1:Buffer results'])
+            self.assertEqual(res.status_code, 200)
+            self.assertEqual(res.headers['Content-Type'], 'application/x-zip-compressed')
+            self.assertTrue('buffer-results' in res.headers['Content-Disposition'])
+
 
         # For return shp:
         z = zipfile.ZipFile(BytesIO(res.content))
@@ -166,28 +172,40 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         self.assertEqual(QgsWkbTypes.geometryDisplayString(vl.geometryType()), 'Polygon')
 
         # Testing MODEL_FILE_POINTSPOLYGONS processing model
-        #______________________________________________________
+        # ______________________________________________________
         url = reverse('qprocessing-run-model', args=[self.qpp_pointspolygons.pk, self.project.instance.pk])
         res = self.client.post(url, data=self.pointspolygons_post_data, content_type='application/json')
         self.assertEqual(res.status_code, 200)
         jres = json.loads(res.content)
 
-        # Wait for processing result
-        time.sleep(1)
-        task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
+        if settings.QPROCESSING_ASYNC_RUN:
 
-        res = self.client.get(task_info_url)
-        self.assertEqual(res.status_code, 200)
+            # Wait for processing result
+            time.sleep(1)
+            task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
 
-        jres = json.loads(res.content)
+            res = self.client.get(task_info_url)
+            self.assertEqual(res.status_code, 200)
 
-        self.assertEqual(jres['status'], 'complete')
-        self.assertEqual(jres['exception'], '')
-        self.assertEqual(jres['progress'], 0)
+            jres = json.loads(res.content)
 
-        # Get file result file GeoJson
-        res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
-        self.assertTrue(res.status_code, 200)
+            self.assertEqual(jres['status'], 'complete')
+            self.assertEqual(jres['exception'], '')
+            self.assertEqual(jres['progress'], 0)
+
+            # Get file result file GeoJson
+            res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
+            self.assertTrue(res.status_code, 200)
+
+        else:
+
+            self.assertTrue(jres['result'])
+
+            # Download the result
+            res = self.client.get(jres['data']['native:countpointsinpolygon_1:Points in polygons'])
+            self.assertEqual(res.status_code, 200)
+            self.assertEqual(res.headers['Content-Type'], 'application/json')
+            self.assertTrue('points-in-polygons' in res.headers['Content-Disposition'])
 
         temp = QTemporaryDir()
         z.extractall(temp.path())
@@ -204,22 +222,33 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         self.assertEqual(res.status_code, 200)
         jres = json.loads(res.content)
 
-        # Wait for processing result
-        time.sleep(1)
-        task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
+        if settings.QPROCESSING_ASYNC_RUN:
+            # Wait for processing result
+            time.sleep(1)
+            task_info_url = reverse('qprocessing-infotask', args=[jres['task_id']])
 
-        res = self.client.get(task_info_url)
-        self.assertEqual(res.status_code, 200)
+            res = self.client.get(task_info_url)
+            self.assertEqual(res.status_code, 200)
 
-        jres = json.loads(res.content)
+            jres = json.loads(res.content)
 
-        self.assertEqual(jres['status'], 'complete')
-        self.assertEqual(jres['exception'], '')
-        self.assertEqual(jres['progress'], 0)
+            self.assertEqual(jres['status'], 'complete')
+            self.assertEqual(jres['exception'], '')
+            self.assertEqual(jres['progress'], 0)
 
-        # Get file result file GeoJson
-        res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
-        self.assertTrue(res.status_code, 200)
+            # Get file result file GeoJson
+            res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
+            self.assertTrue(res.status_code, 200)
+
+        else:
+
+            self.assertTrue(jres['result'])
+
+            # Download the result
+            res = self.client.get(jres['data']['native:countpointsinpolygon_1:Points in polygons'])
+            self.assertEqual(res.status_code, 200)
+            self.assertEqual(res.headers['Content-Type'], 'application/json')
+            self.assertTrue('points-in-polygons' in res.headers['Content-Disposition'])
 
         temp = QTemporaryDir()
         z.extractall(temp.path())
@@ -233,6 +262,39 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         self.assertEqual(QgsWkbTypes.geometryDisplayString(vl.geometryType()), 'Polygon')
 
         self.client.logout()
+
+
+
+    @override_settings(
+        QPROCESSING_ASYNC_RUN=True,
+        HUEY={
+            # Huey implementation to use.
+            'huey_class': 'huey.RedisExpireHuey',
+            'name': 'g3w-suite',
+            'url': 'redis://localhost:6379/?db=0',
+            'immediate': True,  #run synchronously.
+            'consumer': {
+                'workers': 1,
+                'worker_type': 'process',
+            },
+        }
+    )
+    def test_run_model_async(self):
+        """
+        Testing run models in asynchronous mode
+        """
+
+        self._test_models_results()
+
+    @override_settings(
+        QPROCESSING_ASYNC_RUN=False,
+    )
+    def test_run_model_sync(self):
+        """
+        Testing run models in synchronous mode
+        """
+
+        self._test_models_results()
 
     def test_permissions(self):
         """

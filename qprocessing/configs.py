@@ -22,6 +22,10 @@ __BASE_UPLOAD_URL = '/api/upload/'
 # Customizable settings
 # -------------------------------
 
+# Qprocessing asyncronous run model, by default False set to True
+# for run asyncronous model
+QPROCESSING_ASYNC_RUN = False
+
 # Qprocessing path directory for model output files
 QPROCESSING_OUTPUT_PATH = '/tmp/'
 QPROCESSING_INPUT_UPLOAD_PATH = QPROCESSING_OUTPUT_PATH
