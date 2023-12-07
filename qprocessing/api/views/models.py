@@ -16,6 +16,7 @@ from django.utils.translation import gettext_lazy as _
 from django.http import HttpResponse, JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import APIException
 from huey.contrib.djhuey import HUEY
 from huey.exceptions import TaskException
 from huey_monitor.models import TaskModel
@@ -53,7 +54,7 @@ class QProcessingRunModelView(G3WAPIView):
         :param project_pk: int, qdjango.Project model instance pk
         """
 
-        # Asyncronous run
+        # Asynchronous run
         if settings.QPROCESSING_ASYNC_RUN:
 
             task = run_model_task(kwargs, request.data, **{'user': request.user})
@@ -71,10 +72,14 @@ class QProcessingRunModelView(G3WAPIView):
         # Synchronous run
         else:
 
-            res = run_model(kwargs, request.data, **{'user': request.user})
-            self.results.results.update({
-                'data': res
-            })
+            try:
+                raise Exception('error')
+                res = run_model(kwargs, request.data, **{'user': request.user})
+                self.results.results.update({
+                    'data': res
+                })
+            except Exception as e:
+                raise APIException(e)
 
         return Response(self.results.results)
 
