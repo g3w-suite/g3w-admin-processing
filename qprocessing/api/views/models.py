@@ -73,7 +73,7 @@ class QProcessingRunModelView(G3WAPIView):
         else:
 
             try:
-                raise Exception('error')
+
                 res = run_model(kwargs, request.data, **{'user': request.user})
                 self.results.results.update({
                     'data': res
