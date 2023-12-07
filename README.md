@@ -79,7 +79,7 @@ By default `Qprocessing` works sin **synchronous mode**
 To make `QProcessing` works in **asynchronous mode** (in batch mode) you need set  setting `QPROCESSING_ASYNC_RUN` TO `True` and  Huey and have a message broker such as [`Redis`](https://redis.io/), here it is an example:
 
 ```python
-QPROCESSING_AZYNC_RUN = True 
+QPROCESSING_ASYNC_RUN = True 
 
 HUEY = {                                   # Huey implementation to use.
     'huey_class': 'huey.RedisExpireHuey',
