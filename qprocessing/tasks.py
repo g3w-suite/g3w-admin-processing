@@ -14,13 +14,14 @@ from functools import wraps
 
 from django.db import close_old_connections
 from django.contrib.auth.models import User
+from django.conf import settings
 from huey.contrib.djhuey import HUEY
 from huey_monitor.tqdm import ProcessInfo
 from celery import shared_task, current_task
 from celery.utils.log import get_task_logger
 from .models import QProcessingProject
 from .utils.data import QProcessingModel
-from qgis.core import QgsProcessingContext, QgsProcessingFeedback
+from qgis.core import QgsProcessingContext, QgsProcessingFeedback, QgsProject, Qgis
 
 
 import logging
@@ -54,11 +55,19 @@ def run_model(url_params, form_data, **kwargs):
     params = qpm.make_model_params(form_data=form_data, qproject=qpp.get_qdjango_project(url_params['project_pk']),
                                    **kwargs)
 
-    prj = qpp.projects.get(pk=url_params['project_pk']).qgis_project
+
+    prj_instance = qpp.projects.get(pk=url_params['project_pk'])
+    prj = QgsProject()
+    flags = Qgis.ProjectReadFlags()
+    flags |= Qgis.ProjectReadFlag.DontLoadLayouts
+    flags |= Qgis.ProjectReadFlag.DontResolveLayers
+    prj.read(str(prj_instance.qgis_file.path), flags)
 
     qpm = QProcessingModel(str(qpp.model.file))
 
     ctx = QgsProcessingContext()
+    if settings.DEBUG:
+        ctx.setLogLevel(QgsProcessingContext.LogLevel.ModelDebug)
     ctf = QgsProcessingFeedback()
 
     ctx.setProject(prj)
