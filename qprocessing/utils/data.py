@@ -15,7 +15,7 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from django.utils.text import slugify
 from qgis.core import \
-    QgsProcessingModelAlgorithm
+    QgsProcessingModelAlgorithm, QgsProject, Qgis
 from qdjango.models import Project as QdjangoProject
 from core.utils.qgisapi import get_layer_fids_from_server_fids
 from .formtypes import \
@@ -195,7 +195,11 @@ class QProcessingModel(object):
         Change the values of form_data input by model inputs/outputs type
         """
 
-        qgs_project = qproject.qgis_project
+        qgs_project = QgsProject()
+        flags = Qgis.ProjectReadFlags()
+        flags |= Qgis.ProjectReadFlag.DontLoadLayouts
+        flags |= Qgis.ProjectReadFlag.DontResolveLayers
+        qgs_project.read(str(qproject.qgis_file.path), flags)
 
         params = {}
         params.update(form_data['inputs'])
