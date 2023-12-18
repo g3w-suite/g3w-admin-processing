@@ -52,7 +52,7 @@ dependencies    = { file = ["requirements.txt"] }
 dev  = { file = ["requirements_dev.txt"] }
 
 [tool.setuptools_scm]
-fallback_version = "v1.2.0-beta.1"
+fallback_version = "v1.2.1-beta.0"
 write_to         = "_version.py" # hardcode version number in a file
 #
 # Or alternatively retrieve it at runtime:
