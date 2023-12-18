@@ -66,7 +66,7 @@ def run_model(url_params, form_data, **kwargs):
     qpm = QProcessingModel(str(qpp.model.file))
 
     ctx = QgsProcessingContext()
-    if settings.DEBUG:
+    if settings.DEBUG and Qgis.QGIS_VERSION_INT >= 33400:
         ctx.setLogLevel(QgsProcessingContext.LogLevel.ModelDebug)
     ctf = QgsProcessingFeedback()
 
