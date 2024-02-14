@@ -60,7 +60,7 @@ def run_model(url_params, form_data, **kwargs):
     prj = QgsProject()
     flags = Qgis.ProjectReadFlags()
     flags |= Qgis.ProjectReadFlag.DontLoadLayouts
-    flags |= Qgis.ProjectReadFlag.DontResolveLayers
+    #flags |= Qgis.ProjectReadFlag.DontResolveLayers
     prj.read(str(prj_instance.qgis_file.path), flags)
 
     qpm = QProcessingModel(str(qpp.model.file))
