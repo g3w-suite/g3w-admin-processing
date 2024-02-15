@@ -44,7 +44,6 @@ def run_model_test(qprocessing_project_pk, project_pk, params):
 
     return True
 
-
 def run_model(url_params, form_data, **kwargs):
     """
     Run processing model
@@ -53,16 +52,15 @@ def run_model(url_params, form_data, **kwargs):
     qpp = QProcessingProject.objects.get(pk=url_params['qprocessingproject_pk'])
     qpm = QProcessingModel(str(qpp.model.file))
 
-    # Create a unique instance of QgsProject, this is necessary for FeatureInputs
     prj_instance = qpp.projects.get(pk=url_params['project_pk'])
-    prj = prj_instance.qgis_project
-    prj = QgsProject()
-    flags = Qgis.ProjectReadFlags()
-    flags |= Qgis.ProjectReadFlag.DontLoadLayouts
-    # flags |= Qgis.ProjectReadFlag.DontResolveLayers
-    prj.read(str(prj_instance.qgis_file.path), flags)
+    # prj = prj_instance.qgis_project
+    # prj = QgsProject()
+    # flags = Qgis.ProjectReadFlags()
+    # flags |= Qgis.ProjectReadFlag.DontLoadLayouts
+    # # flags |= Qgis.ProjectReadFlag.DontResolveLayers
+    # prj.read(str(prj_instance.qgis_file.path), flags)
 
-    params = qpm.make_model_params(form_data=form_data, qgs_project=prj, **kwargs)
+    prj, params = qpm.make_model_params(form_data=form_data, qproject=prj_instance, **kwargs)
 
     qpm = QProcessingModel(str(qpp.model.file))
 
