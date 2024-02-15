@@ -199,7 +199,7 @@ class QProcessingModel(object):
         #
         qgs_project = QgsProject()
         flags = Qgis.ProjectReadFlags()
-        flags |= Qgis.ProjectReadFlag.DontLoadLayouts
+        #flags |= Qgis.ProjectReadFlag.DontLoadLayouts
         #flags |= Qgis.ProjectReadFlag.DontResolveLayers
         qgs_project.read(str(qproject.qgis_file.path), flags)
 
