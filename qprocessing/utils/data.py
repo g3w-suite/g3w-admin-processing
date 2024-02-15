@@ -186,22 +186,22 @@ class QProcessingModel(object):
             'outputs': list(self.outputs.values())
         }
 
-    def make_model_params(self, form_data:dict, qproject:QdjangoProject, **kwargs):
+    def make_model_params(self, form_data:dict, qgs_project: QgsProject, **kwargs):
         """
         Build and return a dict params for algorithm processing
         :param form_data: dict data from g3w-client processing model form (usually request.data in a View).
-        :param qproject: An instace of qdjango.Project model instance.
+        :param qgs_project: An instace of QgsProject.
 
         Change the values of form_data input by model inputs/outputs type
         """
 
-        #qgs_project = qproject.qgis_project
-
-        qgs_project = QgsProject()
-        flags = Qgis.ProjectReadFlags()
-        flags |= Qgis.ProjectReadFlag.DontLoadLayouts
-        #flags |= Qgis.ProjectReadFlag.DontResolveLayers
-        qgs_project.read(str(qproject.qgis_file.path), flags)
+        # qgs_project = qproject.qgis_project
+        #
+        # qgs_project = QgsProject()
+        # flags = Qgis.ProjectReadFlags()
+        # flags |= Qgis.ProjectReadFlag.DontLoadLayouts
+        # #flags |= Qgis.ProjectReadFlag.DontResolveLayers
+        # qgs_project.read(str(qproject.qgis_file.path), flags)
 
         params = {}
         params.update(form_data['inputs'])
