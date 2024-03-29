@@ -52,16 +52,15 @@ def run_model(url_params, form_data, **kwargs):
     qpp = QProcessingProject.objects.get(pk=url_params['qprocessingproject_pk'])
     qpm = QProcessingModel(str(qpp.model.file))
 
-    params = qpm.make_model_params(form_data=form_data, qproject=qpp.get_qdjango_project(url_params['project_pk']),
-                                   **kwargs)
-
-
     prj_instance = qpp.projects.get(pk=url_params['project_pk'])
-    prj = QgsProject()
-    flags = Qgis.ProjectReadFlags()
-    flags |= Qgis.ProjectReadFlag.DontLoadLayouts
-    flags |= Qgis.ProjectReadFlag.DontResolveLayers
-    prj.read(str(prj_instance.qgis_file.path), flags)
+    # prj = prj_instance.qgis_project
+    # prj = QgsProject()
+    # flags = Qgis.ProjectReadFlags()
+    # flags |= Qgis.ProjectReadFlag.DontLoadLayouts
+    # # flags |= Qgis.ProjectReadFlag.DontResolveLayers
+    # prj.read(str(prj_instance.qgis_file.path), flags)
+
+    prj, params = qpm.make_model_params(form_data=form_data, qproject=prj_instance, **kwargs)
 
     qpm = QProcessingModel(str(qpp.model.file))
 
