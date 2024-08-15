@@ -22,7 +22,7 @@ class TestQprocessingAlgorithm(TestQProcessingBase):
 
     def test_run(self):
         """
-        Test runnong QGIS processing running
+        Test running QGIS processing running
         """
         qpm = QProcessingModel(str(self.model_file))
         prj = QgsProject()
