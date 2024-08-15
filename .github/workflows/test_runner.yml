@@ -14,6 +14,13 @@ jobs:
       with:
         repository: 'g3w-suite/g3w-admin'
 
+    - uses: actions/checkout@v4
+      with:
+        path: 'qprocessing'
+
+    - name: Move qprocessing inside g3w-admin
+      run: mv qprocessing/qprocessing g3w-admin/
+
     - name: Starting Docker compose
       run: docker compose -f docker-compose.ltr.yml up -d
 
