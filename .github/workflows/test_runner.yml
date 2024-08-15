@@ -12,13 +12,10 @@ jobs:
 
     - uses: actions/checkout@v4
       with:
-        repository: 'g3w-suite/g3w-suite-docker'
-        path: 'g3w-suite-docker'
+        repository: 'g3w-suite/g3w-admin'
 
-    - name: Extract branch name
-      shell: bash
-      run: echo "$(ls $GITHUB_WORKSPACE/g3w-suite-docker )"
-      id: extract_branch
+    - name: Starting Docker compose
+      run: docker compose -f docker-compose.ltr.yml up -d
 
 
     - name: Setup tmate session
