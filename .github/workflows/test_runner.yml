@@ -12,9 +12,13 @@ jobs:
 
     - uses: actions/checkout@v4
       with:
-        # Repository name with owner. For example, actions/checkout
-        # Default: ${{ github.repository }}
         repository: 'g3w-suite/g3w-suite-docker'
+        set-safe-directory: '/home/runner/work/g3w-admin-processing/g3w-suite-docker'
+
+    - name: Extract branch name
+      shell: bash
+      run: echo "ls /home/runner/work/g3w-admin-processing/g3w-suite-docker"
+      id: extract_branch
 
 
     - name: Setup tmate session
