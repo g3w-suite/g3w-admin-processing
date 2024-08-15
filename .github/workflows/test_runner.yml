@@ -1,0 +1,24 @@
+name: QProcessing CI tests
+
+on: [push, pull_request]
+
+jobs:
+
+  ci_tests:
+
+    runs-on: ubuntu-22.04
+
+    steps:
+
+    - uses: actions/checkout@v4
+      with:
+        # Repository name with owner. For example, actions/checkout
+        # Default: ${{ github.repository }}
+        repository: 'g3w-suite/g3w-suite-docker'
+
+
+    - name: Setup tmate session
+      if: ${{ failure() }}
+      uses: mxschmitt/action-tmate@v3
+      with:
+        limit-access-to-actor: true

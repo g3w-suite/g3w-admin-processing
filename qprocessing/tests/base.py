@@ -11,8 +11,11 @@ __date__ = '2023-05-10'
 __copyright__ = 'Copyright 2015 - 2023, Gis3w'
 __license__ = 'MPL 2.0'
 
-from django.test import TestCase, override_settings
+from django.test import TestCase, override_settings, modify_settings
+from django.conf import settings
 from django.core.files import File
+
+from base.settings import INSTALLED_APPS
 from core.models import G3WSpatialRefSys, Group as CoreGroup
 from usersmanage.tests.utils import setup_testing_user
 from qdjango.utils.data import QgisProject
@@ -73,6 +76,7 @@ class TestQProcessingBase(TestCase):
                 'G3WSpatialRefSys.json',
                 'G3WGeneralDataSuite.json'
                 ]
+
 
     @classmethod
     def setUpClass(cls):
