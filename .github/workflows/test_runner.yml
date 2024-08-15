@@ -21,6 +21,11 @@ jobs:
     - name: Move qprocessing inside g3w-admin
       run: mv qprocessing/qprocessing g3w-admin/
 
+    - name: Checl qprocessing inside admin
+      run: echo $(ls $GITHUB_WORKSPACE/g3w-admin )
+
+
+
     - name: Starting Docker compose
       run: docker compose -f docker-compose.ltr.yml up -d
 
