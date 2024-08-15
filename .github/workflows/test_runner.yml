@@ -17,7 +17,7 @@ jobs:
 
     - name: Extract branch name
       shell: bash
-      run: echo "ls /home/runner/work/g3w-admin-processing/g3w-suite-docker"
+      run: echo "$(ls /home/runner/work/g3w-admin-processing/g3w-suite-docker)"
       id: extract_branch
 
 
