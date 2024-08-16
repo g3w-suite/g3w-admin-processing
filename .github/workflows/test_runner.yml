@@ -19,7 +19,7 @@ jobs:
         path: 'qprocessing'
 
     - name: Move qprocessing inside g3w-admin
-      run: mv qprocessing/qprocessing g3w-admin/ && echo "$(ls -lh g3w-admin)"
+      run: mv qprocessing/qprocessing g3w-admin/ && echo "$(ls -lh g3w-admin/qprocessing)"
 
     - name: Starting Docker compose
       run: docker compose -f docker-compose.ltr.yml up -d
@@ -32,9 +32,13 @@ jobs:
       run: |
         docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/ && pip3 install -r requirements_docker.txt"
 
+    - name: Check for proceffin requiremts file
+      run: |
+        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/g3w-admin && pip3 install -r requirements_docker.txt"
+
     - name: Installing QProcessing Python requirements
       run: |
-        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/g3w-admin/qprocessing && pip3 install -r requirements.txt"
+        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/g3w-admin/qprocessing && ls -lh"
 
     - name: Building g3w-suite
       run: |
