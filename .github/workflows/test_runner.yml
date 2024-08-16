@@ -34,7 +34,7 @@ jobs:
 
     - name: Installing QProcessing Python requirements
       run: |
-        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/g3w-admin/qprocessing && pip3 install -r requirements_docker.txt"
+        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/g3w-admin/qprocessing && pip3 install -r requirements.txt"
 
     - name: Building g3w-suite
       run: |
