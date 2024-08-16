@@ -32,13 +32,10 @@ jobs:
       run: |
         docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/ && pip3 install -r requirements_docker.txt"
 
-    - name: Check for QProcessing requirements file
-      run: |
-        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/g3w-admin/qprocessing && ls -lh"
 
     - name: Installing QProcessing Python requirements
       run: |
-        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/g3w-admin/qprocessing && pip3 install -r requirements.txt"
+        docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c "cd /code/qprocessing && pip3 install -r requirements.txt"
 
     - name: Building g3w-suite
       run: |
