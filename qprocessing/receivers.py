@@ -19,6 +19,7 @@ from core.signals import initconfig_plugin_start
 from .models import QProcessingProject, QProcessingInputUpload
 from .utils.data import QProcessingModel
 from .configs import __BASE_RUN_MODEL_URL, __BASE_TASK_INFO_URL, __BASE_ACTION_URL, __BASE_UPLOAD_URL
+from importlib.metadata import version as get_version
 
 import os
 
@@ -38,6 +39,7 @@ def set_initconfig_value(sender, **kwargs):
 
     toret = {
         'qprocessing': {
+            'version': get_version('qprocessing'),
             'gid': f"{kwargs['projectType']}:{kwargs['project']}",
             'async': settings.QPROCESSING_ASYNC_RUN,
             'urls': {
