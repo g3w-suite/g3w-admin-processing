@@ -37,7 +37,7 @@ def set_initconfig_value(sender, **kwargs):
     if len(qpprojects) == 0:
         return None
 
-    toret = {
+    return {
         'qprocessing': {
             'version': get_version('qprocessing'),
             'gid': f"{kwargs['projectType']}:{kwargs['project']}",
@@ -47,27 +47,42 @@ def set_initconfig_value(sender, **kwargs):
                 'taskinfo': f'/qprocessing{__BASE_TASK_INFO_URL}',
                 'fields': f'/qprocessing{__BASE_ACTION_URL}fields/',
                 'upload': f'/qprocessing{__BASE_UPLOAD_URL}',
+            },
+            'models': [{
+                **QProcessingModel(str(qpp.model.file)).render2dict(),
+                'id': qpp.pk,
+                'results': [],
+                # TODO: move the following into render2dict? (converts [admin] model inputs into [client] form inputs)
+                'inputs': [{
+                    **input,
+                    'visible': True,
+                    'validate': {
+                        'empty': True,
+                        'message': None,
+                        'required': True,
+                        'unique': False,
+                        'valid': False,
+                        '_valid': False,
+                        **input['validate'],
+                    },
+                    'get_default_value': True,
+                } for input in QProcessingModel(str(qpp.model.file)).inputs.values()],
+            } for qpp in qpprojects],
+            'sidebar': {
+                'id': 'qprocessing',
+                'title': 'plugins.qprocessing.title',
+                'collapsible': True,
+                'open': False,
+                'isolate': False,
+                'iconColor': 'green',
+                'icon': 'tools',
+                'mobile': True,
+                'sidebarOptions': {
+                    'position': "spatialbookmarks" # can be a number or a string
+                }
             }
         }
     }
-
-    models = []
-    for qpp in qpprojects:
-        qpm = QProcessingModel(str(qpp.model.file))
-        dictmodel = qpm.render2dict()
-
-        # Adding QProcessingProject.pk
-        dictmodel.update({
-            'id': qpp.pk,
-            'results': []
-        })
-        models.append(dictmodel)
-
-    toret['qprocessing'].update({
-        'models': models
-    })
-
-    return toret
 
 @receiver(post_delete, sender=QProcessingInputUpload)
 def delete_input_upload_file(sender, **kwargs):
