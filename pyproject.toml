@@ -6,7 +6,7 @@ requires        = [
 ]
 
 [project]
-name            = "g3w-admin-processing"
+name            = "qprocessing"
 dynamic         = [
     "version",              # retrieve package version from git tags
     "dependencies",         # retrieve package dependencies from requirements.txt
@@ -53,8 +53,7 @@ dev  = { file = ["requirements_dev.txt"] }
 
 [tool.setuptools_scm]
 fallback_version = "v1.2.1-beta.0"
-write_to         = "_version.py"  # hardcode version number in a file
-local_scheme     = "no-local-version" # avoid local version (eg. +g123abc) for PyPI
+write_to         = "_version.py" # hardcode version number in a file
 #
 # Or alternatively retrieve it at runtime:
 # https://github.com/pypa/setuptools_scm/#retrieving-package-version-at-runtime
