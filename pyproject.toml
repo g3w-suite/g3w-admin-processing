@@ -17,7 +17,7 @@ description     = "G3W-ADMIN plugin for use the processing features of QGIS appl
 readme          = "README.md"
 license         = { text = "Mozilla Public License 2.0 (MPL 2.0)" }
 classifiers     = [
-    "Development Status :: 3 - Beta",
+    "Development Status :: 4 - Beta",
     "Environment :: Web Environment",
     "Framework :: Django",
     "Intended Audience :: Developers",
