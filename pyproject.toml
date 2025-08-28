@@ -6,7 +6,7 @@ requires        = [
 ]
 
 [project]
-name            = "qprocessing"
+name            = "g3w-admin-processing"
 dynamic         = [
     "version",              # retrieve package version from git tags
     "dependencies",         # retrieve package dependencies from requirements.txt
