@@ -3,8 +3,7 @@ name: Publish Python 🐍 package to PyPI
 on:
   push:
     branches:
-      - 'none'
-
+      - '*'
 
 jobs:
   build-and-publish:
