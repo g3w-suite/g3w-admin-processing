@@ -2,8 +2,9 @@ name: Publish Python 🐍 package to PyPI
 
 on:
   push:
-    tags:
-      - '*'
+    branches:
+      - 'dev'
+
 
 jobs:
   build-and-publish:

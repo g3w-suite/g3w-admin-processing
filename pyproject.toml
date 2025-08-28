@@ -53,7 +53,8 @@ dev  = { file = ["requirements_dev.txt"] }
 
 [tool.setuptools_scm]
 fallback_version = "v1.2.1-beta.0"
-write_to         = "_version.py" # hardcode version number in a file
+write_to         = "_version.py"  # hardcode version number in a file
+local_scheme     = "no-local-version" # avoid local version (eg. +g123abc) for PyPI
 #
 # Or alternatively retrieve it at runtime:
 # https://github.com/pypa/setuptools_scm/#retrieving-package-version-at-runtime
