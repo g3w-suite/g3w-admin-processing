@@ -28,7 +28,6 @@ export default ({
         </option>
       </select>
       <input
-        style   = "width:100%;"
         class   = "magic-checkbox"
         v-model = "checked"
         type    = "checkbox"
