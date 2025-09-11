@@ -2,17 +2,14 @@
 
   const BASE_URL = `${initConfig.group.plugins.qprocessing.baseUrl}qprocessing/js`;
 
-  const { ApplicationState }            = g3wsdk.core;
-
-  const { Plugin }                 = g3wsdk.core.plugin;
-  const { ProjectsRegistry }       = g3wsdk.core.project;
-  const { GUI, Panel }             = g3wsdk.gui;
+  const { ApplicationState } = g3wsdk.core;
+  const { Plugin }           = g3wsdk.core.plugin;
+  const { ProjectsRegistry } = g3wsdk.core.project;
+  const { GUI, Panel }       = g3wsdk.gui;
 
   new class extends Plugin {
     constructor() {
-      super({
-        name: 'qprocessing',
-      });
+      super({ name: 'qprocessing' });
 
       // i18n
       const VM = new Vue();
@@ -37,27 +34,8 @@
         this.registersSelectedFeatureLayersEvent   = this.registersSelectedFeatureLayersEvent.bind(this);
         this.unregistersSelectedFeatureLayersEvent = this.unregistersSelectedFeatureLayersEvent.bind(this);
   
-        //store layer fields base on layerId and datatype
+        // layer fields based on layerId and datatype
         this.layerFields = {};
-
-        // convert model inputs to input editing attributes (form inputs)
-        this.config.models?.forEach(model => {
-          model.inputs.forEach(input => {
-            input.visible = true; // set visibility of input
-            // implement validate object
-            input.validate = {
-              empty: true,
-              message: null,
-              required: true,
-              unique: false,
-              valid: false,
-              _valid: false,
-              ...input.validate
-            }
-            //set get default value
-            input.get_default_value = true;
-          })
-        });
 
         this.createSideBarComponent({
           data: () => ({ models: this.config.models, service: this }),
@@ -76,19 +54,7 @@
               </li>
             </ul>
           `,
-        }, {
-          id: 'qprocessing',
-          title: `plugins.qprocessing.title`,
-          collapsible: true,
-          open: false,
-          isolate: false,
-          iconColor: 'green',
-          icon: 'tools',
-          mobile: true,
-          sidebarOptions: {
-            position: "spatialbookmarks"                     // can be a number or a string
-          }
-        });
+        }, this.config.sidebar);
 
         this.setHookLoading({loading: false});
 
@@ -107,30 +73,16 @@
       });
     }
 
-    /**
-     * Register event on source selectionLayer
-     * @param layerId
-     */
     registersSelectedFeatureLayersEvent() {
       GUI.getService('map').defaultsLayers.selectionLayer.getSource().on('addfeature', this.emitChangeSelectedFeatures);
       GUI.getService('map').defaultsLayers.selectionLayer.getSource().on('removefeature', this.emitChangeSelectedFeatures);
     }
 
-    /**
-     * Unregister Select Features events
-     */
     unregistersSelectedFeatureLayersEvent() {
       GUI.getService('map').defaultsLayers.selectionLayer.getSource().un('addfeature', this.emitChangeSelectedFeatures);
       GUI.getService('map').defaultsLayers.selectionLayer.getSource().un('removefeature', this.emitChangeSelectedFeatures);
     }
 
-    /**
-     *
-     * @param features
-     * @param name
-     * @param crs
-     * @returns {File}
-     */
     createGeoJSONFile({features=[], name, crs}={}) {
       return new File(
         [JSON.stringify(Object.assign(
@@ -149,11 +101,7 @@
       );
     }
 
-    /*
-    * Upload file
-    */
     async uploadFile({modelId, inputName, file}) {
-      //create form data instance
       const data = new FormData();
       data.append('file', file);
       const response = await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
@@ -167,10 +115,8 @@
           value: `file:${json.data.file}`
         }
       }
-
     }
 
   }
-
 
 } catch (e) { console.error(e); } })();
