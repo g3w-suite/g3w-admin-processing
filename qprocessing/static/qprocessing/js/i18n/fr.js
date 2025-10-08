@@ -1,0 +1,33 @@
+export default {
+  title: 'Géotraitements',
+  inputs: {
+    prjvectorlayerfeature: {
+      selected_features: "Uniquement les entités sélectionnées"
+    },
+    fieldchooser: {
+      validate: {
+        message: {
+          multiple: "Sélectionner au moins un champ",
+          single: "Sélectionner au moins un champ"
+        }
+      }
+    }
+  },
+  outputs: {
+    outputvector: {
+      open_file_on_map: "Ouvrir le fichier créé une fois l'algorithme terminé"
+    }
+  },
+  run :{
+    messages: {
+      success: "L'algorithme a été exécuté avec succès",
+      error: "Une erreur est apparue durant l'exécution"
+    }
+  },
+  draw_types: {
+    'Polygon': "Polygone",
+    'LineString': "Ligne",
+    'Point': "Point",
+  },
+  draw_filename: 'Couche de dessin',
+}
