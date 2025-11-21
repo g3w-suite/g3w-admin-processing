@@ -66,8 +66,8 @@
 
     async showPanel(model) {
       new Panel({
-        id: 'qprocessing-panel',
-        title: 'plugins.qprocessing.title',
+        id:           'qprocessing-panel',
+        title:        'plugins.qprocessing.title',
         internalPanel: new (Vue.extend((await import(BASE_URL + '/components/ModelPanel.js')).default))({
           propsData: { model },
         }),
@@ -85,7 +85,7 @@
       GUI.getService('map').defaultsLayers.selectionLayer.getSource().un('removefeature', this.emitChangeSelectedFeatures);
     }
 
-    createGeoJSONFile({features=[], name, crs}={}) {
+    createGeoJSONFile({ features = [], name, crs } = {}) {
       return new File(
         [JSON.stringify(Object.assign(
           (new ol.format.GeoJSON()).writeFeaturesObject(features), {
@@ -108,12 +108,12 @@
       data.append('file', file);
       const response = await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
         method: 'POST',
-        body: data,
+        body:    data,
       });
       const json = await response.json();
       if (json.result) {
         return {
-          key: file.name,
+          key:    file.name,
           value: `file:${json.data.file}`
         }
       }

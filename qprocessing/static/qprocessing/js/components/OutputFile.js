@@ -11,7 +11,7 @@ export default ({
       :for  = "state.name"
       class = "col-sm-12"
     >{{state.label}}</label>
-    <div class="col-sm-12">
+    <div class = "col-sm-12">
       <select
         :id       = "state.name"
         v-select2 = "'type'"

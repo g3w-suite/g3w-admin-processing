@@ -11,17 +11,17 @@ export default ({
       class = "form-group field-chooser"
     >
 
-      <slot name="label">
-        <label :for="state.name" v-disabled="!state.editable" class="col-sm-12">
+      <slot name = "label">
+        <label :for = "state.name" v-disabled = "!state.editable" class = "col-sm-12">
           {{ state.label }}
-          <span v-if="state.validate && state.validate.required">*</span>
+          <span v-if = "state.validate && state.validate.required">*</span>
         </label>
       </slot>
 
-      <div class="col-sm-12">
+      <div class = "col-sm-12">
 
-        <slot name="body">
-          <bar-loader :loading="loading"/>
+        <slot name = "body">
+          <bar-loader :loading = "loading"/>
           <select
             v-select2   = "'value'"
             :multiple   = "state.input.options.multiple"
@@ -43,7 +43,7 @@ export default ({
           </select>
         </slot>
 
-        <slot name="message">
+        <slot name = "message">
           <p
             v-if        = "notvalid"
             class       = "g3w-long-text error-input-message"
@@ -74,7 +74,7 @@ export default ({
 
   props: {
     state: {
-      type: Object,
+      type:     Object,
       required: true
     },
 
@@ -83,12 +83,12 @@ export default ({
   data() {
     return {
       loading: false,
-      value: this.state.input.options.multiple ? [] : null,
+      value:   this.state.input.options.multiple ? [] : null,
     }
   },
 
  computed: {
-   notvalid(){
+   notvalid() {
     return this.state.validate.valid === false;
    }
  },
@@ -125,7 +125,7 @@ export default ({
      * @param layerId
      * @param options: <Object> datatype
      */
-    async _getFieldsFromLayer(layerId, params={}) {
+    async _getFieldsFromLayer(layerId, params = {}) {
       const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
 
       // Check if it already fills by layerId
@@ -149,8 +149,8 @@ export default ({
           if (true === response.result) {
             qprocessing.layerFields[layerId][JSON.stringify(params)] = response.fields;
           }
-        } catch(err) {
-          console.warn(err);
+        } catch(e) {
+          console.warn(e);
           return [];
         }
       }
@@ -163,7 +163,7 @@ export default ({
      * @param options
      * @returns {*}
      */
-    async getFieldsFromLayer(layerId, options={}){
+    async getFieldsFromLayer(layerId, options = {}){
       this.loading = true;
       const fields = await this._getFieldsFromLayer(layerId, options);
       this.loading = false;
@@ -189,7 +189,7 @@ export default ({
     //emit register change input to listen parent input layer value and get related fields
     this.$emit('register-change-input', {
       inputName: this.state.input.options.parent_field,
-      handler: async (layerId) => {
+      handler:   async (layerId) => {
         //in case of change parent value change, in case of selectefeature need to get only layerId without featuresid
         layerId = layerId.split(':')[0];
         //set values from Input layer fields
@@ -219,8 +219,8 @@ export default ({
 document.head.insertAdjacentHTML(
   'beforeend',
   /* css */`
-<style>
-/* Replicate same scoped style in InputBase.vue */
-.field-chooser label { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
-</style>`,
+  <style>
+  /* Replicate same scoped style in InputBase.vue */
+  .field-chooser label { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
+  </style>`,
 );

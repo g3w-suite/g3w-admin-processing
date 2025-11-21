@@ -142,25 +142,25 @@ export default ({
     //add model result to results
     addResultToModel(data = {}) {
       const { output, result } = data;
-      if (undefined !== result) {
-        const id = output.name;
-         //check if output contain already result
-        const findResultOutput = this.model.results.find(result => id === result.id);
-        if (findResultOutput) {
-          findResultOutput.urls.push(result[output.name])
-        } else {
-          this.model.results.push({
-            id:    output.name,
-            label: output.label,
-            urls:  [result[output.name]]
-          })
-        }
-        this.newResults = true; // set new result to true
+      if (undefined === result) { return; }
+      const id = output.name;
+        //check if output contain already result
+      const findResultOutput = this.model.results.find(result => id === result.id);
+      if (findResultOutput) {
+        findResultOutput.urls.push(result[output.name])
+      } else {
+        this.model.results.push({
+          id:    output.name,
+          label: output.label,
+          urls:  [result[output.name]]
+        })
       }
+      this.newResults = true; // set new result to true
+      
     },
     //return message color
     getMessageColor() {
-      switch(this.state.message.type){
+      switch(this.state.message.type) {
         case 'success':
           return 'green';
         case 'error':
@@ -173,7 +173,7 @@ export default ({
       * @param inputName
      * @param handler
      */
-    registerChangeInputEvent({inputName, handler}={}) {
+    registerChangeInputEvent({ inputName, handler } = {}) {
 
       if (undefined === this.subscribe_change_input[inputName]) {
         this.subscribe_change_input[inputName] = []
@@ -189,7 +189,7 @@ export default ({
       //need to wait change value dom
       await this.$nextTick();
       if (Array.isArray(this.subscribe_change_input[input.name])) {
-        this.subscribe_change_input[input.name].forEach(handler => handler(input.value))
+        this.subscribe_change_input[input.name].forEach(h => h(input.value))
       }
       //call base changeInput method
       this.changeInput(input);
@@ -199,7 +199,7 @@ export default ({
      * @returns {Promise<void>}
      */
     async run() {
-      this.state.loading = true;
+      this.state.loading      = true;
       this.state.message.show = false;
       await this.$nextTick();
       try {
@@ -209,11 +209,12 @@ export default ({
           state: this.state
         });
         this.state.message.type = 'success';
-      } catch(err) {
+      } catch(e) {
+        console.warn(e);
         this.state.message.type = 'error';
       }
 
-      this.state.loading = false;
+      this.state.loading      = false;
       this.state.message.show = true;
     },
 
@@ -252,27 +253,21 @@ export default ({
                 if ((Date.now() - timeoutprogressintervall) > 600000){
                   TaskService.stopTask({task_id});
                   GUI.showUserMessage({
-                    type: 'warning',
-                    message: 'Timeout',
+                    type:     'warning',
+                    message:  'Timeout',
                     autoclose: true
                   });
                   state.progress = null;
                   timeoutprogressintervall = null;
-                  reject({
-                    timeout: true
-                  })
+                  reject({ timeout: true });
                 }
               }
             }
             state.progress = progress;
           }
           else {
-            const statusError = _handleErrorModelResponse(response, {
-              reject,
-            });
-
-            if (statusError) {
-              state.progress = null;
+            if (_handleErrorModelResponse(response, { reject })) {
+              state.progress           = null;
               timeoutprogressintervall = null;
 
               //stop task
@@ -294,27 +289,23 @@ export default ({
               //extract layer id form input.value
               const [,layerExternalId] = input.value.split(`__g3w__external__:`);
               //get external layer from catalog service
-              const {crs, name} = GUI.getService('catalog').getExternalLayers({type: 'vector'}).find(layer => layer.id === layerExternalId);
+              const {crs, name}        = GUI.getService('catalog').getExternalLayers({type: 'vector'}).find(l => layerExternalId === l.id);
               //get map ol layer from map
               const OLlayer = GUI.getService('map').getLayerById(layerExternalId);
               //create a geojson file from freatures
-              const file = qprocessing.createGeoJSONFile({
+              const file    = qprocessing.createGeoJSONFile({
                 name,
+                crs,
                 features: OLlayer.getSource().getFeatures(),
-                crs
               });
               //upload file to server
               try {
-                const {value} = await qprocessing.uploadFile({
-                  modelId: model.id,
-                  inputName: input.name,
-                  file
-                });
                 //change input value value from new value
-                input.value = value;
-              } catch(err) {
+                input.value = (await qprocessing.uploadFile({ modelId: model.id, inputName: input.name, file}))?.value;
+              } catch(e) {
+                caonsole.warn(e);
                 //reject
-                reject(err);
+                reject(r);
               }
             }
             inputs[input.name] = input.value;
@@ -322,11 +313,11 @@ export default ({
         }
 
         //create outputs paramter
-        const outputs = model.outputs.reduce((accumulator, output) => {
+        const outputs = model.outputs.reduce((a, output) => {
           if (output.value) {
-            accumulator[output.name] = output.value;
+            a[output.name] = output.value;
           }
-          return accumulator;
+          return a;
         }, {});
 
         const data = {
@@ -342,22 +333,20 @@ export default ({
           TaskService.runTask({
             url,
             taskUrl: qprocessing.config.urls.taskinfo, // url to ask task is end
-            params: {
-              data: JSON.stringify(data)
-            }, // request params
+            params: { data: JSON.stringify(data) }, // request params
             method: 'POST',
             listener
           })
         } else { //get result directly
           XHR.post({
             url,
-            data: JSON.stringify(data),
+            data:         JSON.stringify(data),
             contentType: 'application/json'
           })
-            .then((response)  => { _handleCompleteModelResponse(response, { resolve, reject }) })
-            .catch((response) => {
-              response.status = 500;
-              _handleErrorModelResponse(response, { reject });
+            .then((res)  => { _handleCompleteModelResponse(res, { resolve, reject }) })
+            .catch((res) => {
+              res.status = 500;
+              _handleErrorModelResponse(res, { reject });
             })
         }
       })
@@ -404,12 +393,10 @@ export default ({
  * @param reject
  * @private
  */
-function _handleErrorModelResponse(response, {
-  reject,
-}) {
-  const {status, exception} = response;
-  let statusError = false;
-  let textMessage = false;
+function _handleErrorModelResponse(response, { reject }) {
+  const { status, exception } = response;
+  let statusError             = false;
+  let textMessage             = false;
   let message;
 
   switch(status) {
@@ -456,41 +443,33 @@ function _handleErrorModelResponse(response, {
  * @param reject reject method of a Promise
  * @private
  */
-function _handleCompleteModelResponse(response, {
-  resolve,
-  reject,
-}) {
+function _handleCompleteModelResponse(response, { resolve, reject }) {
   let { result, task_result, data } = response;
   //case sync request model return data instead of task_result
-  if (data) {
-    task_result = data;
-  }
+  if (data) { task_result = data; }
   //in case of task_result null
-  if (null === task_result || false === result) {
-    reject({});
-  } else {
-    resolve({ result, task_result });
-  }
+  if (null === task_result || false === result) { reject({}); } 
+  else { resolve({ result, task_result }); }
 }
 
 document.head.insertAdjacentHTML(
   'beforeend',
   /* css */`
-<style>
-  .qprocessing-model                                                   { padding-bottom: 10px; }
-  .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; }
-  .qprocessing-model .title                                            { font-weight: bold; margin-bottom: 5px; }
-  .qprocessing-model-results .icon                                     { cursor: pointer; border: 2px solid transparent; margin-bottom: 8px; padding: 3px; border-radius: 5px; }
-  .qprocessing-model-results .icon.pulse                               { transform: scale(1); animation: pulse 2s infinite; }
-  .qprocess-model-footer button.run                                    { width: 100%; }
-  .qprocessing-model-inputs                                            { margin-bottom: 5px; }
-  :is(.qprocessing-model-inputs, .qprocessing-model-outputs) .g3w-form { background-color: transparent !important; }
-  .qprocess-model-footer                                               { margin-top: 10px; }
-  .qprocess-model-footer .message                                      { font-weight: bold; }
-  @keyframes pulse {
-    0% { transform: scale(0.75); }
-    70% { transform: scale(1); }
-    100% { transform: scale(0.75); }
-  }
-</style>`,
+  <style>
+    .qprocessing-model                                                   { padding-bottom: 10px; }
+    .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; }
+    .qprocessing-model .title                                            { font-weight: bold; margin-bottom: 5px; }
+    .qprocessing-model-results .icon                                     { cursor: pointer; border: 2px solid transparent; margin-bottom: 8px; padding: 3px; border-radius: 5px; }
+    .qprocessing-model-results .icon.pulse                               { transform: scale(1); animation: pulse 2s infinite; }
+    .qprocess-model-footer button.run                                    { width: 100%; }
+    .qprocessing-model-inputs                                            { margin-bottom: 5px; }
+    :is(.qprocessing-model-inputs, .qprocessing-model-outputs) .g3w-form { background-color: transparent !important; }
+    .qprocess-model-footer                                               { margin-top: 10px; }
+    .qprocess-model-footer .message                                      { font-weight: bold; }
+    @keyframes pulse {
+      0% { transform: scale(0.75); }
+      70% { transform: scale(1); }
+      100% { transform: scale(0.75); }
+    }
+  </style>`,
 );

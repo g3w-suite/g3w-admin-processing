@@ -10,20 +10,20 @@ export default ({
     class = "form-group prj-raster-layer"
   >
 
-    <slot name="label">
+    <slot name = "label">
       <label
         :for       = "state.name"
         v-disabled = "!state.editable"
         class      = "col-sm-12">
       >
         {{ state.label }}
-        <span v-if="state.validate && state.validate.required">*</span>
+        <span v-if = "state.validate && state.validate.required">*</span>
       </label>
     </slot>
 
-    <div class="col-sm-12">
+    <div class = "col-sm-12">
 
-      <slot name="body">
+      <slot name = "body">
         <select
           v-select2 = "'value'"
           :id       = "state.name"
@@ -39,7 +39,7 @@ export default ({
         </select>
       </slot>
 
-      <slot name="message">
+      <slot name = "message">
         <p
           v-if   = "notvalid"
           v-html = "state.validate.message"
@@ -68,7 +68,7 @@ export default ({
   mixins: [selectMixin],
   props: {
     state: {
-      type: Object,
+      type:     Object,
       required: true
     }
   },
@@ -106,13 +106,13 @@ export default ({
       //exclude base layer
       .filter(layer => !layer.baselayer && (undefined !== layer.source && layer.source.type === 'gdal'))
       .map(layer => ({
-        key: layer.name,
+        key:   layer.name,
         value: layer.id
       }));
 
     if (this.state.input.options.values.length > 0) {
       //set initial value
-      this.value = this.state.input.options.values[0].value;
+      this.value                = this.state.input.options.values[0].value;
       this.state.validate.valid = true;
     }
 
@@ -128,8 +128,8 @@ export default ({
 document.head.insertAdjacentHTML(
   'beforeend',
   /* css */`
-<style>
-  /* Replicate same scoped style in InputBase.vue */
-  .prj-raster-layer label { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
-</style>`,
+  <style>
+    /* Replicate same scoped style in InputBase.vue */
+    .prj-raster-layer label { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
+  </style>`,
 );

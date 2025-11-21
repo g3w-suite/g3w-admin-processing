@@ -4,13 +4,13 @@ export default ({
 
   // language=html
   template: /* html */ `
-  <div class="qprocessing-model-results">
+  <div class = "qprocessing-model-results">
     <div
       v-for   = "result in model.results"
-      v-if    ="result.urls.length"
-      :key="result.id"
+      v-if    = "result.urls.length"
+      :key    = "result.id"
     >
-      <h4 style="font-weight: bold">{{result.label}}</h4>
+      <h4 style="font-weight: bold">{{ result.label }}</h4>
       <divider/>
         <ul
           class = "treeview-menu menu-items"
@@ -22,7 +22,7 @@ export default ({
             style  = "display: flex; justify-content: space-between; padding: 5px;"
           >
             <span>{{result.id}}_{{index}}</span>
-            <section style="padding: 3px; cursor: pointer; font-weight: bold;">
+            <section style = "padding: 3px; cursor: pointer; font-weight: bold;">
               <i
                 :class              = "g3wtemplate.font['download']"
                 @click.stop.prevent = "downloadFile(url)"
@@ -49,6 +49,10 @@ export default ({
     removeResult(result, index) {
       result.urls.splice(index, 1);
     },
+    /**
+     * 
+     * @param {*} url 
+     */
     async downloadFile(url) {
       try {
         ApplicationState.download = true;

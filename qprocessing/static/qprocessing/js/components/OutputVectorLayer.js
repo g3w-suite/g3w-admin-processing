@@ -14,7 +14,7 @@ export default ({
       :for  = "state.name"
       class = "col-sm-12">{{ state.label }}
     </label>
-    <div class="col-sm-12">
+    <div class = "col-sm-12">
       <select
         :id       = "state.name"
         v-select2 = "'type'"
@@ -66,8 +66,13 @@ export default ({
     type(value) {
       this.changeSelect(value)
     },
-    async task(res={}) {
-     const {task_result={}} = res;
+    /**
+     * 
+     * @param {*} res 
+     * @returns 
+     */
+    async task(res = {}) {
+     const { task_result = {} } = res;
      //get value from name of the output
      const downloadUrl = task_result[this.state.name];
 
@@ -75,7 +80,7 @@ export default ({
      if (this.checked) {
       let name =  `${uniqueId()}_${this.type}`, crs = GUI.getService('map').getEpsg();
       // convert shp → zip
-      const type = 'shp' !== this.type  ? this.type : 'zip';
+      const type     = 'shp' === this.type  ? 'zip' : this.type;
       const response = await fetch(downloadUrl);
       try {
         name = response.headers.get("content-disposition").split('filename=')[1].replace(/"/g,'');

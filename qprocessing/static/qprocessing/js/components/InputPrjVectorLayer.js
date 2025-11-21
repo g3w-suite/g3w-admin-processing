@@ -15,26 +15,33 @@ export default ({
     class = "form-group prj-vector-layer"
   >
 
-    <slot name="label">
-      <label :for="state.name" v-disabled="!state.editable" class="col-sm-12">
+    <slot name = "label">
+      <label :for = "state.name" v-disabled = "!state.editable" class = "col-sm-12">
         {{ state.label }}
-        <span v-if="state.validate && state.validate.required">*</span>
+        <span v-if = "state.validate && state.validate.required">*</span>
       </label>
     </slot>
 
-    <div class="col-sm-12">
+    <div class = "col-sm-12">
 
-      <section v-if="showUploadFile" class="vector-tools-context"  v-disabled="upload">
-        <section class="vector-tools">
-          <upload-vector-file         :upload="upload" @add-layer="addLayer" />
-          <draw-input-vector-features :upload="upload" @toggled-tool="toggleTempLayer" :datatypes="state.input.options.datatypes" @add-layer="addLayer" />
+      <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
+        <section class = "vector-tools">
+          <upload-vector-file         
+            :upload    = "upload" 
+            @add-layer = "addLayer" />
+          
+          <draw-input-vector-features 
+            :upload       = "upload" 
+            @toggled-tool = "toggleTempLayer" 
+            :datatypes    = "state.input.options.datatypes" 
+            @add-layer    = "addLayer" />
         </section>
-        <section class="vector-tools-message">
-          <div v-if="errorUpload" class="error-upload"> Errore </div>
+        <section class = "vector-tools-message">
+          <div v-if = "errorUpload" class = "error-upload"> Errore </div>
         </section>
       </section>
 
-      <slot name="body">
+      <slot name = "body">
         <select
           v-select2 = "'value'"
           :id       = "state.name"
@@ -68,7 +75,7 @@ export default ({
         </div>
       </slot>
 
-      <slot name="message">
+      <slot name = "message">
         <p
           v-if   = "notvalid"
           class  = "g3w-long-text error-input-message"
@@ -83,9 +90,9 @@ export default ({
       </slot>
 
       <div
-        v-if="state.help && this.state.help.visible"
-        v-html="state.help.message"
-        class="g3w_input_help skin-background-color extralighten">
+        v-if   = "state.help && this.state.help.visible"
+        v-html = "state.help.message"
+        class  = "g3w_input_help skin-background-color extralighten">
       </div>
 
     </div>
@@ -93,27 +100,27 @@ export default ({
   `,
 
   name: "InputPrjVectorLayer",
-  mixins: [selectMixin],
+  mixins: [ selectMixin ],
   components: {
     UploadVectorFile,
     DrawInputVectorFeatures,
   },
   props: {
       modelId: {
-      type: Number,
+      type:     Number,
       required: true,
     },
     state: {
-      type: Object,
+      type:     Object,
       required: true
     }
   },
-  data(){
+  data() {
     return {
-      upload: false,
-      errorUpload: false,
-      value: null,
-      selected_features_checked: false,
+      upload:                     false,
+      errorUpload:                false,
+      value:                      null,
+      selected_features_checked:  false,
       selected_features_disabled: true
     }
   },
@@ -122,11 +129,11 @@ export default ({
      * Check if datatypes contain geometries values
      * @returns Boolean
      */
-    showUploadFile(){
+    showUploadFile() {
       return !!this.state.input.options.datatypes.find(datatype => (datatype === 'anygeometry') || (['point', 'line', 'polygon'].indexOf(datatype) !== -1));
     },
     //check if it can take in account of selected features
-    isSelectedFeatures(){
+    isSelectedFeatures() {
       return 'prjvectorlayerfeature' === this.state.input.type;
     },
     //check if is no valid
@@ -138,19 +145,19 @@ export default ({
     /*
     * Show/hide temp tool
     * */
-    toggleTempLayer(bool){
+    toggleTempLayer(bool) {
       this.addTempLayer.setVisible(bool);
     },
-    async addLayer({file, features=[]}={}){
+    async addLayer({ file, features = [] } = {}) {
      //set initial reactive properties
-     this.upload = true;
+     this.upload      = true;
      this.errorUpload = false;
      try {
-        const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
-        const {key, value} = await qprocessing.uploadFile({
+        const qprocessing    = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+        const { key, value } = await qprocessing.uploadFile({
           file,
           inputName: this.state.name,
-          modelId: this.modelId,
+          modelId:   this.modelId,
         });
         //need to add only one external file
         this.state.input.options.values = this.state.input.options.values.filter(({key, value}) => !value.startsWith('file:'));
@@ -161,19 +168,17 @@ export default ({
         this.addTempLayer.getSource().addFeatures(features); //add eventually features
         this.addTempLayer.setVisible(true); //visible true
 
-        this.state.input.options.values.push({
-          key,
-          value
-        });
+        this.state.input.options.values.push({ key, value });
 
         await this.$nextTick();
         this.value = value;
         //set current select item
         $(this.$refs.select_layer)
-        .select2()
-        .val(value)
-        .trigger('change');
+          .select2()
+          .val(value)
+          .trigger('change');
      } catch(e) {
+       console.warn(e);
        this.errorUpload = true;
      }
      this.upload = false;
@@ -186,7 +191,7 @@ export default ({
      * @returns {*}
      */
     getLayerSelectedFeaturesIds(layerId) {
-      return GUI.getService('map').defaultsLayers.selectionLayer.getSource().getFeatures().filter(f => f.__layerId === layerId).map(f => f.getId());
+      return GUI.getService('map').defaultsLayers.selectionLayer.getSource().getFeatures().filter(f => layerId === f.__layerId).map(f => f.getId());
     },
 
     /**
@@ -194,7 +199,7 @@ export default ({
      * @param layerId
      */
     setDisabledSelectFeaturesCheckbox(layerId){
-      this.selected_features_disabled = this.getLayerSelectedFeaturesIds(layerId).length === 0;
+      this.selected_features_disabled = 0 === this.getLayerSelectedFeaturesIds(layerId).length === 0;
       //in case go disabled, uncheck checkbox
       if (true === this.selected_features_disabled) {
         this.selected_features_checked = false;
@@ -221,10 +226,10 @@ export default ({
      * @param datatypes Array
      * @returns {boolean}
      */
-    isExternalLayerValidForInputDatatypes({ layer, datatypes=[] }={}) {
+    isExternalLayerValidForInputDatatypes({ layer, datatypes = [] } = {}) {
       return (
         undefined !== datatypes.find(type => 'anygeometry' === type) ||
-        undefined !== datatypes.map(type => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean).find(type => isSameBaseGeometryType(type, layer.geometryType))
+        undefined !== datatypes.map(type  => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean).find(type => isSameBaseGeometryType(type, layer.geometryType))
       )
     },
 
@@ -238,45 +243,43 @@ export default ({
      *   'anygeometry'
      * return <Array>
      */
-    getInputPrjVectorLayerData(datatypes=[]) {
+    getInputPrjVectorLayerData(datatypes = []) {
       const layers = [];
-  
       //check if any geometry layer type is request
-      const anygeometry = undefined !== datatypes.find(data_type => data_type === 'anygeometry');
+      const anygeometry    = undefined !== datatypes.find(data_type => data_type === 'anygeometry');
       //check if no geometry layer type is request
-      const nogeometry = undefined !== datatypes.find(data_type => data_type === 'nogeometry');
-  
+      const nogeometry     = undefined !== datatypes.find(data_type => data_type === 'nogeometry');
       //get geometry_types only from data_types array
       const geometry_types = datatypes.map(type => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean);
   
       ProjectsRegistry.getCurrentProject().getLayers()
         //exclude base layer
-        .filter(layer => !layer.baselayer)
-        .forEach(layer => {
-          const key = layer.name;
-          const value = layer.id;
+        .filter(l => !l.baselayer)
+        .forEach(l => {
+          const key   = l.name;
+          const value = l.id;
           //get layer if it has no geometry
           if (true === nogeometry) {
             if (
               (true === nogeometry) &&
-              (undefined === layer.geometrytype || "NoGeometry" === layer.geometrytype)
+              (undefined === l.geometrytype || "NoGeometry" === l.geometrytype)
             ) {
-              layers.push({key, value})
+              layers.push({ key, value })
               return;
             }
           }
   
           if (
-            (null !== layer.geometrytype) &&
-            (undefined !== layer.geometrytype) &&
-            ("NoGeometry" !== layer.geometrytype)
+            (null !== l.geometrytype) &&
+            (undefined !== l.geometrytype) &&
+            ("NoGeometry" !== l.geometrytype)
           ) {
             // in the case of any geometry type
             if (true === anygeometry) {
-              layers.push({key, value})
+              layers.push({ key, value })
             } else {
               if (geometry_types.length > 0) {
-                if (undefined !== geometry_types.find(geometry_type => isSameBaseGeometryType(geometry_type, layer.geometrytype))) {
+                if (undefined !== geometry_types.find(geometry_type => isSameBaseGeometryType(geometry_type, l.geometrytype))) {
                   layers.push({key, value})
                 }
               }
@@ -287,16 +290,11 @@ export default ({
       //check for external
       if (anygeometry || geometry_types.length > 0) {
         //get external layers from catalog
-        GUI.getService('catalog').getExternalLayers({
-          type: 'vector'
-        }).forEach(layer => {
-          if (this.isExternalLayerValidForInputDatatypes({
-            layer,
-            datatypes
-          })) {
+        GUI.getService('catalog').getExternalLayers({ type: 'vector' }).forEach(l => {
+          if (this.isExternalLayerValidForInputDatatypes({ layer: l, datatypes })) {
             layers.push({
-              key:layer.name,
-              value: `__g3w__external__:${layer.id}`
+              key:   l.name,
+              value: `__g3w__external__:${l.id}`
             })
           }
         })
@@ -312,7 +310,7 @@ export default ({
       if (true === this.isSelectedFeatures) {
         this.setDisabledSelectFeaturesCheckbox(value);
       }
-      this.state.value = value;
+      this.state.value          = value;
       this.state.validate.valid = ![undefined, null].includes(value);
       this.$emit('changeinput', this.state);
     },
@@ -329,7 +327,7 @@ export default ({
     this.state.input.options.values = this.getInputPrjVectorLayerData(this.state.input.options.datatypes);
 
     if (this.state.input.options.values.length > 0) {
-      this.value = this.state.input.options.values[0].value;
+      this.value                = this.state.input.options.values[0].value;
       this.state.validate.valid = true;
     }
 
@@ -348,9 +346,7 @@ export default ({
      * temporary layer filled by upload or draw tools
      */
 
-    this.addTempLayer = new ol.layer.Vector({
-      source: new ol.source.Vector()
-    })
+    this.addTempLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
 
     //add to map
     GUI.getService('map').getMap().addLayer(this.addTempLayer);
@@ -359,22 +355,19 @@ export default ({
     this.addTempLayer.setVisible(false);
 
     //listen add external Layer
-    this.keyAddExternal = 
-    
-    GUI.getService('catalog').onafter('addExternalLayer', ({ type, layer }) =>{
-        if ('vector' !== type) {
-          return;
-        }
+    this.keyAddExternal =  GUI.getService('catalog')
+      .onafter('addExternalLayer', ({ type, layer }) => {
+        if ('vector' !== type) { return }
         if (this.isExternalLayerValidForInputDatatypes({ layer, datatypes: this.state.input.options.datatypes })) {
           this.state.input.options.values.push({
-            key:layer.name,
+            key:   layer.name,
             value: `__g3w__external__:${layer.id}`
           });
         }
       })
 
   },
-  async mounted(){
+  async mounted() {
     await this.$nextTick();
     this.select2 = $(this.$refs.select_layer);
     //need to emit add input to validate
@@ -404,12 +397,12 @@ export default ({
 document.head.insertAdjacentHTML(
   'beforeend',
   /* css */`
-<style>
-  /* Replicate same scoped style in InputBase.vue */
-  .prj-vector-layer label             { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
-  .vector-tools-context               { margin-bottom: 5px; }
-  .vector-tools                       { display: flex; justify-content: space-between; }
-  .vector-tools-message               { margin: 3px; }
-  .vector-tools-message .error-upload { font-weight: bold; color: red; }
-</style>`,
+  <style>
+    /* Replicate same scoped style in InputBase.vue */
+    .prj-vector-layer label             { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
+    .vector-tools-context               { margin-bottom: 5px; }
+    .vector-tools                       { display: flex; justify-content: space-between; }
+    .vector-tools-message               { margin: 3px; }
+    .vector-tools-message .error-upload { font-weight: bold; color: red; }
+  </style>`,
 );

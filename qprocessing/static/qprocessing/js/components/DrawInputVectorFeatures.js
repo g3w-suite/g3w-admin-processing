@@ -14,7 +14,7 @@ export default ({
       style               = "height: 100%; margin-right: 0 !important;"
       @click.stop.prevent = "toggled = !toggled"
     >
-      <i :class="[g3wtemplate.getFontClass('pencil')]"></i>
+      <i :class = "[g3wtemplate.getFontClass('pencil')]"></i>
     </button>
   </div>
   `,
@@ -22,7 +22,7 @@ export default ({
   name: "DrawInputVectorFeatures",
   props: {
     datatypes: {
-      type: Array, //array of datatypes from input
+      type:    Array, //array of datatypes from input
       default: []
     },
     upload:{
@@ -33,7 +33,7 @@ export default ({
     return {
       toggled: false, //draw button toggled
       drawTool: {
-        loading: this.upload,
+        loading:  this.upload,
         disabled: true
       }
     }
@@ -42,7 +42,7 @@ export default ({
     /**
      * handle draw interaction flow
      */
-    setDrawInteraction(type=this.drawGeometryTypes[0]){
+    setDrawInteraction(type = this.drawGeometryTypes[0]){
       GUI.getService('map').disableClickMapControls(true);                                          // avoid click conflicts
       this.drawLayer.getSource().clear();                                                           // clear previous features
       GUI.getService('map').getMap().removeInteraction(this.drawInteraction);                       // remove previous draw interaction
@@ -59,7 +59,7 @@ export default ({
   },
   watch: {
     //listen toggled button
-    toggled(bool){
+    toggled(bool) {
       if (!bool) {
         this.clear();
         this.$emit('toggled-tool', !bool);
@@ -77,36 +77,36 @@ export default ({
           body: {
             template: /* html */`
               <div style="width: 100%; padding: 5px;" v-disabled="state.loading">
-              <!-- NB: it makes use of built-in g3w-client directive: "v-select2" -->
-              <select
-                v-select2 = "'type'"
-                :search   = "false"
-                ref       = "select"
-                style     = "width: 100%">
-                <option
-                  v-for      = "type in types"
-                  :key       = "type"
-                  :value     = "type"
-                  v-t-plugin = "'qprocessing.draw_types.'+type"
-                ></option>
-              </select>
+                <!-- NB: it makes use of built-in g3w-client directive: "v-select2" -->
+                <select
+                  v-select2 = "'type'"
+                  :search   = "false"
+                  ref       = "select"
+                  style     = "width: 100%">
+                  <option
+                    v-for      = "type in types"
+                    :key       = "type"
+                    :value     = "type"
+                    v-t-plugin = "'qprocessing.draw_types.'+type"
+                  ></option>
+                </select>
 
-              <bar-loader :loading="state.loading"/>
+                <bar-loader :loading = "state.loading"/>
 
-              <button
-                v-disabled="state.disabled"
-                class="btn skin-background-color"
-                @click.stop.prevent="uploadLayer(type)"
-                style="margin: 3px; width: 100%">
-                <i :class="[g3wtemplate.getFontClass('cloud-upload')]"></i>
-              </button>
+                <button
+                  v-disabled          = "state.disabled"
+                  class               = "btn skin-background-color"
+                  @click.stop.prevent = "uploadLayer(type)"
+                  style               = "margin: 3px; width: 100%">
+                  <i :class           = "[g3wtemplate.getFontClass('cloud-upload')]"></i>
+                </button>
 
               </div>`,
             data: () => {
               return {
                 state: this.drawTool,
                 types: this.drawGeometryTypes,
-                type: this.drawGeometryTypes[0]
+                type:  this.drawGeometryTypes[0]
               };
             },
             watch: {
@@ -115,15 +115,13 @@ export default ({
                * @listens type change of drawed geometry
                * @fires   change-draw-type
                */
-              'type': (type) => {
-                this.setDrawInteraction(type);
-              },
+              'type': (type) => this.setDrawInteraction(type),
 
             },
             methods: {
               uploadLayer: async (type) => {
                 const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
-                const features = this.drawLayer.getSource().getFeatures();
+                const features    = this.drawLayer.getSource().getFeatures();
                 await this.$nextTick();
                 //emit event
                 this.$emit('add-layer', {
@@ -141,9 +139,9 @@ export default ({
       });
       this.$emit('toggled-tool', !bool);
     },
-    upload(bool){
+    upload(bool) {
       //listen upload status. Boolean
-      this.drawTool.loading = bool;
+      this.drawTool.loading  = bool;
       this.drawTool.disabled = !bool;
       if (!bool) {
         this.clear();
@@ -155,20 +153,20 @@ export default ({
 
     //set geometries type
     this.drawGeometryTypes = Object.entries({
-      point: 'Point',
-      line: 'LineString',
+      point:   'Point',
+      line:    'LineString',
       polygon: 'Polygon'
-    }).reduce((accumulator, [type, olGeometry]) => {
-      if (this.datatypes.find(datatype => datatype === 'anygeometry')){
-        accumulator.push(olGeometry);
+    }).reduce((a, [type, olGeometry]) => {
+      if (this.datatypes.find(dt => dt === 'anygeometry')){
+        a.push(olGeometry);
       } else {
-        this.datatypes.find(datatype => datatype === type) && accumulator.push(olGeometry)
+        this.datatypes.find(dt => type === dt) && a.push(olGeometry)
       }
-      return accumulator;
+      return a;
     }, []);
 
     this.drawInteraction = null;
-    this.drawLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
+    this.drawLayer       = new ol.layer.Vector({ source: new ol.source.Vector() });
     GUI.getService('map').getMap().addLayer(this.drawLayer);
   },
   beforeDestroy() {
