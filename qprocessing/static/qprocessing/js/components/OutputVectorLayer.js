@@ -28,7 +28,6 @@ export default ({
         </option>
       </select>
       <input
-        style   = "width:100%;"
         class   = "magic-checkbox"
         v-model = "checked"
         type    = "checkbox"
@@ -106,8 +105,8 @@ export default ({
 
      //always add to results
      this.$emit('add-result-to-model-results', {
-      output: this.state,
-      result: task_result
+        output: this.state,
+        result: task_result
      })
 
     }

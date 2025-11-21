@@ -52,7 +52,7 @@ export default ({
     type(value) {
       this.changeSelect(value)
     },
-    async task(response={}) {
+    async task(response = {}) {
      const {task_result={}} = response;
       this.$emit('add-result-to-model-results', {
        output: this.state,

@@ -1,9 +1,9 @@
 import prjvectorlayer_input from '../components/InputPrjVectorLayer.js';
 import prjrasterlayer_input from '../components/InputPrjRasterLayer.js';
 import fieldchooser_input   from '../components/InputFieldChooser.js';
-import outputvectorlayer from '../components/OutputVectorLayer.js';
-import outputrasterlayer from '../components/OutputRasterLayer.js';
-import outputfile        from '../components/OutputFile.js';
+import outputvectorlayer    from '../components/OutputVectorLayer.js';
+import outputrasterlayer    from '../components/OutputRasterLayer.js';
+import outputfile           from '../components/OutputFile.js';
 
 const { Panel }            = g3wsdk.gui;
 const { formInputsMixins } = g3wsdk.gui.vue.Mixins;
@@ -140,19 +140,19 @@ export default ({
   },
   methods: {
     //add model result to results
-    addResultToModel(data={}) {
-      const {output, result} = data;
+    addResultToModel(data = {}) {
+      const { output, result } = data;
       if (undefined !== result) {
         const id = output.name;
          //check if output contain already result
-        const findResultOutput = this.model.results.find(result => result.id === id);
+        const findResultOutput = this.model.results.find(result => id === result.id);
         if (findResultOutput) {
           findResultOutput.urls.push(result[output.name])
         } else {
           this.model.results.push({
-            id: output.name,
+            id:    output.name,
             label: output.label,
-            urls: [result[output.name]]
+            urls:  [result[output.name]]
           })
         }
         this.newResults = true; // set new result to true
@@ -460,7 +460,7 @@ function _handleCompleteModelResponse(response, {
   resolve,
   reject,
 }) {
-  let {result, task_result, data} = response;
+  let { result, task_result, data } = response;
   //case sync request model return data instead of task_result
   if (data) {
     task_result = data;
@@ -469,7 +469,7 @@ function _handleCompleteModelResponse(response, {
   if (null === task_result || false === result) {
     reject({});
   } else {
-    resolve({result, task_result});
+    resolve({ result, task_result });
   }
 }
 
