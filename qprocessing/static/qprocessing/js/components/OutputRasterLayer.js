@@ -52,11 +52,13 @@ export default ({
     type(value){
       this.changeSelect(value);
     },
-    async task(response={}){
-     const {task_result={}} = response;
+    async task( response = {}) {
+     const { task_result = {} } = response;
      const fileUrl = task_result[this.state.name];
      this.$emit('add-result-to-model-results', {
-      url: fileUrl
+       url:    fileUrl,
+       output: this.state,
+       result: task_result
      })
     }
   },
