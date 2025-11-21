@@ -105,8 +105,8 @@ export default ({
 
      //always add to results
      this.$emit('add-result-to-model-results', {
-      output: this.state,
-      result: task_result
+        output: this.state,
+        result: task_result
      })
 
     }
