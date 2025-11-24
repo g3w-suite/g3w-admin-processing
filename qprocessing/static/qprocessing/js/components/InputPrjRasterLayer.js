@@ -29,9 +29,6 @@ export default ({
             :upload    = "upload" 
             @add-layer = "addLayer" />
           </section>
-          <section class = "raster-tools-message">
-            <div v-if = "errorUpload" class = "error-upload"> Errore </div>
-          </section>
       </section>
 
       <slot name = "body">
