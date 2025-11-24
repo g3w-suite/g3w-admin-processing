@@ -19,7 +19,7 @@ export default ({
   <div class = "qprocessing-model">
 
     <section class = "qprocessing-model-header">
-      <div class = "skin-color">{{model.display_name.toUpperCase()}}</div>
+      <div class = "skin-color">{{ model.display_name.toUpperCase() }}</div>
     </section>
 
     <!-- NOTES   -->
@@ -464,7 +464,7 @@ document.head.insertAdjacentHTML(
   /* css */`
   <style>
     .qprocessing-model                                                   { padding-bottom: 10px; }
-    .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; }
+    .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; }
     .qprocessing-model .title                                            { font-weight: bold; margin-bottom: 5px; }
     .qprocessing-model-results                                           { margin-top: 10px; }
     .qprocessing-model-results .icon                                     { cursor: pointer; border: 2px solid transparent; margin-bottom: 8px; padding: 3px; border-radius: 5px; }
