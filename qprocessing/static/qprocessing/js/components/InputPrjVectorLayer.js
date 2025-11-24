@@ -105,7 +105,7 @@ export default ({
     DrawInputVectorFeatures,
   },
   props: {
-      modelId: {
+    modelId: {
       type:     Number,
       required: true,
     },
@@ -147,6 +147,10 @@ export default ({
     toggleTempLayer(bool) {
       this.addTempLayer.setVisible(bool);
     },
+    /**
+     * 
+     * @param {*} param0 
+     */
     async addLayer({ file, features = [] } = {}) {
      //set initial reactive properties
      this.upload      = true;
