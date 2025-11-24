@@ -156,8 +156,8 @@ export default ({
       point:   'Point',
       line:    'LineString',
       polygon: 'Polygon'
-    }).reduce((a, [type, olGeometry]) => {
-      if (this.datatypes.find(dt => dt === 'anygeometry')){
+    }).reduce((a, [ type, olGeometry ]) => {
+      if (this.datatypes.find(dt => 'anygeometry' === dt)){
         a.push(olGeometry);
       } else {
         this.datatypes.find(dt => type === dt) && a.push(olGeometry)
@@ -172,7 +172,7 @@ export default ({
   beforeDestroy() {
     this.clear();
     GUI.getService('map').getMap().removeLayer(this.drawLayer);
-    this.drawLayer = null;
+    this.drawLayer       = null;
     this.drawInteraction = null;
   }
 });
