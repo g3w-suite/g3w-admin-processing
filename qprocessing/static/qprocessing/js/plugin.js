@@ -14,7 +14,7 @@
       // i18n
       const VM = new Vue();
       const i18n = async lang => {
-        import(`${BASE_URL}/i18n/${lang}.js`)
+        import(`${BASE_URL}/i18n/${['it', 'en', 'fr'].includes(lang) ? lang : 'en'}.js`)
         .then(m => this.setLocale({ [lang]: m.default }))
         .catch(console.warn)
       };
