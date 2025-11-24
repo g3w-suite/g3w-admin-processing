@@ -10,64 +10,60 @@ export default ({
     v-if  = "state.visible"
     class = "form-group prj-raster-layer"
   >
-
     <slot name = "label">
       <label
         :for       = "state.name"
-        v-disabled = "!state.editable"
-        class      = "col-sm-12">
+        v-disabled = "!state.editable">
         {{ state.label }}
         <span v-if = "state.validate && state.validate.required">*</span>
       </label>
     </slot>
 
-    <div class = "col-sm-12">
 
-      <section v-disabled = "upload" style = "margin-bottom: 5px">
-        <section class = "vector-tools">
-          <upload-raster-file         
-            :upload    = "upload" 
-            @add-layer = "addLayer" />
-          </section>
-      </section>
+    <section v-disabled = "upload" style = "margin-bottom: 5px">
+      <section class = "vector-tools">
+        <upload-raster-file         
+          :upload    = "upload" 
+          @add-layer = "addLayer" />
+        </section>
+    </section>
 
-      <slot name = "body">
-        <select
-          v-select2 = "'value'"
-          :id       = "state.name"
-          ref       = "select"
-          style     = "width:100%;"
-          class     = "form-control"
-        >
-          <option
-           v-for  = "value in state.input.options.values"
-           :key   = "value.value"
-           :value = "value.value"
-          >{{ value.key }}</option>
-        </select>
-      </slot>
+    <slot name = "body">
+      <select
+        v-select2 = "'value'"
+        :id       = "state.name"
+        ref       = "select"
+        style     = "width:100%;"
+        class     = "form-control"
+      >
+        <option
+          v-for  = "value in state.input.options.values"
+          :key   = "value.value"
+          :value = "value.value"
+        >{{ value.key }}</option>
+      </select>
+    </slot>
 
-      <slot name = "message">
-        <p
-          v-if   = "notvalid"
-          v-html = "state.validate.message"
-          class  = "g3w-long-text error-input-message"
-          style  = "margin: 0"
-        ></p>
-        <p
-          v-else-if = "state.info"
-          v-html    = "state.info"
-          style     = "margin: 0"
-        ></p>
-      </slot>
+    <slot name = "message">
+      <p
+        v-if   = "notvalid"
+        v-html = "state.validate.message"
+        class  = "g3w-long-text error-input-message"
+        style  = "margin: 0"
+      ></p>
+      <p
+        v-else-if = "state.info"
+        v-html    = "state.info"
+        style     = "margin: 0"
+      ></p>
+    </slot>
 
-      <div
-        v-if   = "state.help && this.state.help.visible"
-        v-html = "state.help.message"
-        class  = "g3w_input_help skin-background-color extralighten"
-      ></div>
+    <div
+      v-if   = "state.help && this.state.help.visible"
+      v-html = "state.help.message"
+      class  = "g3w_input_help skin-background-color extralighten"
+    ></div>
 
-    </div>
 
   </div>
   `,

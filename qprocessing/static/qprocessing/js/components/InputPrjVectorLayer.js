@@ -16,85 +16,82 @@ export default ({
   >
 
     <slot name = "label">
-      <label :for = "state.name" v-disabled = "!state.editable" class = "col-sm-12">
+      <label :for = "state.name" v-disabled = "!state.editable">
         {{ state.label }}
         <span v-if = "state.validate && state.validate.required">*</span>
       </label>
     </slot>
-
-    <div class = "col-sm-12">
-
-      <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
-        <section class = "vector-tools">
-          <upload-vector-file         
-            :upload    = "upload" 
-            @add-layer = "addLayer" />
-          
-          <draw-input-vector-features 
-            :upload       = "upload" 
-            @toggled-tool = "toggleTempLayer" 
-            :datatypes    = "state.input.options.datatypes" 
-            @add-layer    = "addLayer" />
-        </section>
-        <section class = "vector-tools-message">
-          <div v-if = "errorUpload" class = "error-upload"> Errore </div>
-        </section>
+    
+    <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
+      <section class = "vector-tools">
+        <upload-vector-file         
+          :upload    = "upload" 
+          @add-layer = "addLayer" />
+        
+        <draw-input-vector-features 
+          :upload       = "upload" 
+          @toggled-tool = "toggleTempLayer" 
+          :datatypes    = "state.input.options.datatypes" 
+          @add-layer    = "addLayer" />
       </section>
+      <section class = "vector-tools-message">
+        <div v-if = "errorUpload" class = "error-upload"> Errore </div>
+      </section>
+    </section>
 
-      <slot name = "body">
-        <select
-          v-select2 = "'value'"
-          :id       = "state.name"
-          ref       = "select_layer"
-          style     = "width:100%;"
-          class     = "form-control"
-        >
-          <option
-            v-for  = "value in state.input.options.values"
-            :key   = "value.value"
-            :value = "value.value">{{ value.key }}
-          </option>
-        </select>
-        <div
-          v-if       = "isSelectedFeatures"
-          v-disabled = "selected_features_disabled"
-          class      = "prjvectorlayerfeature-only-selected-features"
-        >
-          <input
-            class   = "magic-checkbox"
-            v-model = "selected_features_checked"
-            type    = "checkbox"
-            :id     = "state.name + '_checkbox'"
-          />
-          <label
-            style      = "margin-top: 10px;"
-            :for       = "state.name + '_checkbox'"
-            v-t-plugin = "'qprocessing.inputs.prjvectorlayerfeature.selected_features'">
-          </label>
-        </div>
-      </slot>
-
-      <slot name = "message">
-        <p
-          v-if   = "notvalid"
-          class  = "g3w-long-text error-input-message"
-          style  = "margin: 0"
-          v-html = "state.validate.message">
-        </p>
-        <p
-          v-else-if = "state.info"
-          style     = "margin: 0 "
-          v-html    = "state.info"
-        ></p>
-      </slot>
-
+    <slot name = "body">
+      <select
+        v-select2 = "'value'"
+        :id       = "state.name"
+        ref       = "select_layer"
+        style     = "width:100%;"
+        class     = "form-control"
+      >
+        <option
+          v-for  = "value in state.input.options.values"
+          :key   = "value.value"
+          :value = "value.value">{{ value.key }}
+        </option>
+      </select>
       <div
-        v-if   = "state.help && this.state.help.visible"
-        v-html = "state.help.message"
-        class  = "g3w_input_help skin-background-color extralighten">
+        v-if       = "isSelectedFeatures"
+        v-disabled = "selected_features_disabled"
+        class      = "prjvectorlayerfeature-only-selected-features"
+      >
+        <input
+          class   = "magic-checkbox"
+          v-model = "selected_features_checked"
+          type    = "checkbox"
+          :id     = "state.name + '_checkbox'"
+        />
+        <label
+          style      = "margin-top: 10px;"
+          :for       = "state.name + '_checkbox'"
+          v-t-plugin = "'qprocessing.inputs.prjvectorlayerfeature.selected_features'">
+        </label>
       </div>
+    </slot>
 
+    <slot name = "message">
+      <p
+        v-if   = "notvalid"
+        class  = "g3w-long-text error-input-message"
+        style  = "margin: 0"
+        v-html = "state.validate.message">
+      </p>
+      <p
+        v-else-if = "state.info"
+        style     = "margin: 0 "
+        v-html    = "state.info"
+      ></p>
+    </slot>
+
+    <div
+      v-if   = "state.help && this.state.help.visible"
+      v-html = "state.help.message"
+      class  = "g3w_input_help skin-background-color extralighten">
     </div>
+
   </div>
   `,
 

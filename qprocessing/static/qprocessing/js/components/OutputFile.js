@@ -9,22 +9,19 @@ export default ({
     <label
       style = "color:#fff !important;"
       :for  = "state.name"
-      class = "col-sm-12"
-    >{{state.label}}</label>
-    <div class = "col-sm-12">
-      <select
-        :id       = "state.name"
-        v-select2 = "'type'"
-        ref       = "select2"
-        class     = "form-control qprocessing-output-vectorlayer-select"
-      >
-        <option
-          v-for  = "({key, value}) in state.input.options.values"
-          :key   = "key"
-          :value = "value"
-        >{{key}}</option>
-      </select>
-    </div>
+    >{{ state.label }}</label>
+    <select
+      :id       = "state.name"
+      v-select2 = "'type'"
+      ref       = "select2"
+      class     = "form-control qprocessing-output-vectorlayer-select"
+    >
+      <option
+        v-for  = "({key, value}) in state.input.options.values"
+        :key   = "key"
+        :value = "value"
+      >{{key}}</option>
+    </select>
   </div>`,
 
   name: "OutputFile",
