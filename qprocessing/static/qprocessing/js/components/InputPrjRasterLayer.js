@@ -93,7 +93,7 @@ export default ({
   `,
 
   name: "InputPrjRasterLayer",
-  mixins: [selectMixin],
+  mixins: [ selectMixin ],
   props: {
     modelId: {
       type:     Number,
@@ -112,6 +112,11 @@ export default ({
     }
   },
   methods: {
+    /**
+     * Add Raster Layer
+     * @param {*} evt 
+     * @returns 
+     */
     async addLayer(evt) {
      const file = evt?.target.files?.[0];
      if (!file) { return; }
@@ -148,7 +153,7 @@ export default ({
   computed: {
     //recreate same computed property of input editing
     notvalid() {
-      return this.state.validate.valid === false;
+      return false === this.state.validate.valid;
     }
   },
   watch: {
@@ -159,23 +164,12 @@ export default ({
     }
   },
   created() {
-
-    /**
-     * Get all Project Vector Layers that has geometry types
-     * @param datatypes <Array> of String
-     *   'nogeometry',
-     *   'point',
-     *   'line',
-     *   'polygon',
-     *   'anygeometry'
-     * return <Array>
-     */
     this.state.input.options.values = ProjectsRegistry.getCurrentProject().getLayers()
       //exclude base layer
-      .filter(layer => !layer.baselayer && (undefined !== layer.source && layer.source.type === 'gdal'))
-      .map(layer => ({
-        key:   layer.name,
-        value: layer.id
+      .filter(l => !l.baselayer && 'gdal' === l?.source?.type)
+      .map(l => ({
+        key:   l.name,
+        value: l.id
       }));
 
     if (this.state.input.options.values.length > 0) {
@@ -183,19 +177,6 @@ export default ({
       this.value                = this.state.input.options.values[0].value;
       this.state.validate.valid = true;
     }
-
-    /**
-     * temporary layer filled by upload or draw tools
-     */
-
-    this.addTempLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
-
-    //add to map
-    GUI.getService('map').getMap().addLayer(this.addTempLayer);
-
-    //set initial visibility to false
-    this.addTempLayer.setVisible(false);
-
   },
   async mounted(){
     await this.$nextTick();
