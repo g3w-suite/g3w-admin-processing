@@ -16,19 +16,26 @@ export default ({
 
   // language=html
   template: /* html */ `
-  <div class="qprocessing-model">
+  <div class = "qprocessing-model">
 
-    <section class="qprocessing-model-header">
-      <div class="skin-color">{{model.display_name.toUpperCase()}}</div>
+    <section class = "qprocessing-model-header">
+      <div class = "skin-color">{{model.display_name.toUpperCase()}}</div>
+    </section>
+
+    <!-- NOTES   -->
+    <section v-if = "model.note" class = "qprocessing-model-note">
+      <div class = "title" >NOTE</div>
+      <divider/>
+      <div v-html = "model.note" ></div>
     </section>
 
     <!-- INPUTS   -->
-    <section class="qprocessing-model-inputs">
-      <div class="title" >INPUTS</div>
+    <section class = "qprocessing-model-inputs">
+      <div class = "title" >INPUTS</div>
       <divider/>
-      <form class="form-horizontal g3w-form">
-        <div class="box-primary">
-          <div class="box-body">
+      <form class = "form-horizontal g3w-form">
+        <div class = "box-primary">
+          <div class = "box-body">
             <component
               v-for                  = "input in model.inputs"
               :key                   = "input.name"
@@ -46,12 +53,12 @@ export default ({
     </section>
 
     <!-- OUTPUTS   -->
-    <section class="qprocessing-model-outputs">
-      <div class="title">OUTPUTS</div>
+    <section class = "qprocessing-model-outputs">
+      <div class = "title">OUTPUTS</div>
       <divider/>
-      <form class="form-horizontal g3w-form">
-          <div class="box-primary">
-            <div class="box-body">
+      <form class = "form-horizontal g3w-form">
+          <div class = "box-primary">
+            <div class = "box-body">
               <component
                 v-for                        = "output in model.outputs"
                 :key                         = "output.name"
@@ -65,32 +72,18 @@ export default ({
         </form>
     </section>
 
-    <!-- MODEL RESULTS   -->
-    <section class="qprocessing-model-results">
-      <section style="display: flex; justify-content: space-between; align-items: center">
-        <div class="title">RESULTS</div>
-        <span
-          v-disabled          = "model.results.length === 0"
-          class               = "icon skin-color skin-border-color"
-          :class              = "[ g3wtemplate.getFontClass('list'), {'pulse': newResults}]"
-          @click.stop.prevent = "showModelResults">
-        </span>
-      </section>
-      <divider/>
-    </section>
-
     <!-- FOOTER -->
-    <section class="qprocess-model-footer">
+    <section class = "qprocess-model-footer">
       <div>
-        <progressbar v-if="state.progress" :progress="state.progress" />
+        <progressbar v-if = "state.progress" :progress = "state.progress" />
         <bar-loader v-else :loading="state.loading" />
         <button
           class       = "btn skin-background-color run"
           @click.stop = "run"
           :disabled   = "!valid || state.loading">
-          <i :class="g3wtemplate.font['run']"></i>
+          <i :class = "g3wtemplate.font['run']"></i>
         </button>
-        <div v-if="state.message.show">
+        <div v-if = "state.message.show">
          <span
           class       ="message"
           :style      = "{color: getMessageColor()}"
@@ -98,6 +91,21 @@ export default ({
           ></span>
         </div>
       </div>
+
+    </section>
+
+    <!-- MODEL RESULTS   -->
+    <section class = "qprocessing-model-results">
+      <divider/>
+      <section style = "display: flex; justify-content: space-between; align-items: center">
+        <div class = "title">RESULTS</div>
+        <span
+          v-disabled          = "model.results.length === 0"
+          class               = "icon skin-color skin-border-color"
+          :class              = "[ g3wtemplate.getFontClass('list'), {'pulse': newResults}]"
+          @click.stop.prevent = "showModelResults">
+        </span>
+      </section>
     </section>
 
   </div>
@@ -123,7 +131,7 @@ export default ({
       required: true
     }
   },
-  data(){
+  data() {
     return {
       state: {
         loading: false,
@@ -459,12 +467,12 @@ document.head.insertAdjacentHTML(
     .qprocessing-model                                                   { padding-bottom: 10px; }
     .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; }
     .qprocessing-model .title                                            { font-weight: bold; margin-bottom: 5px; }
+    .qprocessing-model-results                                           { margin-top: 10px; }
     .qprocessing-model-results .icon                                     { cursor: pointer; border: 2px solid transparent; margin-bottom: 8px; padding: 3px; border-radius: 5px; }
     .qprocessing-model-results .icon.pulse                               { transform: scale(1); animation: pulse 2s infinite; }
     .qprocess-model-footer button.run                                    { width: 100%; }
-    .qprocessing-model-inputs                                            { margin-bottom: 5px; }
+    .qprocessing-model-inputs, .qprocessing-model-note                   { margin-bottom: 5px; }
     :is(.qprocessing-model-inputs, .qprocessing-model-outputs) .g3w-form { background-color: transparent !important; }
-    .qprocess-model-footer                                               { margin-top: 10px; }
     .qprocess-model-footer .message                                      { font-weight: bold; }
     @keyframes pulse {
       0% { transform: scale(0.75); }
