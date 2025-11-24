@@ -125,7 +125,7 @@
         } else {
           GUI.showUserMessage({
           type: 'alert',
-          message: json?.error7 || 'server_error',
+          message: json?.error || 'server_error',
         })
         }
       } catch(e) {
