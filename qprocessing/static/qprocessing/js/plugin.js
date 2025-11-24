@@ -108,7 +108,7 @@
      * @param {*} param0 
      * @returns 
      */
-    async uploadFile({ modelId, inputName, file}) {
+    async uploadFile({ modelId, inputName, file }) {
       const data = new FormData();
       data.append('file', file);
       try {
@@ -130,11 +130,11 @@
         }
       } catch(e) {
         GUI.showUserMessage({
-          type: 'alert',
+          type:    'alert',
           message: e,
         })
         console.warn(e);
-        return Promise.reject(e);
+        return Promise.reject({ error: e });
       }
       
     }
