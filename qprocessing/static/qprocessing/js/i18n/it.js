@@ -18,6 +18,7 @@ export default {
       open_file_on_map: "Apri il file sulla mappa"
     }
   },
+  results: "RISULTATI",
   run :{
     messages: {
       success: "Modello eseguito con successo",

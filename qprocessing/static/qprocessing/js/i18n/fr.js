@@ -18,6 +18,7 @@ export default {
       open_file_on_map: "Ouvrir le fichier créé une fois l'algorithme terminé"
     }
   },
+  results: "RÉSULTATS",
   run :{
     messages: {
       success: "L'algorithme a été exécuté avec succès",

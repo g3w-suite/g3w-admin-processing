@@ -18,6 +18,7 @@ export default {
       open_file_on_map: "Open output file after running algorithm"
     }
   },
+  results: "RESULTS",
   run :{
     messages: {
       success: "Model run successfully",

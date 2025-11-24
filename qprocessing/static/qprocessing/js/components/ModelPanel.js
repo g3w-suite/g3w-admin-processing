@@ -91,14 +91,13 @@ export default ({
           ></span>
         </div>
       </div>
-
     </section>
 
     <!-- MODEL RESULTS   -->
     <section class = "qprocessing-model-results">
       <divider/>
       <section style = "display: flex; justify-content: space-between; align-items: center">
-        <div class = "title">RESULTS</div>
+        <div class = "title" v-t-plugin = "'qprocessing.results'"></div>
         <span
           v-disabled          = "model.results.length === 0"
           class               = "icon skin-color skin-border-color"
