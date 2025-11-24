@@ -33,6 +33,7 @@ export default ({
             >
               <input
                 type    = "file"
+                ref     = "file"
                 title   = " "
                 @change = "addLayer"
                 accept  = ".tif,.geotif"
@@ -144,7 +145,9 @@ export default ({
           .trigger('change');
      } catch(e) {
        console.warn(e);
-       this.errorUpload = true;
+       this.errorUpload      = true;
+       //reset input value to null
+       this.$refs.file.value = null;
      }
      this.upload = false;
    },
