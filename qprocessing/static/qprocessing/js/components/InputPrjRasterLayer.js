@@ -1,4 +1,3 @@
-import UploadRasterFile from "./UploadRasterFile.js";
 const { selectMixin }      = g3wsdk.gui.vue.Mixins;
 const { ProjectsRegistry } = g3wsdk.core.project;
 
@@ -21,11 +20,36 @@ export default ({
 
 
     <section v-disabled = "upload" style = "margin-bottom: 5px">
-      <section class = "vector-tools">
-        <upload-raster-file         
-          :upload    = "upload" 
-          @add-layer = "addLayer" />
-        </section>
+      <section>
+
+        <div
+          class = "qprocessing-upload-raster-file"
+          style = "flex-grow: 2"
+        >
+          <section class = "upload-file-content">
+            <form
+              class                  = "addlayer skin-border-color"
+              v-t-tooltip:top.create = "'mapcontrols.add_layer_control.drag_layer'"
+            >
+              <input
+                type    = "file"
+                title   = " "
+                @change = "addLayer"
+                accept  = ".tif,.geotif"
+              />
+              <div class = "drag_and_drop">
+                <i 
+                  :class      = "g3wtemplate.getFontClass('cloud-upload')" 
+                  class       = "fa-2x" 
+                  aria-hidden = "true">
+                </i>
+              </div>
+            </form>
+          </section>
+        </div>
+
+      </section>
+
     </section>
 
     <slot name = "body">
@@ -70,7 +94,6 @@ export default ({
 
   name: "InputPrjRasterLayer",
   mixins: [selectMixin],
-  components: { UploadRasterFile },
   props: {
     modelId: {
       type:     Number,
@@ -89,7 +112,9 @@ export default ({
     }
   },
   methods: {
-    async addLayer({ file, features = [] } = {}) {
+    async addLayer(evt) {
+     const file = evt?.target.files?.[0];
+     if (!file) { return; }
      //set initial reactive properties
      this.upload      = true;
      this.errorUpload = false;
@@ -101,13 +126,7 @@ export default ({
           modelId:   this.modelId,
         });
         //need to add only one external file
-        this.state.input.options.values = this.state.input.options.values.filter(({key, value}) => !value.startsWith('file:'));
-
-        //handle temp layer
-
-        this.addTempLayer.getSource().clear(); //clear all eventually previous features
-        this.addTempLayer.getSource().addFeatures(features); //add eventually features
-        this.addTempLayer.setVisible(true); //visible true
+        this.state.input.options.values = this.state.input.options.values.filter(({ key, value }) => !value.startsWith('file:'));
 
         this.state.input.options.values.push({ key, value });
 
@@ -192,5 +211,8 @@ document.head.insertAdjacentHTML(
   <style>
     /* Replicate same scoped style in InputBase.vue */
     .prj-raster-layer label { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
+    .qprocessing-upload-raster-file form.addlayer   { position: relative; border: 2px dashed; text-align: center; border-radius: 3px; }
+    .qprocessing-upload-raster-file .addlayer input { position: absolute; margin: 0; padding: 0; width: 100%; height: 100%; outline: 0; opacity: 0; cursor: pointer; display: block; }
+    .qprocessing-upload-raster-file .drag_and_drop  { line-height: 20px; padding: 5px; color: #fff; }
   </style>`,
 );
