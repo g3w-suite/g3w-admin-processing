@@ -103,20 +103,39 @@
       );
     }
 
-    async uploadFile({modelId, inputName, file}) {
+    /**
+     * 
+     * @param {*} param0 
+     * @returns 
+     */
+    async uploadFile({ modelId, inputName, file}) {
       const data = new FormData();
       data.append('file', file);
-      const response = await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
-        method: 'POST',
-        body:    data,
-      });
-      const json = await response.json();
-      if (json.result) {
-        return {
-          key:    file.name,
-          value: `file:${json.data.file}`
+      try {
+        const response = await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
+          method: 'POST',
+          body:    data,
+        });
+        const json = await response.json();
+        if (json.result) {
+          return {
+            key:    file.name,
+            value: `file:${json.data.file}`
+          }
+        } else {
+          GUI.showUserMessage({
+          type: 'alert',
+          message: json?.error7 || 'server_error',
+        })
         }
+      } catch(e) {
+        GUI.showUserMessage({
+          type: 'alert',
+          message: e,
+        })
+        console.warn(e);
       }
+      
     }
 
   }
