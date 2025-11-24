@@ -112,21 +112,21 @@
       const data = new FormData();
       data.append('file', file);
       try {
-        const response = await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
+        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
           method: 'POST',
           body:    data,
-        });
-        const json = await response.json();
-        if (json.result) {
+        })).json();
+        if (response.result) {
           return {
             key:    file.name,
-            value: `file:${json.data.file}`
+            value: `file:${response?.data?.file}`
           }
         } else {
           GUI.showUserMessage({
-          type: 'alert',
-          message: json?.error || 'server_error',
-        })
+            type: 'alert',
+            message: response?.error || 'server_error',
+          });
+          return Promise.reject(response);
         }
       } catch(e) {
         GUI.showUserMessage({
@@ -134,10 +134,11 @@
           message: e,
         })
         console.warn(e);
+        return Promise.reject(e);
       }
       
     }
 
   }
 
-} catch (e) { console.error(e); } })();
+} catch(e) { console.error(e); } })();
