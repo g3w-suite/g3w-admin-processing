@@ -61,7 +61,6 @@ export default ({
           class      = "prjvectorlayerfeature-only-selected-features"
         >
           <input
-            style   = "width:100%;"
             class   = "magic-checkbox"
             v-model = "selected_features_checked"
             type    = "checkbox"
