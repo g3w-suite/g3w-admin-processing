@@ -1,3 +1,4 @@
+import UploadRasterFile from "./UploadRasterFile.js";
 const { selectMixin }      = g3wsdk.gui.vue.Mixins;
 const { ProjectsRegistry } = g3wsdk.core.project;
 
@@ -15,13 +16,23 @@ export default ({
         :for       = "state.name"
         v-disabled = "!state.editable"
         class      = "col-sm-12">
-      >
         {{ state.label }}
         <span v-if = "state.validate && state.validate.required">*</span>
       </label>
     </slot>
 
     <div class = "col-sm-12">
+
+      <section v-disabled = "upload" style = "margin-bottom: 5px">
+        <section class = "vector-tools">
+          <upload-raster-file         
+            :upload    = "upload" 
+            @add-layer = "addLayer" />
+          </section>
+          <section class = "raster-tools-message">
+            <div v-if = "errorUpload" class = "error-upload"> Errore </div>
+          </section>
+      </section>
 
       <slot name = "body">
         <select
@@ -66,7 +77,12 @@ export default ({
 
   name: "InputPrjRasterLayer",
   mixins: [selectMixin],
+  components: { UploadRasterFile },
   props: {
+    modelId: {
+      type:     Number,
+      required: true,
+    },
     state: {
       type:     Object,
       required: true
@@ -74,8 +90,48 @@ export default ({
   },
   data(){
     return {
-      value: null,
+      upload:      false,
+      errorUpload: false,
+      value:       null,
     }
+  },
+  methods: {
+    async addLayer({ file, features = [] } = {}) {
+     //set initial reactive properties
+     this.upload      = true;
+     this.errorUpload = false;
+     try {
+        const qprocessing    = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+        const { key, value } = await qprocessing.uploadFile({
+          file,
+          inputName: this.state.name,
+          modelId:   this.modelId,
+        });
+        //need to add only one external file
+        this.state.input.options.values = this.state.input.options.values.filter(({key, value}) => !value.startsWith('file:'));
+
+        //handle temp layer
+
+        this.addTempLayer.getSource().clear(); //clear all eventually previous features
+        this.addTempLayer.getSource().addFeatures(features); //add eventually features
+        this.addTempLayer.setVisible(true); //visible true
+
+        this.state.input.options.values.push({ key, value });
+
+        await this.$nextTick();
+        this.value = value;
+        //set current select item
+        $(this.$refs.select_layer)
+          .select2()
+          .val(value)
+          .trigger('change');
+     } catch(e) {
+       console.warn(e);
+       this.errorUpload = true;
+     }
+     this.upload = false;
+   },
+
   },
   computed: {
     //recreate same computed property of input editing
@@ -115,6 +171,18 @@ export default ({
       this.value                = this.state.input.options.values[0].value;
       this.state.validate.valid = true;
     }
+
+    /**
+     * temporary layer filled by upload or draw tools
+     */
+
+    this.addTempLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
+
+    //add to map
+    GUI.getService('map').getMap().addLayer(this.addTempLayer);
+
+    //set initial visibility to false
+    this.addTempLayer.setVisible(false);
 
   },
   async mounted(){
