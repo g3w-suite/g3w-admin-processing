@@ -48,7 +48,8 @@ export default ({
           :upload       = "upload" 
           @toggled-tool = "toggleTempLayer" 
           :datatypes    = "state.input.options.datatypes" 
-          @add-layer    = "addLayer" />
+          @add-layer    = "addLayer"
+        />
       </section>
       <section class = "vector-tools-message">
         <div v-if = "errorUpload" class = "error-upload"> Errore </div>
