@@ -158,7 +158,6 @@
      * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
      */
     async runTask({
-      method = 'GET',
       params = {},
       url,
       taskUrl,
@@ -167,9 +166,7 @@
       listener = () => {}
     } = {}) {
       try {
-        const r = 'GET' === method
-          ? await XHR.get({ url, params })
-          : await XHR.post({ url, data: params.data || {}, contentType: params.contentType || "application/json" });
+        const r = await XHR.post({ url, data: params.data || {}, contentType: params.contentType || "application/json" });
         if (r.result) {
           const id = setInterval(async () => {
             // check if timeout is defined
@@ -204,7 +201,9 @@
      */
     stopTask(task_id) {
       const task = this.#tasks.find(t => task_id === t.task_id);
-      if (task) { clearInterval(task.intervalId); }
+      if (task) {
+        clearInterval(task.intervalId);
+      }
     }
 
   }

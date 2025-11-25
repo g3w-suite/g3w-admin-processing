@@ -6,7 +6,6 @@ import outputrasterlayer    from '../components/OutputRasterLayer.js';
 import outputfile           from '../components/OutputFile.js';
 
 const { Panel }            = g3wsdk.gui;
-const { formInputsMixins } = g3wsdk.gui.vue.Mixins;
 const { XHR }              = g3wsdk.core.utils;
 const { GUI }              = g3wsdk.gui;
 
@@ -109,7 +108,7 @@ export default ({
 `,
 
   name: "modelPanel",
-  mixins: [formInputsMixins],
+
   components: {
     // inputs
     ...g3wsdk.gui.vue.Inputs.InputsComponents,
@@ -123,11 +122,11 @@ export default ({
     outputfile,
     outputhtml: outputfile,
   },
+
   props: {
-    model: {
-      required: true
-    }
+    model: { required: true }
   },
+
   data() {
     return {
       state: {
@@ -141,55 +140,55 @@ export default ({
       tovalidate: [],
       task: null,
       newResults: false, // set true if new results are add to models
+      valid: false,
     }
   },
+
   methods: {
+
     //add model result to results
     addResultToModel(data = {}) {
-      const { output, result } = data;
-      if (undefined === result) { return; }
-      const id  = output.name;
+      if (undefined === data?.result) {
+        return;
+      }
       const key = (new Date()).toLocaleString();
+
       //check if output contain already result
-      const findResultOutput = this.model.results.find(result => id === result.id);
-      if (findResultOutput) {
-        findResultOutput.urls.push(result[{ key, value: output.name }])
+      const out = this.model.results.find(result => data.output.name === result.id);
+
+      if (out) {
+        out.urls.push(data.result[{ key, value: data.output.name }])
       } else {
         this.model.results.push({
-          id:    output.name,
-          label: output.label,
-          urls:  [{ key, value: result[output.name] }]
+          id:    data.output.name,
+          label: data.output.label,
+          urls:  [{ key, value: data.result[data.output.name] }]
         })
       }
+
       this.newResults = true; // set new result to true
-      
     },
+
     //return message color
     getMessageColor() {
       switch(this.state.message.type) {
-        case 'success':
-          return 'green';
-        case 'error':
-          return 'red';
+        case 'success': return 'green';
+        case 'error':   return 'red';
       }
     },
 
     /**
-     * Method to register by every inputs change of other input with dependence
-      * @param inputName
-     * @param handler
+     * Register by every inputs change of other input with dependence
      */
     registerChangeInputEvent({ inputName, handler } = {}) {
-
       if (undefined === this.subscribe_change_input[inputName]) {
         this.subscribe_change_input[inputName] = []
       }
-
       this.subscribe_change_input[inputName].push(handler)
     },
+
     /**
      * Method to handle change input
-     * @param input
      */
     async _changeInput(input) {
       //need to wait change value dom
@@ -200,9 +199,9 @@ export default ({
       //call base changeInput method
       this.changeInput(input);
     },
+
     /**
      * Run model method
-     * @returns {Promise<void>}
      */
     async run() {
       this.state.loading      = true;
@@ -224,12 +223,9 @@ export default ({
       this.state.message.show = true;
     },
 
-  /**
-   * Method to run model
-   * @param model
-   * @param state
-   * @returns {Promise<unknown>}
-   */
+    /**
+     * Method to run model
+     */
     runModel({ model, state } = {}) {
       const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
 
@@ -340,7 +336,6 @@ export default ({
             url,
             taskUrl: qprocessing.config.urls.taskinfo, // url to ask task is end
             params: { data: JSON.stringify(data) }, // request params
-            method: 'POST',
             listener
           })
         } else { //get result directly
@@ -360,7 +355,7 @@ export default ({
 
     /**
      * Show Model results Panel
-      */
+     */
     async showModelResults() {
       const ModelResults = (await import('./ModelResults.js')).default;
 
@@ -376,12 +371,76 @@ export default ({
       });
       this.newResults         = false;
       this.state.message.show = false;
-    }
+    },
+
+    addToValidate(input) {
+      this.tovalidate.push(input);
+    },
+
+    changeInput(input) {
+      this.isValid(input)
+    },
+
+    // Every input sends to form it valid value that will change the genaral state of form
+    isValid(input) {
+      if (input) {
+        // check mutually
+        if (input.validate.mutually) {
+          if (!input.validate.required) {
+            if (!input.validate.empty) {
+              input.validate._valid         = input.validate.valid;
+              input.validate.mutually_valid = input.validate.mutually.reduce((previous, inputname) => {
+                return previous && this.tovalidate[inputname].validate.empty;
+              }, true);
+              input.validate.valid = input.validate.mutually_valid && input.validate.valid;
+            } else {
+              input.value                   = null;
+              input.validate.mutually_valid = true;
+              input.validate.valid          = true;
+              input.validate._valid         = true;
+              let countNoTEmptyInputName = [];
+              for (let i = input.validate.mutually.length; i--;) {
+                const name = input.validate.mutually[i];
+                if (!this.tovalidate[name].validate.empty) {
+                  countNoTEmptyInputName.push(name);
+                }
+              }
+              if (countNoTEmptyInputName.length < 2) {
+                countNoTEmptyInputName.forEach(name => {
+                  this.tovalidate[name].validate.mutually_valid = true;
+                  this.tovalidate[name].validate.valid          = true;
+                  setTimeout(() => {
+                    this.tovalidate[name].validate.valid = this.tovalidate[name].validate._valid;
+                    this.state.valid = this.state.valid && this.tovalidate[name].validate.valid;
+                  })
+                })
+              }
+            }
+          }
+          //check if min_field or max_field is set
+        } else if (!input.validate.empty && (input.validate.min_field || input.validate.max_field)) {
+          const input_name = input.validate.min_field || input.validate.max_field;
+          input.validate.valid = input.validate.min_field
+            ? this.tovalidate[input.validate.min_field].validate.empty || 1*input.value > 1*this.tovalidate[input.validate.min_field].value
+            : this.tovalidate[input.validate.max_field].validate.empty || 1*input.value < 1*this.tovalidate[input.validate.max_field].value;
+          if (input.validate.valid) {
+            this.tovalidate[input_name].validate.valid = true
+          }
+        }
+      }
+      this.valid = Object.values(this.tovalidate).reduce((bool, input) => {
+        return bool && input.validate.valid;
+      }, true);
+    },
+
   },
+
   created() {
+    this.tovalidate = [];
     //Object contains subscribers of change parent input
     this.subscribe_change_input = {};
   },
+
   async mounted() {
     await this.$nextTick();
     //@TODO
@@ -392,13 +451,15 @@ export default ({
         }
     });
   },
+
+  destroyed() {
+    this.tovalidate = null;
+  },
+
 });
 
 /**
- * Handel Async or Sync response error
- * @param response
- * @param reject
- * @private
+ * Handle Async or Sync response error
  */
 function _handleErrorModelResponse(response, { reject }) {
   const { status, exception } = response;
@@ -448,7 +509,6 @@ function _handleErrorModelResponse(response, { reject }) {
  * @param response server response
  * @param resolve resolve method of a Promise
  * @param reject reject method of a Promise
- * @private
  */
 function _handleCompleteModelResponse(response, { resolve, reject }) {
   let { result, task_result, data } = response;
