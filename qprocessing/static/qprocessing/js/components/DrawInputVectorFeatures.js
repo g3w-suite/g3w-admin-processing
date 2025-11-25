@@ -14,7 +14,7 @@ export default ({
       style               = "height: 100%; margin-right: 0 !important;"
       @click.stop.prevent = "toggled = !toggled"
     >
-      <i :class = "[g3wtemplate.getFontClass('pencil')]"></i>
+      <i class = "fas fa-pencil-alt"></i>
     </button>
   </div>
   `,
@@ -94,14 +94,15 @@ export default ({
                   ></option>
                 </select>
 
-                <bar-loader :loading = "state.loading"/>
+                <div v-if = "state.loading" class = "bar-loader"></div>
 
                 <button
                   v-disabled          = "state.disabled"
                   class               = "btn skin-background-color"
                   @click.stop.prevent = "uploadLayer(type)"
-                  style               = "margin: 3px; width: 100%">
-                  <i :class           = "[g3wtemplate.getFontClass('cloud-upload')]"></i>
+                  style               = "margin: 3px; width: 100%"
+                >
+                  <i class= "fas fa-cloud-upload-alt"></i>
                 </button>
 
               </div>`,

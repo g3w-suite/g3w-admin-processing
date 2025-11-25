@@ -12,7 +12,7 @@ export default ({
       :key    = "result.id"
     >
       <h4 style = "font-weight: bold">{{ result.label }}</h4>
-      <divider/>
+      <span class = "divider"></span>
         <ul
           class = "treeview-menu menu-items"
           style = "background-color: #2c3b41"

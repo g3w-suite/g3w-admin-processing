@@ -38,7 +38,7 @@ export default ({
                 accept  = ".zip,.geojson,.GEOJSON,.kml,.kmz,.KMZ,.KML,.json,.gpx,.gml,.csv"
               />
               <div class = "drag_and_drop">
-                <i :class = "g3wtemplate.getFontClass('cloud-upload')" class = "fa-2x" aria-hidden = "true"></i>
+                <i class = "fa-2x fas fa-cloud-upload-alt" aria-hidden = "true"></i>
               </div>
             </form>
           </section>

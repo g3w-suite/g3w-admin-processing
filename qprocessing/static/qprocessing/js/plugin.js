@@ -58,7 +58,7 @@
                 :key        = "model.id"
                 @click.stop = "service.showPanel(model)"
               >
-                <i :class="g3wtemplate.getFontClass('tool')"></i>
+                <i class="fas fa-cog"></i>
                 <span>{{ model.display_name }}</span>
               </li>
             </ul>

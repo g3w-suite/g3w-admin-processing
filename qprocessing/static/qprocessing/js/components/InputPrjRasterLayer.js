@@ -18,7 +18,6 @@ export default ({
 
     <section v-disabled = "upload" style = "margin-bottom: 5px">
       <section>
-
         <div
           class = "qprocessing-upload-raster-file"
           style = "flex-grow: 2"
@@ -36,18 +35,12 @@ export default ({
                 accept  = ".tif,.geotif"
               />
               <div class = "drag_and_drop">
-                <i 
-                  :class      = "g3wtemplate.getFontClass('cloud-upload')" 
-                  class       = "fa-2x" 
-                  aria-hidden = "true">
-                </i>
+                <i class = "fa-2x fas fa-cloud-upload-alt"  aria-hidden = "true"></i>
               </div>
             </form>
           </section>
         </div>
-
       </section>
-
     </section>
 
     <slot name = "body">

@@ -15,6 +15,7 @@ export default ({
   template: /* html */ `
   <div class = "qprocessing-model">
 
+    <!-- MODEL NAME -->
     <section class = "qprocessing-model-header">
       <div class = "skin-color">{{ model.display_name.toUpperCase() }}</div>
     </section>
@@ -22,14 +23,14 @@ export default ({
     <!-- NOTES   -->
     <section v-if = "model.note" class = "qprocessing-model-note">
       <div class = "title" >NOTE</div>
-      <divider/>
+      <span class = "divider"></span>
       <div v-html = "model.note" ></div>
     </section>
 
     <!-- INPUTS   -->
     <section class = "qprocessing-model-inputs">
       <div class = "title" >INPUTS</div>
-      <divider/>
+      <span class = "divider"></span>
       <form class = "form-horizontal g3w-form">
         <div class = "box-primary">
           <div class = "box-body">
@@ -46,40 +47,55 @@ export default ({
           </div>
         </div>
       </form>
-
     </section>
 
     <!-- OUTPUTS   -->
     <section class = "qprocessing-model-outputs">
       <div class = "title">OUTPUTS</div>
-      <divider/>
+      <span class = "divider"></span>
       <form class = "form-horizontal g3w-form">
-          <div class = "box-primary">
-            <div class = "box-body">
-              <component
-                v-for                        = "output in model.outputs"
-                :key                         = "output.name"
-                @add-result-to-model-results = "addResultToModel"
-                :state                       = "output"
-                :task                        = "task"
-                :is                          = "output.input.type + ''"
-              />
-            </div>
+        <div class = "box-primary">
+          <div class = "box-body">
+            <component
+              v-for                        = "output in model.outputs"
+              :key                         = "output.name"
+              @add-result-to-model-results = "addResultToModel"
+              :state                       = "output"
+              :task                        = "task"
+              :is                          = "output.input.type + ''"
+            />
           </div>
-        </form>
+        </div>
+      </form>
     </section>
 
     <!-- FOOTER -->
     <section class = "qprocess-model-footer">
       <div>
-        <progressbar v-if = "state.progress" :progress = "state.progress" />
-        <bar-loader v-else :loading="state.loading" />
+        <!-- PROGRESS BAR -->
+        <div
+          v-if  = "(null !== state.progress && undefined !== state.progress)"
+          style = "margin: 5px 0 5px 0; width: 100%; background-color: #FFF; border: 0; border-radius: 3px;"
+        >
+          <div
+            class  = "skin-background-color"
+            style  = "display: flex; justify-content: center; font-weight: bold;"
+            :style = "{ width: (state.progress < 10 ? 10 : state.progress) }"
+          >
+            <span>{{ state.progress }}</span>
+          </div>
+        </div>
+
+        <!-- LOADING BAR -->
+        <div v-else-if = "state.loading" class  = "bar-loader"></div>
+
         <button
           class       = "btn skin-background-color run"
           @click.stop = "run"
           :disabled   = "!valid || state.loading">
           <i :class = "g3wtemplate.font['run']"></i>
         </button>
+
         <div v-if = "state.message.show">
          <span
           class       ="message"
@@ -87,20 +103,21 @@ export default ({
            v-t-plugin = "'qprocessing.run.messages.'+ state.message.type"
           ></span>
         </div>
+
       </div>
     </section>
 
     <!-- MODEL RESULTS   -->
     <section class = "qprocessing-model-results">
-      <divider/>
+      <span class = "divider"></span>
       <section style = "display: flex; justify-content: space-between; align-items: center">
         <div class = "title" v-t-plugin = "'qprocessing.results'"></div>
         <span
           v-disabled          = "model.results.length === 0"
-          class               = "icon skin-color skin-border-color"
-          :class              = "[ g3wtemplate.getFontClass('list'), {'pulse': newResults}]"
-          @click.stop.prevent = "showModelResults">
-        </span>
+          class               = "icon skin-color skin-border-color fas fa-list-alt"
+          :class              = "[{ 'pulse': newResults }]"
+          @click.stop.prevent = "showModelResults"
+        ></span>
       </section>
     </section>
 
@@ -209,10 +226,7 @@ export default ({
       await this.$nextTick();
       try {
         //Run task
-        this.task = await this.runModel({
-          model: this.model,
-          state: this.state
-        });
+        this.task = await this.runModel({ model: this.model, state: this.state });
         this.state.message.type = 'success';
       } catch(e) {
         console.warn(e);
@@ -230,54 +244,6 @@ export default ({
       const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
 
       return new Promise(async (resolve, reject) => {
-        let timeoutprogressintervall;
-        /**
-         * listener method to handle task request
-         * @param task_id
-         * @param timeout
-         * @param response
-         */
-        const listener = ({task_id, timeout, response}) => {
-          const {progress, status} = response;
-          // in case of complete
-          if (status === 'complete') {
-            //stop current task
-            qprocessing.stopTask(task_id);
-            timeoutprogressintervall = null;
-            _handleCompleteModelResponse(response, { resolve, reject })
-          } else if (status === 'executing') {
-            if (state.progress === null || state.progress === undefined) {
-              timeoutprogressintervall = Date.now();
-            } else {
-              if (progress > state.progress) {
-                timeoutprogressintervall = Date.now();
-              } else {
-                if ((Date.now() - timeoutprogressintervall) > 600000){
-                  qprocessing.stopTask(task_id);
-                  GUI.showUserMessage({
-                    type:     'warning',
-                    message:  'Timeout',
-                    autoclose: true
-                  });
-                  state.progress = null;
-                  timeoutprogressintervall = null;
-                  reject({ timeout: true });
-                }
-              }
-            }
-            state.progress = progress;
-          }
-          else {
-            if (_handleErrorModelResponse(response, { reject })) {
-              state.progress           = null;
-              timeoutprogressintervall = null;
-
-              //stop task
-              qprocessing.stopTask(task_id);
-            }
-          }
-        };
-
         //create inputs parmeters
         const inputs = {};
 
@@ -314,29 +280,61 @@ export default ({
           }
         }
 
-        //create outputs paramter
-        const outputs = model.outputs.reduce((a, output) => {
-          if (output.value) {
-            a[output.name] = output.value;
-          }
-          return a;
-        }, {});
-
         const data = {
           inputs,
-          outputs,
+          outputs: model.outputs.reduce((a, output) => {
+            if (output.value) {
+              a[output.name] = output.value;
+            }
+            return a;
+          }, {})
         }
 
         const url = `${qprocessing.config.urls.run}${model.id}/${qprocessing.getProject().getId()}/` // url model
 
         //Check if configured in async mode
         if (qprocessing.config.async) {
+          let time;
           // start to run Task
           qprocessing.runTask({
             url,
             taskUrl: qprocessing.config.urls.taskinfo, // url to ask task is end
-            params: { data: JSON.stringify(data) }, // request params
-            listener
+            params: { data: JSON.stringify(data) },    // request params
+            listener: ({ task_id, response }) => {     // handle task request
+              const {progress, status} = response;
+              // in case of complete
+              if ('complete' === status) {
+                //stop current task
+                qprocessing.stopTask(task_id);
+                time = null;
+                _handleCompleteModelResponse(response, { resolve, reject })
+              } else if ('executing' === status) {
+                if (state.progress === null || state.progress === undefined) {
+                  time = Date.now();
+                } else {
+                  if (progress > state.progress) {
+                    time = Date.now();
+                  } else {
+                    if ((Date.now() - time) > 600000){
+                      qprocessing.stopTask(task_id);
+                      GUI.showUserMessage({
+                        type:     'warning',
+                        message:  'Timeout',
+                        autoclose: true
+                      });
+                      state.progress = null;
+                      time = null;
+                      reject({ timeout: true });
+                    }
+                  }
+                }
+                state.progress = progress;
+              } else if (_handleErrorModelResponse(response, { reject })) {
+                state.progress = null;
+                time           = null;
+                qprocessing.stopTask(task_id);
+              }
+            },
           })
         } else { //get result directly
           XHR.post({

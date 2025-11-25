@@ -16,7 +16,7 @@ export default ({
       </slot>
 
       <slot name = "body">
-        <bar-loader :loading = "loading"/>
+        <div v-if = "loading" class  = "bar-loader"></div>
         <select
           v-select2   = "'value'"
           :multiple   = "state.input.options.multiple"
