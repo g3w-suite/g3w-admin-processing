@@ -1,6 +1,6 @@
-const { GUI }                       = g3wsdk.gui;
-const { uniqueId }                  = g3wsdk.core.utils;
-const { createVectorLayerFromFile } = g3wsdk.core.geoutils;
+const { GUI }                      = g3wsdk.gui;
+const { GEOMETRY_FIELDS }          = g3wsdk.constant;
+const { uniqueId, getUniqueDomId } = g3wsdk.core.utils;
 
 export default ({
 
@@ -67,20 +67,23 @@ export default ({
 
     async task(res = {}) {
      const { task_result = {} } = res;
-     //get value from name of the output
-     const downloadUrl = task_result[this.state.name];
+     const downloadUrl = task_result[this.state.name]; // get value from name of the output
 
      //add to map
      if (this.checked) {
-      let name =  `${uniqueId()}_${this.type}`, crs = GUI.getService('map').getEpsg();
+      let name =  `${uniqueId()}_${this.type}`;
+      let crs  = GUI.getService('map').getEpsg();
+
       // convert shp → zip
       const type     = 'shp' === this.type  ? 'zip' : this.type;
       const response = await fetch(downloadUrl);
+
       try {
         name = response.headers.get("content-disposition").split('filename=')[1].replace(/"/g,'');
       } catch(e) {
         console.warn(e);
       }
+
       let data = await response.blob();
 
       // skip adding csv file to map
@@ -97,9 +100,62 @@ export default ({
         }));
       }
 
-      GUI.getService('map').addExternalLayer(
-        await createVectorLayerFromFile({ name, data, crs, mapCrs: crs, type }),
-        { type, downloadUrl, color: `#${((1<<24)*Math.random() | 0).toString(16)}` });
+      if (!window.JSZip) {
+        await import('../vendors/jszip.min.js');
+      }
+
+      if (!window.shp) {
+        await import('../vendors/shp.min.js');
+      }
+
+      let olLayer;
+
+      const epsg   = ['zip', 'kml', 'kmz'].includes(type) ? 'EPSG:4326' : crs;
+    
+      // SHAPE FILE
+      if ('zip' === type) {
+        data = JSON.stringify(await shp(await data.arrayBuffer(data))); // un-zip folder data 
+      }
+    
+      // KMZ FILE
+      if ('kmz' === type) {
+        const zip = new JSZip();
+        zip.load(await data.arrayBuffer(data));
+        data = zip.file(/.kml$/i).at(-1).asText(); // get last kml file within folder
+      }
+
+      let features = ({
+        'gpx'    : new ol.format.GPX(),
+        'gml'    : new ol.format.WMSGetFeatureInfo(),
+        'geojson': new ol.format.GeoJSON(),
+        'zip'    : new ol.format.GeoJSON(),
+        'kml'    : new ol.format.KML({ extractStyles: false }),
+        'kmz'    : new ol.format.KML({ extractStyles: false }),
+      })[type].readFeatures(data, { dataProjection: epsg, featureProjection: crs || epsg });
+    
+      // ignore kml property [`<styleUrl>`](https://developers.google.com/kml/documentation/kmlreference)
+      if (['kml', 'kmz'].includes(type)) {
+        features.forEach(f => f.unset('styleUrl'));
+      }
+    
+      if (features.length) {
+        olLayer = new ol.layer.Vector({
+          source: new ol.source.Vector({ features }),
+          name,
+          _fields: Object.keys(features[0].getProperties()).filter(prop => GEOMETRY_FIELDS.indexOf(prop) < 0),
+          id:      getUniqueDomId(),
+          style:   undefined
+        });
+      } else {
+        throw 'invalid layer';
+      }
+
+      GUI.getService('map').addExternalLayer(olLayer, {
+        type,
+        downloadUrl,
+        color: `#${((1<<24)*Math.random() | 0).toString(16)}`
+      });
+
      }
 
      //always add to results
