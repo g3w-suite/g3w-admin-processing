@@ -51,6 +51,7 @@ def set_initconfig_value(sender, **kwargs):
             'models': [{
                 **QProcessingModel(str(qpp.model.file)).render2dict(),
                 'id': qpp.pk,
+                'note': qpp.note,
                 'results': [],
                 # TODO: move the following into render2dict? (converts [admin] model inputs into [client] form inputs)
                 'inputs': [{
