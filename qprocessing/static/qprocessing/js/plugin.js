@@ -4,7 +4,6 @@
 
   const { ApplicationState } = g3wsdk.core;
   const { Plugin }           = g3wsdk.core.plugin;
-  const { ProjectsRegistry } = g3wsdk.core.project;
   const { GUI, Panel }       = g3wsdk.gui;
 
   new class extends Plugin {
