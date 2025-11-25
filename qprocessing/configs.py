@@ -37,6 +37,8 @@ QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT = 'html'
 QPROCESSING_INPUT_SHP_EXTS = ['shp', 'shx', 'prj', 'dbf', 'shx']
 
 # Formats available for input upload
+# ----------------------------------    
+# Vector formats
 QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS = [
     {
         'value': 'zip',
@@ -58,6 +60,35 @@ QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS = [
         'value': 'sqlite',
         'key': 'Sqlite/Spatialite'
     }
+
+]
+
+# Raster formats
+QPROCESSING_INPUT_UPLOAD_RASTER_FORMATS = [
+    {
+        'value': 'vrt',
+        'key': 'VRT'
+    },
+    {
+        'value': 'tiff',
+        'key': 'TIFF'
+    },
+    {
+        'value': 'tif',
+        'key': 'TIF'
+    },
+    {
+        'value': 'png',
+        'key': 'PNG'
+    },
+    {
+        'value': 'jpeg',
+        'key': 'JPEG'
+    },
+    {
+        'value': 'jpg',
+        'key': 'JPG'
+    },
 
 ]
 

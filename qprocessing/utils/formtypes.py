@@ -273,7 +273,25 @@ class QProcessingFormTypeRasterLayer(QProcessingFormType):
 
     @staticmethod
     def update_model_params(qgs_project, parameter):
-        return qgs_project.mapLayer(parameter).source()
+    
+        # Case uploaded input file
+        # --------------------------------------------
+        # Split by `:`
+        subparams = parameter.split(":")
+        if len(subparams) == 1:
+            return qgs_project.mapLayer(parameter).source()
+
+        # Build path to file
+        from qprocessing.models import QProcessingInputUpload
+        try:
+            qpiu = QProcessingInputUpload.objects.get(uuid=subparams[1])
+            base_path = settings.QPROCESSING_INPUT_UPLOAD_PATH
+            base_path += f"{qpiu.user.pk}/" if qpiu.user else f"nouser/"
+            base_path += f"uploads/{qpiu.name}"
+
+            return base_path
+        except:
+            return None
 
     @property
     def input_form(self):

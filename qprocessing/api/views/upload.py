@@ -100,7 +100,15 @@ class QProcessingInputUploadView(G3WAPIView):
         # Validate by ext
         # -------------------------------------------------
         ext = os.path.splitext(f.name)[-1][1:].lower()
-        formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS]
+
+        # Get formats to check by input type
+        if self.qpm.inputs[kwargs['input_name']]['qprocessing_type'] == 'vector':
+            formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS]
+        elif self.qpm.inputs[kwargs['input_name']]['qprocessing_type'] == 'raster':
+            formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_RASTER_FORMATS]
+        else:
+            formats = []
+            
         if ext not in formats:
             raise QProcessingInputUploadValidationException(
                 f"File type not allowed: {ext}. "
