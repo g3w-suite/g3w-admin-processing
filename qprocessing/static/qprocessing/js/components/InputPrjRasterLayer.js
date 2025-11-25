@@ -134,7 +134,7 @@ export default ({
         await this.$nextTick();
         this.value = value;
         //set current select item
-        $(this.$refs.select_layer)
+        $(this.$refs.select)
           .select2()
           .val(value)
           .trigger('change');
