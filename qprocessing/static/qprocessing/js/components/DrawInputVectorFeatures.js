@@ -79,7 +79,7 @@ export default ({
         hooks: {
           body: {
             template: /* html */`
-              <div style="width: 100%; padding: 5px;" v-disabled="state.loading">
+              <div style = "width: 100%; padding: 5px;" v-disabled = "state.loading">
                 <!-- NB: it makes use of built-in g3w-client directive: "v-select2" -->
                 <select
                   v-select2 = "'type'"
@@ -102,7 +102,7 @@ export default ({
                   @click.stop.prevent = "uploadLayer(type)"
                   style               = "margin: 3px; width: 100%"
                 >
-                  <i class= "fas fa-cloud-upload-alt"></i>
+                  <i class = "fas fa-cloud-upload-alt"></i>
                 </button>
 
               </div>`,
@@ -119,7 +119,7 @@ export default ({
                * @listens type change of drawed geometry
                * @fires   change-draw-type
                */
-              'type': (type) => this.setDrawInteraction(type),
+              'type': type => this.setDrawInteraction(type),
 
             },
             methods: {
