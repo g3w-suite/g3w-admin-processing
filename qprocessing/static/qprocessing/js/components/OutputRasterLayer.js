@@ -27,30 +27,31 @@ export default ({
   </div>`,
 
   name: "OutputRasterLayer",
+
   props: {
-    state: {
-      type: Object,
-      required: true
-    },
-    task: {
-      required: true
-    }
+    state: { type: Object, required: true },
+    task:  { required: true }
   },
+
   data() {
     this.state.value = this.state.input.options.values[0].value;
     return {
       type: this.state.value,
     }
   },
+
   methods: {
     changeSelect(value) {
       this.state.value = value;
     }
   },
+
   watch: {
+
     type(value) {
       this.changeSelect(value);
     },
+
     async task( response = {}) {
      const { task_result = {} } = response;
      const fileUrl = task_result[this.state.name];
@@ -59,6 +60,8 @@ export default ({
        output: this.state,
        result: task_result
      })
-    }
+    },
+
   },
+
 });

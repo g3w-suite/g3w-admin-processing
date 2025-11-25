@@ -8,7 +8,8 @@ export default ({
   template: /* html */ `
   <div
     v-t-tooltip:top.create = "state.description"
-    class                  = "form-group">
+    class                  = "form-group"
+  >
     <label
       style = "color:#fff !important;"
       :for  = "state.name"
@@ -38,15 +39,12 @@ export default ({
   </div>`,
 
   name: "OutputVectorLayer",
+
   props: {
-    state: {
-      type: Object,
-      required: true
-    },
-    task: {
-      required: true
-    }
+    state: { type: Object, required: true },
+    task:  { required: true }
   },
+
   data() {
     this.state.value = this.state.input.options.values[0].value;
     return {
@@ -54,20 +52,19 @@ export default ({
       type: this.state.value,
     }
   },
+
   methods: {
     changeSelect(value) {
       this.state.value = value;
     }
   },
+
   watch: {
+
     type(value) {
       this.changeSelect(value)
     },
-    /**
-     * 
-     * @param {*} res 
-     * @returns 
-     */
+
     async task(res = {}) {
      const { task_result = {} } = res;
      //get value from name of the output
@@ -111,6 +108,7 @@ export default ({
         result: task_result
      })
 
-    }
+    },
+
   },
 });

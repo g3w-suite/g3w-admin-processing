@@ -281,21 +281,12 @@ export default ({
           const key   = l.name;
           const value = l.id;
           //get layer if it has no geometry
-          if (true === nogeometry) {
-            if (
-              (true === nogeometry) &&
-              (undefined === l.geometrytype || "NoGeometry" === l.geometrytype)
-            ) {
-              layers.push({ key, value })
-              return;
-            }
+          if (true === nogeometry && (undefined === l.geometrytype || "NoGeometry" === l.geometrytype)) {
+            layers.push({ key, value })
+            return;
           }
   
-          if (
-            (null !== l.geometrytype) &&
-            (undefined !== l.geometrytype) &&
-            ("NoGeometry" !== l.geometrytype)
-          ) {
+          if (null !== l.geometrytype && undefined !== l.geometrytype && "NoGeometry" !== l.geometrytype) {
             // in the case of any geometry type
             if (true === anygeometry) {
               layers.push({ key, value })
@@ -348,7 +339,7 @@ export default ({
 
   watch: {
 
-    //listen change of value (input select)
+    // listen change of value (input select)
     'value'(value) {
       if (true === this.isSelectedFeatures) {
         this.setDisabledSelectFeaturesCheckbox(value);
@@ -358,7 +349,7 @@ export default ({
       this.$emit('changeinput', this.state);
     },
 
-    //Listen selected feature checkbox event change
+    // Listen selected feature checkbox event change
     'selected_features_checked'(checked) {
       this.setInputValueFromSelectedFeatures(checked);
     },
@@ -383,7 +374,7 @@ export default ({
       this.state.validate.valid = true;
     }
 
-    //In case of selected features
+    // In case of selected features
     if (null !== this.value && this.isSelectedFeatures) {
       this.selected_features_id = []; // create array of selected id features
       //register
@@ -394,19 +385,16 @@ export default ({
       });
     }
 
-    /**
-     * temporary layer filled by upload or draw tools
-     */
-
+    // temporary layer filled by upload or draw tools
     this.addTempLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
 
-    //add to map
+    // add to map
     GUI.getService('map').getMap().addLayer(this.addTempLayer);
 
-    //set initial visibility to false
+    // set initial visibility to false
     this.addTempLayer.setVisible(false);
 
-    //listen add external Layer
+    // listen add external Layer
     this.keyAddExternal =  GUI.getService('catalog')
       .onafter('addExternalLayer', ({ type, layer }) => {
         if ('vector' !== type) { return }
@@ -423,7 +411,7 @@ export default ({
   async mounted() {
     await this.$nextTick();
     this.select2 = $(this.$refs.select_layer);
-    //need to emit add input to validate
+    // emit add input to validate
     this.$emit('addinput', this.state);
     this.$emit('changeinput', this.state);
   },
@@ -436,12 +424,12 @@ export default ({
       qprocessing.removeAllListeners('change-selected-features');
     }
 
-    //remove temp layer
+    // remove temp layer
     this.addTempLayer.getSource().clear();
     GUI.getService('map').getMap().removeLayer(this.addTempLayer);
     this.addTempLayer = null;
 
-    ///remove external layer
+    // remove external layer
     GUI.getService('catalog').un('addExternalLayer', this.keyAddExternal);
   },
 

@@ -41,12 +41,13 @@ export default ({
   </div>`,
 
   name: "ModelResults",
+
   props: {
-    model: {
-      type: Object,
-    }
+    model: { type: Object }
   },
+
   methods: {
+
     //@since v3.7.0
     removeResult(result, index) {
       result.urls.splice(index, 1);
@@ -59,10 +60,7 @@ export default ({
         GUI.closePanel();
       }
     },
-    /**
-     * 
-     * @param {*} url 
-     */
+
     async downloadFile(url) {
       try {
         ApplicationState.download = true;
@@ -82,6 +80,7 @@ export default ({
       } finally {
         ApplicationState.download = false;
       }
-    }
+    },
+
   }
 });
