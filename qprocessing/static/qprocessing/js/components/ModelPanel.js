@@ -9,7 +9,6 @@ const { Panel }            = g3wsdk.gui;
 const { formInputsMixins } = g3wsdk.gui.vue.Mixins;
 const { XHR }              = g3wsdk.core.utils;
 const { ProjectsRegistry } = g3wsdk.core.project;
-const { TaskService }      = g3wsdk.core.task;
 const { GUI }              = g3wsdk.gui;
 
 export default ({
@@ -247,7 +246,7 @@ export default ({
           // in case of complete
           if (status === 'complete') {
             //stop current task
-            TaskService.stopTask({task_id});
+            qprocessing.stopTask(task_id);
             timeoutprogressintervall = null;
             _handleCompleteModelResponse(response, { resolve, reject })
           } else if (status === 'executing') {
@@ -258,7 +257,7 @@ export default ({
                 timeoutprogressintervall = Date.now();
               } else {
                 if ((Date.now() - timeoutprogressintervall) > 600000){
-                  TaskService.stopTask({task_id});
+                  qprocessing.stopTask(task_id);
                   GUI.showUserMessage({
                     type:     'warning',
                     message:  'Timeout',
@@ -278,7 +277,7 @@ export default ({
               timeoutprogressintervall = null;
 
               //stop task
-              TaskService.stopTask({task_id});
+              qprocessing.stopTask(task_id);
             }
           }
         };
@@ -337,7 +336,7 @@ export default ({
         //Check if configured in async mode
         if (qprocessing.config.async) {
           // start to run Task
-          TaskService.runTask({
+          qprocessing.runTask({
             url,
             taskUrl: qprocessing.config.urls.taskinfo, // url to ask task is end
             params: { data: JSON.stringify(data) }, // request params
