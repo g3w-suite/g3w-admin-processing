@@ -374,7 +374,8 @@ export default ({
         }),
         show: true,
       });
-      this.newResults = false;
+      this.newResults         = false;
+      this.state.message.show = false;
     }
   },
   created() {
