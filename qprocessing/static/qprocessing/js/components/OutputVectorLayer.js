@@ -142,7 +142,7 @@ export default ({
         olLayer = new ol.layer.Vector({
           source: new ol.source.Vector({ features }),
           name,
-          _fields: 'csv' === type ? data.headers : Object.keys(features[0].getProperties()).filter(prop => GEOMETRY_FIELDS.indexOf(prop) < 0),
+          _fields: Object.keys(features[0].getProperties()).filter(prop => GEOMETRY_FIELDS.indexOf(prop) < 0),
           id:      getUniqueDomId(),
           style:   undefined
         });
