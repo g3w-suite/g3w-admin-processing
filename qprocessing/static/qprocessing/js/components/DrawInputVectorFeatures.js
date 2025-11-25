@@ -20,15 +20,12 @@ export default ({
   `,
 
   name: "DrawInputVectorFeatures",
+
   props: {
-    datatypes: {
-      type:    Array, //array of datatypes from input
-      default: []
-    },
-    upload:{
-      type: Boolean, //Boolean when file is upload ot not
-    }
+    datatypes: { type: Array, default: [] }, // array of datatypes from input
+    upload:    { type: Boolean }             // Boolean when file is upload ot not
   },
+
   data() {
     return {
       toggled: false, //draw button toggled
@@ -38,7 +35,9 @@ export default ({
       }
     }
   },
+
   methods: {
+
     /**
      * handle draw interaction flow
      */
@@ -50,14 +49,18 @@ export default ({
       this.drawInteraction.on('drawend', () => this.drawTool.disabled = false);                     // enable upload button on drawend 
       GUI.getService('map').getMap().addInteraction(this.drawInteraction);                          // add interaction to Map
     },
+
     clear() {
       this.drawLayer.getSource().clear();
       GUI.getService('map').disableClickMapControls(false);
       GUI.getService('map').getMap().removeInteraction(this.drawInteraction);
       GUI.closeUserMessage();
     },
+
   },
+
   watch: {
+
     //listen toggled button
     toggled(bool) {
       if (!bool) {
@@ -139,6 +142,7 @@ export default ({
       });
       this.$emit('toggled-tool', !bool);
     },
+
     upload(bool) {
       //listen upload status. Boolean
       this.drawTool.loading  = bool;
@@ -147,10 +151,11 @@ export default ({
         this.clear();
         this.toggled = bool;
       }
-    }
-  },
-  created() {
+    },
 
+  },
+
+  created() {
     //set geometries type
     this.drawGeometryTypes = Object.entries({
       point:   'Point',
@@ -169,10 +174,12 @@ export default ({
     this.drawLayer       = new ol.layer.Vector({ source: new ol.source.Vector() });
     GUI.getService('map').getMap().addLayer(this.drawLayer);
   },
+
   beforeDestroy() {
     this.clear();
     GUI.getService('map').getMap().removeLayer(this.drawLayer);
     this.drawLayer       = null;
     this.drawInteraction = null;
-  }
+  },
+
 });

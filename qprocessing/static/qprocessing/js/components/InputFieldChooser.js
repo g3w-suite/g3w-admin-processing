@@ -1,4 +1,3 @@
-const { selectMixin }      = g3wsdk.gui.vue.Mixins;
 const { XHR }              = g3wsdk.core.utils;
 const { ProjectsRegistry } = g3wsdk.core.project;
 
@@ -64,14 +63,8 @@ export default ({
 
   name: "InputFieldChooser",
 
-  mixins: [selectMixin],
-
   props: {
-    state: {
-      type:     Object,
-      required: true
-    },
-
+    state: { type: Object, required: true },
   },
 
   data() {
@@ -81,13 +74,20 @@ export default ({
     }
   },
 
- computed: {
-   notvalid() {
-    return this.state.validate.valid === false;
-   }
- },
+  computed: {
+
+    notvalid() {
+      return this.state.validate.valid === false;
+    },
+
+    autocomplete() {
+      return 'select_autocomplete' === this.state.input.type && this.state.input.options.usecompleter;
+    },
+
+  },
 
   watch: {
+
     //listen change of value (input select)
     'value'(value) {
       // in case of multiple selection
@@ -110,6 +110,14 @@ export default ({
       //emit change input
       this.$emit('changeinput', this.state);
     },
+
+    async notvalid(value) {
+      await this.$nextTick();
+      if (this.select2) {
+       this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
+      }
+    },
+
   },
 
   methods: {
@@ -153,9 +161,6 @@ export default ({
 
     /**
      * Get all fields by layers
-     * @param layerId
-     * @param options
-     * @returns {*}
      */
     async getFieldsFromLayer(layerId, options = {}){
       this.loading = true;
@@ -163,6 +168,26 @@ export default ({
       this.loading = false;
       return fields;
     },
+
+    getLanguage() {
+      return window.initConfig.user.i18n || "en";
+    },
+
+    async changeSelect(value) {
+      this.state.value = 'null' === value ? null : value;
+      //need to be waited in case of autocomplete
+      await this.$nextTick();
+      this.change();
+    },
+
+    getValue(value) {
+      return null === value ? 'null' : value;
+    },
+
+    resetValues() {
+      this.state.input.options.values.splice(0);
+    },
+
   },
 
   created() {

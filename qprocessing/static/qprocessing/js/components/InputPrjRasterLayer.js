@@ -1,4 +1,3 @@
-const { selectMixin }      = g3wsdk.gui.vue.Mixins;
 const { ProjectsRegistry } = g3wsdk.core.project;
 
 export default ({
@@ -94,37 +93,35 @@ export default ({
   `,
 
   name: "InputPrjRasterLayer",
-  mixins: [ selectMixin ],
+
   props: {
-    modelId: {
-      type:     Number,
-      required: true,
-    },
-    state: {
-      type:     Object,
-      required: true
-    }
+    modelId: { type: Number, required: true },
+    state:   { type: Object, required: true }
   },
-  data(){
+
+  data() {
     return {
       upload:      false,
       errorUpload: false,
       value:       null,
     }
   },
+
   methods: {
+
     /**
      * Add Raster Layer
-     * @param {*} evt 
-     * @returns 
      */
     async addLayer(evt) {
-     const file = evt?.target.files?.[0];
-     if (!file) { return; }
-     //set initial reactive properties
-     this.upload      = true;
-     this.errorUpload = false;
-     try {
+      const file = evt?.target.files?.[0];
+      if (!file) {
+      return;
+      }
+
+      //set initial reactive properties
+      this.upload      = true;
+      this.errorUpload = false;
+      try {
         const qprocessing    = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
         const { key, value } = await qprocessing.uploadFile({
           file,
@@ -143,29 +140,66 @@ export default ({
           .select2()
           .val(value)
           .trigger('change');
-     } catch(e) {
-       console.warn(e);
-       this.errorUpload      = true;
-       //reset input value to null
-       this.$refs.file.value = null;
-     }
-     this.upload = false;
-   },
+      } catch(e) {
+        console.warn(e);
+        this.errorUpload      = true;
+        //reset input value to null
+        this.$refs.file.value = null;
+      }
+      this.upload = false;
+    },
+
+    getLanguage() {
+      return window.initConfig.user.i18n || "en";
+    },
+
+    async changeSelect(value) {
+      this.state.value = 'null' === value ? null : value;
+      //need to be waited in case of autocomplete
+      await this.$nextTick();
+      this.change();
+    },
+
+    getValue(value) {
+      return null === value ? 'null' : value;
+    },
+
+    resetValues() {
+      this.state.input.options.values.splice(0);
+    },
 
   },
+
   computed: {
+
     //recreate same computed property of input editing
     notvalid() {
       return false === this.state.validate.valid;
-    }
+    },
+
+    autocomplete() {
+      return 'select_autocomplete' === this.state.input.type && this.state.input.options.usecompleter;
+    },
+
   },
+
   watch: {
+
     //listen change of value (input select)
     'value'(value) {
       this.state.value = value;
       this.$emit('changeinput', this.state);
-    }
+    },
+
+    async notvalid(value) {
+      await this.$nextTick();
+      if (this.select2) {
+       this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
+      }
+    },
+
   },
+
   created() {
     this.state.input.options.values = ProjectsRegistry.getCurrentProject().getLayers()
       //exclude base layer
@@ -176,17 +210,17 @@ export default ({
       }));
 
     if (this.state.input.options.values.length > 0) {
-      //set initial value
-      this.value                = this.state.input.options.values[0].value;
+      this.value                = this.state.input.options.values[0].value; // set initial value
       this.state.validate.valid = true;
     }
   },
+
   async mounted(){
     await this.$nextTick();
-    //set select2 needed to selectMixin
     this.select2 = $(this.$refs.select);
     this.$emit('addinput', this.state);
   },
+
 });
 
 document.head.insertAdjacentHTML(

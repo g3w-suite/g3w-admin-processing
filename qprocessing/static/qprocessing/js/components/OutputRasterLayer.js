@@ -9,7 +9,7 @@ export default ({
     <label
       style = "color:#fff !important;"
       :for  = "state.name"
-    >{{state.label}}</label>
+    >{{ state.label }}</label>
    
     <select
       :id       = "state.name"

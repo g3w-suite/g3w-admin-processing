@@ -1,7 +1,6 @@
-import DrawInputVectorFeatures from "./DrawInputVectorFeatures.js";
+import DrawInputVectorFeatures from './DrawInputVectorFeatures.js';
 
 const { GUI }                = g3wsdk.gui;
-const { selectMixin }        = g3wsdk.gui.vue.Mixins;
 const { ProjectsRegistry }   = g3wsdk.core.project;
 
 const isSameBaseGeometryType = (a, b) => a.replace('Multi','') === b.replace('Multi','');
@@ -115,20 +114,16 @@ export default ({
   `,
 
   name: "InputPrjVectorLayer",
-  mixins: [ selectMixin ],
+
   components: {
     DrawInputVectorFeatures,
   },
+
   props: {
-    modelId: {
-      type:     Number,
-      required: true,
-    },
-    state: {
-      type:     Object,
-      required: true
-    }
+    modelId: { type: Number, required: true },
+    state:   { type: Object, required: true }
   },
+
   data() {
     return {
       upload:                     false,
@@ -138,32 +133,42 @@ export default ({
       selected_features_disabled: true
     }
   },
+
   computed: {
+
     /**
-     * Check if datatypes contain geometries values
-     * @returns Boolean
+     * @returns { boolean } whether datatypes contain geometries values
      */
     showUploadFile() {
       return !!this.state.input.options.datatypes.find(datatype => (datatype === 'anygeometry') || (['point', 'line', 'polygon'].indexOf(datatype) !== -1));
     },
+
     //check if it can take in account of selected features
     isSelectedFeatures() {
       return 'prjvectorlayerfeature' === this.state.input.type;
     },
+
     //check if is no valid
     notvalid() {
       return false === this.state.validate.valid;
-    }
+    },
+
+    autocomplete() {
+      return 'select_autocomplete' === this.state.input.type && this.state.input.options.usecompleter;
+    },
+
   },
+
   methods: {
-    /*
-    * Show/hide temp tool
-    * */
+
+    /**
+     * Show/hide temp tool
+     */
     toggleTempLayer(bool) {
       this.addTempLayer.setVisible(bool);
     },
+
     /**
-     * 
      * @param {*} param0 
      */
     async addLayer({ file, features = [] } = {}) {
@@ -223,6 +228,7 @@ export default ({
         this.selected_features_checked = false;
       }
     },
+
     /**
      *Set input layer value based on selected feature id or not
      * @param checked
@@ -319,10 +325,31 @@ export default ({
       }
   
       return layers;
-    }
+    },
+
+    getLanguage() {
+      return window.initConfig.user.i18n || "en";
+    },
+
+    async changeSelect(value) {
+      this.state.value = 'null' === value ? null : value;
+      //need to be waited in case of autocomplete
+      await this.$nextTick();
+      this.change();
+    },
+
+    getValue(value) {
+      return null === value ? 'null' : value;
+    },
+
+    resetValues() {
+      this.state.input.options.values.splice(0);
+    },
+
   },
 
   watch: {
+
     //listen change of value (input select)
     'value'(value) {
       if (true === this.isSelectedFeatures) {
@@ -332,10 +359,19 @@ export default ({
       this.state.validate.valid = ![undefined, null].includes(value);
       this.$emit('changeinput', this.state);
     },
+
     //Listen selected feature checkbox event change
     'selected_features_checked'(checked) {
       this.setInputValueFromSelectedFeatures(checked);
-    }
+    },
+
+    async notvalid(value) {
+      await this.$nextTick();
+      if (this.select2) {
+       this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
+      }
+    },
+
   },
 
   created() {
@@ -385,6 +421,7 @@ export default ({
       })
 
   },
+
   async mounted() {
     await this.$nextTick();
     this.select2 = $(this.$refs.select_layer);
@@ -392,8 +429,8 @@ export default ({
     this.$emit('addinput', this.state);
     this.$emit('changeinput', this.state);
   },
-  beforeDestroy() {
 
+  beforeDestroy() {
     const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
 
     if (this.isSelectedFeatures) {
@@ -408,8 +445,8 @@ export default ({
 
     ///remove external layer
     GUI.getService('catalog').un('addExternalLayer', this.keyAddExternal);
+  },
 
-  }
 });
 
 document.head.insertAdjacentHTML(
