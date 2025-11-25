@@ -23,14 +23,12 @@ export default ({
     <!-- NOTES   -->
     <section v-if = "model.note" class = "qprocessing-model-note">
       <div class = "title" >NOTE</div>
-      <span class = "divider"></span>
       <div v-html = "model.note" ></div>
     </section>
 
     <!-- INPUTS   -->
     <section class = "qprocessing-model-inputs">
       <div class = "title" >INPUTS</div>
-      <span class = "divider"></span>
       <form class = "form-horizontal g3w-form">
         <div class = "box-primary">
           <div class = "box-body">
@@ -52,7 +50,6 @@ export default ({
     <!-- OUTPUTS   -->
     <section class = "qprocessing-model-outputs">
       <div class = "title">OUTPUTS</div>
-      <span class = "divider"></span>
       <form class = "form-horizontal g3w-form">
         <div class = "box-primary">
           <div class = "box-body">
@@ -528,6 +525,7 @@ document.head.insertAdjacentHTML(
     .qprocessing-model                                                   { padding-bottom: 10px; }
     .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; }
     .qprocessing-model .title                                            { font-weight: bold; margin-bottom: 5px; }
+    .qprocessing-model > section > .title                                { border-bottom: 2px solid #eee; padding-bottom: 5px; }
     .qprocessing-model-results                                           { margin-top: 10px; }
     .qprocessing-model-results .icon                                     { cursor: pointer; border: 2px solid transparent; margin-bottom: 8px; padding: 3px; border-radius: 5px; }
     .qprocessing-model-results .icon.pulse                               { transform: scale(1); animation: pulse 2s infinite; }
