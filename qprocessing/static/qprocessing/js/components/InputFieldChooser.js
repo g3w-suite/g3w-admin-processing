@@ -120,53 +120,6 @@ export default ({
   },
 
   methods: {
-    /**
-     * Method to extract fields from project layerId based on options
-     *
-     * @param layerId
-     * @param options: <Object> datatype
-     */
-    async _getFieldsFromLayer(layerId, params = {}) {
-      const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
-
-      // Check if it already fills by layerId
-      if (undefined === qprocessing.layerFields[layerId]) {
-        qprocessing.layerFields[layerId] = {};
-      }
-
-      // check if it was fill based on params
-      const GIVE_ME_A_NAME = qprocessing.layerFields[layerId][JSON.stringify(params)];
-
-      //check if layerId belong to project layer or is id of temporary upload layer
-      if (undefined === GIVE_ME_A_NAME && undefined === qprocessing.getProject().getLayers().find(layer => layer.id === layerId)) {
-        qprocessing.layerFields[layerId][JSON.stringify(params)] = [];
-      } else if (undefined === GIVE_ME_A_NAME) {
-        try {
-          //do request to api
-          const response = await XHR.get({
-            url: `${qprocessing.config.urls.fields}${qprocessing.getProject().getId()}/${layerId}/`,
-            params
-          });
-          if (true === response.result) {
-            qprocessing.layerFields[layerId][JSON.stringify(params)] = response.fields;
-          }
-        } catch(e) {
-          console.warn(e);
-          return [];
-        }
-      }
-      return qprocessing.layerFields[layerId][JSON.stringify(params)];
-    },
-
-    /**
-     * Get all fields by layers
-     */
-    async getFieldsFromLayer(layerId, options = {}){
-      this.loading = true;
-      const fields = await this._getFieldsFromLayer(layerId, options);
-      this.loading = false;
-      return fields;
-    },
 
     getLanguage() {
       return window.initConfig.user.i18n || "en";
@@ -208,12 +161,57 @@ export default ({
     this.$emit('register-change-input', {
       inputName: this.state.input.options.parent_field,
       handler:   async (layerId) => {
+
         //in case of change parent value change, in case of selectefeature need to get only layerId without featuresid
         layerId = layerId.split(':')[0];
+
         //set values from Input layer fields
-        this.state.input.options.values = await this.getFieldsFromLayer(layerId, {
+        const params = {
           datatype: this.state.input.options.datatype,
-        })
+        };
+
+        // Extract fields from project layerId
+
+        this.loading = true;
+        let error;
+
+        const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+
+        // Check if it already fills by layerId
+        if (undefined === qprocessing.layerFields[layerId]) {
+          qprocessing.layerFields[layerId] = {};
+        }
+
+        // check if it was fill based on params
+        const GIVE_ME_A_NAME = qprocessing.layerFields[layerId][JSON.stringify(params)];
+
+        //check if layerId belong to project layer or is id of temporary upload layer
+        if (undefined === GIVE_ME_A_NAME && undefined === qprocessing.getProject().getLayers().find(layer => layer.id === layerId)) {
+          qprocessing.layerFields[layerId][JSON.stringify(params)] = [];
+        } else if (undefined === GIVE_ME_A_NAME) {
+          try {
+            //do request to api
+            const response = await XHR.get({
+              url: `${qprocessing.config.urls.fields}${qprocessing.getProject().getId()}/${layerId}/`,
+              params
+            });
+            if (true === response.result) {
+              qprocessing.layerFields[layerId][JSON.stringify(params)] = response.fields;
+            }
+          } catch(e) {
+            error = e;
+          }
+        }
+
+        if (error) {
+          console.warn(e);
+          this.state.input.options.values = [];
+        } else {
+          this.state.input.options.values = qprocessing.layerFields[layerId][JSON.stringify(params)]
+        }
+
+        this.loading = false;
+
         //check if multiple
         if (this.state.input.options.multiple) {
           //value is set checking if default_all_fields is true, set all options values by defaults, otherwise empty array
@@ -221,6 +219,7 @@ export default ({
         } else {
           this.value = null;
         }
+
         // in case of no value or values set value to null
         if (this.value === null || (Array.isArray(this.value) && this.value.length === 0)) {
           this.select2.val(null).trigger('change');
