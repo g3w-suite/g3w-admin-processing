@@ -1,8 +1,6 @@
 import DrawInputVectorFeatures from './DrawInputVectorFeatures.js';
 
 const { GUI }                = g3wsdk.gui;
-const { ProjectsRegistry }   = g3wsdk.core.project;
-
 const isSameBaseGeometryType = (a, b) => a.replace('Multi','') === b.replace('Multi','');
 
 export default ({
@@ -276,7 +274,7 @@ export default ({
       //get geometry_types only from data_types array
       const geometry_types = datatypes.map(type => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean);
   
-      ProjectsRegistry.getCurrentProject().getLayers()
+      g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').getProject().getLayers()
         //exclude base layer
         .filter(l => !l.baselayer)
         .forEach(l => {

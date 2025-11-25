@@ -1,5 +1,3 @@
-const { ProjectsRegistry } = g3wsdk.core.project;
-
 export default ({
 
   // language=html
@@ -201,7 +199,7 @@ export default ({
   },
 
   created() {
-    this.state.input.options.values = ProjectsRegistry.getCurrentProject().getLayers()
+    this.state.input.options.values = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').getProject().getLayers()
       //exclude base layer
       .filter(l => !l.baselayer && 'gdal' === l?.source?.type)
       .map(l => ({

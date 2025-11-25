@@ -332,7 +332,7 @@ export default ({
           outputs,
         }
 
-        const url = `${qprocessing.config.urls.run}${model.id}/${ProjectsRegistry.getCurrentProject().getId()}/` // url model
+        const url = `${qprocessing.config.urls.run}${model.id}/${qprocessing.getProject().getId()}/` // url model
 
         //Check if configured in async mode
         if (qprocessing.config.async) {

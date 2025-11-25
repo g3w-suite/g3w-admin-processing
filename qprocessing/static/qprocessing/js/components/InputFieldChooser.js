@@ -1,5 +1,4 @@
-const { XHR }              = g3wsdk.core.utils;
-const { ProjectsRegistry } = g3wsdk.core.project;
+const { XHR } = g3wsdk.core.utils;
 
 export default ({
 
@@ -139,13 +138,13 @@ export default ({
       const GIVE_ME_A_NAME = qprocessing.layerFields[layerId][JSON.stringify(params)];
 
       //check if layerId belong to project layer or is id of temporary upload layer
-      if (undefined === GIVE_ME_A_NAME && undefined === ProjectsRegistry.getCurrentProject().getLayers().find(layer => layer.id === layerId)) {
+      if (undefined === GIVE_ME_A_NAME && undefined === qprocessing.getProject().getLayers().find(layer => layer.id === layerId)) {
         qprocessing.layerFields[layerId][JSON.stringify(params)] = [];
       } else if (undefined === GIVE_ME_A_NAME) {
         try {
           //do request to api
           const response = await XHR.get({
-            url: `${qprocessing.config.urls.fields}${ProjectsRegistry.getCurrentProject().getId()}/${layerId}/`,
+            url: `${qprocessing.config.urls.fields}${qprocessing.getProject().getId()}/${layerId}/`,
             params
           });
           if (true === response.result) {
