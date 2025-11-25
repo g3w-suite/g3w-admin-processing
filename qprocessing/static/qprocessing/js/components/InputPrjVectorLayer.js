@@ -1,9 +1,10 @@
 import DrawInputVectorFeatures from "./DrawInputVectorFeatures.js";
 
-const { GUI }                    = g3wsdk.gui;
-const { selectMixin }            = g3wsdk.gui.vue.Mixins;
-const { isSameBaseGeometryType } = g3wsdk.core.geoutils;
-const { ProjectsRegistry }       = g3wsdk.core.project;
+const { GUI }                = g3wsdk.gui;
+const { selectMixin }        = g3wsdk.gui.vue.Mixins;
+const { ProjectsRegistry }   = g3wsdk.core.project;
+
+const isSameBaseGeometryType = (a, b) => a.replace('Multi','') === b.replace('Multi','');
 
 export default ({
 
