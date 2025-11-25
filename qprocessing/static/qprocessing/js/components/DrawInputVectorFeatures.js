@@ -131,7 +131,7 @@ export default ({
                 this.$emit('add-layer', {
                   file: qprocessing.createGeoJSONFile({
                     features,
-                    name: `${_('qprocessing.draw_filename')}(${_('qprocessing.draw_types.' + type)})`
+                    name: `${_('plugins.qprocessing.draw_filename')}(${_('plugins.qprocessing.draw_types.' + type)})`
                   }),
                   features,
                   type: 'draw'
