@@ -117,9 +117,15 @@
           body:    data,
         })).json();
         if (response.result) {
+          GUI.showUserMessage({
+            type:    'success',
+            message:  `UPLOAD FILE ${ file?.name }`,
+            autoclose: true,
+            closable:  false,
+          })
           return {
             key:    file.name,
-            value: `file:${response?.data?.file}`
+            value: `file:${response?.data?.file}`,
           }
         } else {
           GUI.showUserMessage({
