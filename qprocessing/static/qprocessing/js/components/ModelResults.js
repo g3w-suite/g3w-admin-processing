@@ -18,16 +18,16 @@ export default ({
           style = "background-color: #2c3b41"
         >
           <li
-            v-for  = "(url, index) in result.urls" :key="url"
+            v-for  = "( url, index) in result.urls" :key = "url.value"
             class  = "menu-item"
             style  = "display: flex; justify-content: space-between; padding: 5px;"
           >
-            <span>{{ result.id }}_{{ index }}</span>
+            <span>{{ url.key }}</span>
             <section style = "padding: 3px; cursor: pointer; font-weight: bold;">
               <i
                 style               = "margin: 0 5px;"
                 :class              = "g3wtemplate.font['download']"
-                @click.stop.prevent = "downloadFile(url)"
+                @click.stop.prevent = "downloadFile(url.value)"
               ></i>
               <i
                 :class              = "g3wtemplate.font['trash']"

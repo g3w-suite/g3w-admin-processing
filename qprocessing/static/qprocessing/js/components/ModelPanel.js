@@ -149,16 +149,17 @@ export default ({
     addResultToModel(data = {}) {
       const { output, result } = data;
       if (undefined === result) { return; }
-      const id = output.name;
-        //check if output contain already result
+      const id  = output.name;
+      const key = (new Date()).toLocaleString();
+      //check if output contain already result
       const findResultOutput = this.model.results.find(result => id === result.id);
       if (findResultOutput) {
-        findResultOutput.urls.push(result[output.name])
+        findResultOutput.urls.push(result[{ key, value: output.name }])
       } else {
         this.model.results.push({
           id:    output.name,
           label: output.label,
-          urls:  [result[output.name]]
+          urls:  [{ key, value: result[output.name] }]
         })
       }
       this.newResults = true; // set new result to true
