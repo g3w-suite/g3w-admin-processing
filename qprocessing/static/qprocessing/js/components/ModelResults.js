@@ -1,4 +1,5 @@
 const { ApplicationState } = g3wsdk.core;
+const { GUI } =              g3wsdk.gui;
 
 export default ({
 
@@ -10,7 +11,7 @@ export default ({
       v-if    = "result.urls.length"
       :key    = "result.id"
     >
-      <h4 style="font-weight: bold">{{ result.label }}</h4>
+      <h4 style = "font-weight: bold">{{ result.label }}</h4>
       <divider/>
         <ul
           class = "treeview-menu menu-items"
@@ -21,9 +22,10 @@ export default ({
             class  = "menu-item"
             style  = "display: flex; justify-content: space-between; padding: 5px;"
           >
-            <span>{{result.id}}_{{index}}</span>
+            <span>{{ result.id }}_{{ index }}</span>
             <section style = "padding: 3px; cursor: pointer; font-weight: bold;">
               <i
+                style               = "margin: 0 5px;"
                 :class              = "g3wtemplate.font['download']"
                 @click.stop.prevent = "downloadFile(url)"
               ></i>
@@ -48,6 +50,14 @@ export default ({
     //@since v3.7.0
     removeResult(result, index) {
       result.urls.splice(index, 1);
+      //In case of no urls in result, remove from model result
+      if (0 === result.urls.length) {
+        this.model.results = this.model.results.filter(r => result.id !== r.id);
+      }
+      //Close results panel in case of no results
+      if (0 === this.model.results.length) {
+        GUI.closePanel();
+      }
     },
     /**
      * 

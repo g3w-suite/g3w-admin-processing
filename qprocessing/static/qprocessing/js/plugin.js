@@ -108,36 +108,92 @@
      * @param {*} param0 
      * @returns 
      */
-    async uploadFile({ modelId, inputName, file}) {
+    async uploadFile({ modelId, inputName, file }) {
       const data = new FormData();
       data.append('file', file);
       try {
-        const response = await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
+        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
           method: 'POST',
           body:    data,
-        });
-        const json = await response.json();
-        if (json.result) {
+        })).json();
+        if (response.result) {
           return {
             key:    file.name,
-            value: `file:${json.data.file}`
+            value: `file:${response?.data?.file}`
           }
         } else {
           GUI.showUserMessage({
-          type: 'alert',
-          message: json?.error || 'server_error',
-        })
+            type: 'alert',
+            message: response?.error || 'server_error',
+          });
+          return Promise.reject(response);
         }
       } catch(e) {
         GUI.showUserMessage({
-          type: 'alert',
+          type:    'alert',
           message: e,
         })
         console.warn(e);
+        return Promise.reject({ error: e });
       }
       
     }
 
+    #tasks = [];
+
+    /**
+     * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
+     */
+    async runTask({
+      method = 'GET',
+      params = {},
+      url,
+      taskUrl,
+      interval = 1000,
+      timeout = Infinity,
+      listener = () => {}
+    } = {}) {
+      try {
+        const r = 'GET' === method
+          ? await XHR.get({ url, params })
+          : await XHR.post({ url, data: params.data || {}, contentType: params.contentType || "application/json" });
+        if (r.result) {
+          const id = setInterval(async () => {
+            // check if timeout is defined
+            timeout = timeout - interval;
+            if (timeout > 0) {
+              let r;
+              try {
+                r = await XHR.get({url: `${taskUrl}${r.task_id}`});
+              } catch(e) {
+                r = e;
+                console.warn(e);
+              }
+              listener({ task_id: r.task_id, timeout: false, response: r });
+            } else {
+              listener({ timeout: true });
+              this.stopTask(r.task_id);
+            }
+          }, interval);
+          this.#tasks.push({ task_id: r.task_id, intervalId: id }); // add current task to list of task
+          listener({ task_id: r.task_id, response: r });            // run first time listener function
+        } else {
+          return Promise.reject(r);
+        }
+      } catch(e) {
+        console.warn(e);
+        return Promise.reject(e);
+      }
+    }
+
+    /**
+     * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
+     */
+    stopTask(task_id) {
+      const task = this.#tasks.find(t => task_id === t.task_id);
+      if (task) { clearInterval(task.intervalId); }
+    }
+
   }
 
-} catch (e) { console.error(e); } })();
+} catch(e) { console.error(e); } })();

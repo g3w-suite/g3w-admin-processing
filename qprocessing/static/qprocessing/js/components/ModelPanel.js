@@ -9,7 +9,6 @@ const { Panel }            = g3wsdk.gui;
 const { formInputsMixins } = g3wsdk.gui.vue.Mixins;
 const { XHR }              = g3wsdk.core.utils;
 const { ProjectsRegistry } = g3wsdk.core.project;
-const { TaskService }      = g3wsdk.core.task;
 const { GUI }              = g3wsdk.gui;
 
 export default ({
@@ -19,7 +18,7 @@ export default ({
   <div class = "qprocessing-model">
 
     <section class = "qprocessing-model-header">
-      <div class = "skin-color">{{model.display_name.toUpperCase()}}</div>
+      <div class = "skin-color">{{ model.display_name.toUpperCase() }}</div>
     </section>
 
     <!-- NOTES   -->
@@ -247,7 +246,7 @@ export default ({
           // in case of complete
           if (status === 'complete') {
             //stop current task
-            TaskService.stopTask({task_id});
+            qprocessing.stopTask(task_id);
             timeoutprogressintervall = null;
             _handleCompleteModelResponse(response, { resolve, reject })
           } else if (status === 'executing') {
@@ -258,7 +257,7 @@ export default ({
                 timeoutprogressintervall = Date.now();
               } else {
                 if ((Date.now() - timeoutprogressintervall) > 600000){
-                  TaskService.stopTask({task_id});
+                  qprocessing.stopTask(task_id);
                   GUI.showUserMessage({
                     type:     'warning',
                     message:  'Timeout',
@@ -278,7 +277,7 @@ export default ({
               timeoutprogressintervall = null;
 
               //stop task
-              TaskService.stopTask({task_id});
+              qprocessing.stopTask(task_id);
             }
           }
         };
@@ -337,7 +336,7 @@ export default ({
         //Check if configured in async mode
         if (qprocessing.config.async) {
           // start to run Task
-          TaskService.runTask({
+          qprocessing.runTask({
             url,
             taskUrl: qprocessing.config.urls.taskinfo, // url to ask task is end
             params: { data: JSON.stringify(data) }, // request params
@@ -375,7 +374,8 @@ export default ({
         }),
         show: true,
       });
-      this.newResults = false;
+      this.newResults         = false;
+      this.state.message.show = false;
     }
   },
   created() {
@@ -464,7 +464,7 @@ document.head.insertAdjacentHTML(
   /* css */`
   <style>
     .qprocessing-model                                                   { padding-bottom: 10px; }
-    .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; }
+    .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; }
     .qprocessing-model .title                                            { font-weight: bold; margin-bottom: 5px; }
     .qprocessing-model-results                                           { margin-top: 10px; }
     .qprocessing-model-results .icon                                     { cursor: pointer; border: 2px solid transparent; margin-bottom: 8px; padding: 3px; border-radius: 5px; }

@@ -1,4 +1,3 @@
-import UploadRasterFile from "./UploadRasterFile.js";
 const { selectMixin }      = g3wsdk.gui.vue.Mixins;
 const { ProjectsRegistry } = g3wsdk.core.project;
 
@@ -10,71 +9,92 @@ export default ({
     v-if  = "state.visible"
     class = "form-group prj-raster-layer"
   >
-
     <slot name = "label">
       <label
         :for       = "state.name"
-        v-disabled = "!state.editable"
-        class      = "col-sm-12">
+        v-disabled = "!state.editable">
         {{ state.label }}
         <span v-if = "state.validate && state.validate.required">*</span>
       </label>
     </slot>
 
-    <div class = "col-sm-12">
 
-      <section v-disabled = "upload" style = "margin-bottom: 5px">
-        <section class = "vector-tools">
-          <upload-raster-file         
-            :upload    = "upload" 
-            @add-layer = "addLayer" />
+    <section v-disabled = "upload" style = "margin-bottom: 5px">
+      <section>
+
+        <div
+          class = "qprocessing-upload-raster-file"
+          style = "flex-grow: 2"
+        >
+          <section class = "upload-file-content">
+            <form
+              class                  = "addlayer skin-border-color"
+              v-t-tooltip:top.create = "'mapcontrols.add_layer_control.drag_layer'"
+            >
+              <input
+                type    = "file"
+                ref     = "file"
+                title   = " "
+                @change = "addLayer"
+                accept  = ".tif,.geotif"
+              />
+              <div class = "drag_and_drop">
+                <i 
+                  :class      = "g3wtemplate.getFontClass('cloud-upload')" 
+                  class       = "fa-2x" 
+                  aria-hidden = "true">
+                </i>
+              </div>
+            </form>
           </section>
+        </div>
+
       </section>
 
-      <slot name = "body">
-        <select
-          v-select2 = "'value'"
-          :id       = "state.name"
-          ref       = "select"
-          style     = "width:100%;"
-          class     = "form-control"
-        >
-          <option
-           v-for  = "value in state.input.options.values"
-           :key   = "value.value"
-           :value = "value.value"
-          >{{ value.key }}</option>
-        </select>
-      </slot>
+    </section>
 
-      <slot name = "message">
-        <p
-          v-if   = "notvalid"
-          v-html = "state.validate.message"
-          class  = "g3w-long-text error-input-message"
-          style  = "margin: 0"
-        ></p>
-        <p
-          v-else-if = "state.info"
-          v-html    = "state.info"
-          style     = "margin: 0"
-        ></p>
-      </slot>
+    <slot name = "body">
+      <select
+        v-select2 = "'value'"
+        :id       = "state.name"
+        ref       = "select"
+        style     = "width:100%;"
+        class     = "form-control"
+      >
+        <option
+          v-for  = "value in state.input.options.values"
+          :key   = "value.value"
+          :value = "value.value"
+        >{{ value.key }}</option>
+      </select>
+    </slot>
 
-      <div
-        v-if   = "state.help && this.state.help.visible"
-        v-html = "state.help.message"
-        class  = "g3w_input_help skin-background-color extralighten"
-      ></div>
+    <slot name = "message">
+      <p
+        v-if   = "notvalid"
+        v-html = "state.validate.message"
+        class  = "g3w-long-text error-input-message"
+        style  = "margin: 0"
+      ></p>
+      <p
+        v-else-if = "state.info"
+        v-html    = "state.info"
+        style     = "margin: 0"
+      ></p>
+    </slot>
 
-    </div>
+    <div
+      v-if   = "state.help && this.state.help.visible"
+      v-html = "state.help.message"
+      class  = "g3w_input_help skin-background-color extralighten"
+    ></div>
+
 
   </div>
   `,
 
   name: "InputPrjRasterLayer",
-  mixins: [selectMixin],
-  components: { UploadRasterFile },
+  mixins: [ selectMixin ],
   props: {
     modelId: {
       type:     Number,
@@ -93,7 +113,14 @@ export default ({
     }
   },
   methods: {
-    async addLayer({ file, features = [] } = {}) {
+    /**
+     * Add Raster Layer
+     * @param {*} evt 
+     * @returns 
+     */
+    async addLayer(evt) {
+     const file = evt?.target.files?.[0];
+     if (!file) { return; }
      //set initial reactive properties
      this.upload      = true;
      this.errorUpload = false;
@@ -105,13 +132,7 @@ export default ({
           modelId:   this.modelId,
         });
         //need to add only one external file
-        this.state.input.options.values = this.state.input.options.values.filter(({key, value}) => !value.startsWith('file:'));
-
-        //handle temp layer
-
-        this.addTempLayer.getSource().clear(); //clear all eventually previous features
-        this.addTempLayer.getSource().addFeatures(features); //add eventually features
-        this.addTempLayer.setVisible(true); //visible true
+        this.state.input.options.values = this.state.input.options.values.filter(({ key, value }) => !value.startsWith('file:'));
 
         this.state.input.options.values.push({ key, value });
 
@@ -124,7 +145,9 @@ export default ({
           .trigger('change');
      } catch(e) {
        console.warn(e);
-       this.errorUpload = true;
+       this.errorUpload      = true;
+       //reset input value to null
+       this.$refs.file.value = null;
      }
      this.upload = false;
    },
@@ -133,7 +156,7 @@ export default ({
   computed: {
     //recreate same computed property of input editing
     notvalid() {
-      return this.state.validate.valid === false;
+      return false === this.state.validate.valid;
     }
   },
   watch: {
@@ -144,23 +167,12 @@ export default ({
     }
   },
   created() {
-
-    /**
-     * Get all Project Vector Layers that has geometry types
-     * @param datatypes <Array> of String
-     *   'nogeometry',
-     *   'point',
-     *   'line',
-     *   'polygon',
-     *   'anygeometry'
-     * return <Array>
-     */
     this.state.input.options.values = ProjectsRegistry.getCurrentProject().getLayers()
       //exclude base layer
-      .filter(layer => !layer.baselayer && (undefined !== layer.source && layer.source.type === 'gdal'))
-      .map(layer => ({
-        key:   layer.name,
-        value: layer.id
+      .filter(l => !l.baselayer && 'gdal' === l?.source?.type)
+      .map(l => ({
+        key:   l.name,
+        value: l.id
       }));
 
     if (this.state.input.options.values.length > 0) {
@@ -168,19 +180,6 @@ export default ({
       this.value                = this.state.input.options.values[0].value;
       this.state.validate.valid = true;
     }
-
-    /**
-     * temporary layer filled by upload or draw tools
-     */
-
-    this.addTempLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
-
-    //add to map
-    GUI.getService('map').getMap().addLayer(this.addTempLayer);
-
-    //set initial visibility to false
-    this.addTempLayer.setVisible(false);
-
   },
   async mounted(){
     await this.$nextTick();
@@ -196,5 +195,8 @@ document.head.insertAdjacentHTML(
   <style>
     /* Replicate same scoped style in InputBase.vue */
     .prj-raster-layer label { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
+    .qprocessing-upload-raster-file form.addlayer   { position: relative; border: 2px dashed; text-align: center; border-radius: 3px; }
+    .qprocessing-upload-raster-file .addlayer input { position: absolute; margin: 0; padding: 0; width: 100%; height: 100%; outline: 0; opacity: 0; cursor: pointer; display: block; }
+    .qprocessing-upload-raster-file .drag_and_drop  { line-height: 20px; padding: 5px; color: #fff; }
   </style>`,
 );

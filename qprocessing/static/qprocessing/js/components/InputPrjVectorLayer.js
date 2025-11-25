@@ -1,10 +1,10 @@
-import UploadVectorFile        from "./UploadVectorFile.js";
 import DrawInputVectorFeatures from "./DrawInputVectorFeatures.js";
 
-const { GUI }                    = g3wsdk.gui;
-const { selectMixin }            = g3wsdk.gui.vue.Mixins;
-const { isSameBaseGeometryType } = g3wsdk.core.geoutils;
-const { ProjectsRegistry }       = g3wsdk.core.project;
+const { GUI }                = g3wsdk.gui;
+const { selectMixin }        = g3wsdk.gui.vue.Mixins;
+const { ProjectsRegistry }   = g3wsdk.core.project;
+
+const isSameBaseGeometryType = (a, b) => a.replace('Multi','') === b.replace('Multi','');
 
 export default ({
 
@@ -16,92 +16,107 @@ export default ({
   >
 
     <slot name = "label">
-      <label :for = "state.name" v-disabled = "!state.editable" class = "col-sm-12">
+      <label :for = "state.name" v-disabled = "!state.editable">
         {{ state.label }}
         <span v-if = "state.validate && state.validate.required">*</span>
       </label>
     </slot>
 
-    <div class = "col-sm-12">
-
-      <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
-        <section class = "vector-tools">
-          <upload-vector-file         
-            :upload    = "upload" 
-            @add-layer = "addLayer" />
-          
-          <draw-input-vector-features 
-            :upload       = "upload" 
-            @toggled-tool = "toggleTempLayer" 
-            :datatypes    = "state.input.options.datatypes" 
-            @add-layer    = "addLayer" />
-        </section>
-        <section class = "vector-tools-message">
-          <div v-if = "errorUpload" class = "error-upload"> Errore </div>
-        </section>
-      </section>
-
-      <slot name = "body">
-        <select
-          v-select2 = "'value'"
-          :id       = "state.name"
-          ref       = "select_layer"
-          style     = "width:100%;"
-          class     = "form-control"
-        >
-          <option
-            v-for  = "value in state.input.options.values"
-            :key   = "value.value"
-            :value = "value.value">{{ value.key }}
-          </option>
-        </select>
+    <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
+      <section class = "vector-tools">
         <div
-          v-if       = "isSelectedFeatures"
-          v-disabled = "selected_features_disabled"
-          class      = "prjvectorlayerfeature-only-selected-features"
+          class = "qprocessing-upload-vector-file"
+          style = "flex-grow: 2"
         >
-          <input
-            class   = "magic-checkbox"
-            v-model = "selected_features_checked"
-            type    = "checkbox"
-            :id     = "state.name + '_checkbox'"
-          />
-          <label
-            style      = "margin-top: 10px;"
-            :for       = "state.name + '_checkbox'"
-            v-t-plugin = "'qprocessing.inputs.prjvectorlayerfeature.selected_features'">
-          </label>
+          <section class = "upload-file-content">
+            <form
+              class                  = "addlayer skin-border-color"
+              v-t-tooltip:top.create = "'mapcontrols.add_layer_control.drag_layer'"
+            >
+              <input
+                ref     = "file"
+                type    = "file"
+                title   = " "
+                @change = "addLayer({ file: $refs.file.files[0], type: 'upload' })"
+                accept  = ".zip,.geojson,.GEOJSON,.kml,.kmz,.KMZ,.KML,.json,.gpx,.gml,.csv"
+              />
+              <div class = "drag_and_drop">
+                <i :class = "g3wtemplate.getFontClass('cloud-upload')" class = "fa-2x" aria-hidden = "true"></i>
+              </div>
+            </form>
+          </section>
         </div>
-      </slot>
+        
+        <draw-input-vector-features 
+          :upload       = "upload" 
+          @toggled-tool = "toggleTempLayer" 
+          :datatypes    = "state.input.options.datatypes" 
+          @add-layer    = "addLayer" />
+      </section>
+      <section class = "vector-tools-message">
+        <div v-if = "errorUpload" class = "error-upload"> Errore </div>
+      </section>
+    </section>
 
-      <slot name = "message">
-        <p
-          v-if   = "notvalid"
-          class  = "g3w-long-text error-input-message"
-          style  = "margin: 0"
-          v-html = "state.validate.message">
-        </p>
-        <p
-          v-else-if = "state.info"
-          style     = "margin: 0 "
-          v-html    = "state.info"
-        ></p>
-      </slot>
-
+    <slot name = "body">
+      <select
+        v-select2 = "'value'"
+        :id       = "state.name"
+        ref       = "select_layer"
+        style     = "width:100%;"
+        class     = "form-control"
+      >
+        <option
+          v-for  = "value in state.input.options.values"
+          :key   = "value.value"
+          :value = "value.value">{{ value.key }}
+        </option>
+      </select>
       <div
-        v-if   = "state.help && this.state.help.visible"
-        v-html = "state.help.message"
-        class  = "g3w_input_help skin-background-color extralighten">
+        v-if       = "isSelectedFeatures"
+        v-disabled = "selected_features_disabled"
+        class      = "prjvectorlayerfeature-only-selected-features"
+      >
+        <input
+          class   = "magic-checkbox"
+          v-model = "selected_features_checked"
+          type    = "checkbox"
+          :id     = "state.name + '_checkbox'"
+        />
+        <label
+          style      = "margin-top: 10px;"
+          :for       = "state.name + '_checkbox'"
+          v-t-plugin = "'qprocessing.inputs.prjvectorlayerfeature.selected_features'">
+        </label>
       </div>
+    </slot>
 
+    <slot name = "message">
+      <p
+        v-if   = "notvalid"
+        class  = "g3w-long-text error-input-message"
+        style  = "margin: 0"
+        v-html = "state.validate.message">
+      </p>
+      <p
+        v-else-if = "state.info"
+        style     = "margin: 0 "
+        v-html    = "state.info"
+      ></p>
+    </slot>
+
+    <div
+      v-if   = "state.help && this.state.help.visible"
+      v-html = "state.help.message"
+      class  = "g3w_input_help skin-background-color extralighten">
     </div>
+
   </div>
   `,
 
   name: "InputPrjVectorLayer",
   mixins: [ selectMixin ],
   components: {
-    UploadVectorFile,
     DrawInputVectorFeatures,
   },
   props: {
@@ -407,5 +422,8 @@ document.head.insertAdjacentHTML(
     .vector-tools                       { display: flex; justify-content: space-between; }
     .vector-tools-message               { margin: 3px; }
     .vector-tools-message .error-upload { font-weight: bold; color: red; }
+    .qprocessing-upload-vector-file form.addlayer   { position: relative; border: 2px dashed; text-align: center; border-radius: 3px; }
+    .qprocessing-upload-vector-file .addlayer input { position: absolute; margin: 0; padding: 0; width: 100%; height: 100%; outline: 0; opacity: 0; cursor: pointer; display: block; }
+    .qprocessing-upload-vector-file .drag_and_drop  { line-height: 20px; padding: 5px; color: #fff; }
   </style>`,
 );
