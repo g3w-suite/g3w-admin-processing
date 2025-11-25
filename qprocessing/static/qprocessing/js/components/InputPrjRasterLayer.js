@@ -29,7 +29,7 @@ export default ({
           <section class = "upload-file-content">
             <form
               class                  = "addlayer skin-border-color"
-              v-t-tooltip:top.create = "'mapcontrols.add_layer_control.drag_layer'"
+              v-t-tooltip:top.create = "'qprocessing.add_layer_drag'"
             >
               <input
                 type    = "file"
