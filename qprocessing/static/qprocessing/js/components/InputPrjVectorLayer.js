@@ -51,9 +51,7 @@ export default ({
           @add-layer    = "addLayer"
         />
       </section>
-      <section class = "vector-tools-message">
-        <div v-if = "errorUpload" class = "error-upload"> Errore </div>
-      </section>
+  
     </section>
 
     <slot name = "body">
