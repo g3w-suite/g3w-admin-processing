@@ -1,5 +1,5 @@
-const { GUI }     = g3wsdk.gui;
-const { tPlugin } = g3wsdk.core.i18n;
+const { GUI } = g3wsdk.gui;
+const _       = g3wsdk.core.i18n.t;
 
 export default ({
 
@@ -131,7 +131,7 @@ export default ({
                 this.$emit('add-layer', {
                   file: qprocessing.createGeoJSONFile({
                     features,
-                    name: `${tPlugin('qprocessing.draw_filename')}(${tPlugin('qprocessing.draw_types.'+type)})`
+                    name: `${_('qprocessing.draw_filename')}(${_('qprocessing.draw_types.' + type)})`
                   }),
                   features,
                   type: 'draw'
