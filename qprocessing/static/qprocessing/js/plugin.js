@@ -98,10 +98,9 @@
         [JSON.stringify(Object.assign(
           (new ol.format.GeoJSON()).writeFeaturesObject(features), {
             crs: {
-              type: "name",
-              properties: {
-                "name": crs || GUI.getService('map').getCrs() //add crs to geojsonObject
-              }
+              type:       "name",
+              properties: { "name": crs || GUI.getService('map').getCrs() } //add crs to geojsonObject
+            
             }
           }))],
         `${name}.geojson`,

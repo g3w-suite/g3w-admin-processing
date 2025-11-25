@@ -248,13 +248,13 @@ export default ({
         for (const input of model.inputs) {
           if (input.value) {
             if (
-              (input.input.type === 'prjvectorlayer') &&
+              ('prjvectorlayer' === input.input.type) &&
               input.value.startsWith(`__g3w__external__:`)
             ) {
               //extract layer id form input.value
-              const [,layerExternalId] = input.value.split(`__g3w__external__:`);
+              const [, layerExternalId] = input.value.split(`__g3w__external__:`);
               //get external layer from catalog service
-              const {crs, name}        = GUI.getService('catalog').getExternalLayers({type: 'vector'}).find(l => layerExternalId === l.id);
+              const { crs, name }       = GUI.getService('catalog').getExternalLayers({ type: 'vector' }).find(l => layerExternalId === l.id);
               //create a geojson file from freatures
               const file    = qprocessing.createGeoJSONFile({
                 name,
@@ -366,7 +366,7 @@ export default ({
     },
 
     changeInput(input) {
-      this.isValid(input)
+      this.isValid(input);
     },
 
     // Every input sends to form it valid value that will change the genaral state of form
