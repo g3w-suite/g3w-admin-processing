@@ -8,7 +8,6 @@ import outputfile           from '../components/OutputFile.js';
 const { Panel }            = g3wsdk.gui;
 const { formInputsMixins } = g3wsdk.gui.vue.Mixins;
 const { XHR }              = g3wsdk.core.utils;
-const { ProjectsRegistry } = g3wsdk.core.project;
 const { GUI }              = g3wsdk.gui;
 
 export default ({

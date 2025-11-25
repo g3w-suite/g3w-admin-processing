@@ -120,7 +120,7 @@
       const data = new FormData();
       data.append('file', file);
       try {
-        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
+        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${this.getProject().getId()}/${inputName}/`, {
           method: 'POST',
           body:    data,
         })).json();
