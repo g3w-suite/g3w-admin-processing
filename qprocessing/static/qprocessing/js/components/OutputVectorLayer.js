@@ -100,10 +100,12 @@ export default ({
         }));
       }
 
+      // lazy load "JSZip" library
       if (!window.JSZip) {
         await import('../vendors/jszip.min.js');
       }
 
+      // lazy load "shpjs" library
       if (!window.shp) {
         await import('../vendors/shp.min.js');
       }

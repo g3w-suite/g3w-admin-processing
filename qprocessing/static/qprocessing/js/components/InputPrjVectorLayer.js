@@ -1,7 +1,6 @@
 import DrawInputVectorFeatures from './DrawInputVectorFeatures.js';
 
-const { GUI }                = g3wsdk.gui;
-const isSameBaseGeometryType = (a, b) => a.replace('Multi','') === b.replace('Multi','');
+const { GUI } = g3wsdk.gui;
 
 export default ({
 
@@ -250,7 +249,7 @@ export default ({
     isExternalLayerValidForInputDatatypes({ layer, datatypes = [] } = {}) {
       return (
         undefined !== datatypes.find(type => 'anygeometry' === type) ||
-        undefined !== datatypes.map(type  => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean).find(type => isSameBaseGeometryType(type, layer.geometryType))
+        undefined !== datatypes.map(type  => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean).find(type => type.replace('Multi','') === layer.geometryType.replace('Multi',''))
       )
     },
 
@@ -291,7 +290,7 @@ export default ({
               layers.push({ key, value })
             } else {
               if (geometry_types.length > 0) {
-                if (undefined !== geometry_types.find(geometry_type => isSameBaseGeometryType(geometry_type, l.geometrytype))) {
+                if (undefined !== geometry_types.find(geometry_type => geometry_type.replace('Multi','') === l.geometrytype.replace('Multi',''))) {
                   layers.push({key, value})
                 }
               }
