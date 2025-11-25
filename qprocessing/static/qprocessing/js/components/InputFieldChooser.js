@@ -89,24 +89,16 @@ export default ({
 
     //listen change of value (input select)
     'value'(value) {
-      // in case of multiple selection
-      if (this.state.input.options.multiple) {
-        //set input value as values separate by comma
-        this.state.value = value.join(',');
-        //check if is required
-        if (true === this.state.validate.required) {
-          //need to check validation
-          this.state.validate.valid = value.length > 0;
-        }
-      } else {
-        //case single value
-        this.state.value = value;
-        // in case of required input value
-        if (true === this.state.validate.required) {
-          this.state.validate.valid = "" !== value && null !== value;
-        }
+      const is_multiple = this.state.input.options.multiple;
+
+      // handle multiple/single selection
+      this.state.value = is_multiple ? value.join(',') : value;
+
+      // validate in case of required
+      if (true === this.state.validate.required) {
+        this.state.validate.valid = is_multiple ? value.length > 0 : ("" !== value && null !== value);
       }
-      //emit change input
+
       this.$emit('changeinput', this.state);
     },
 
