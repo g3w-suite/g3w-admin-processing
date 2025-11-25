@@ -31,7 +31,8 @@ export default ({
       v-model = "checked"
       type    = "checkbox"
       :id     = "state.name + '_checkbox'"
-    ><label
+    >
+    <label
       style      = "margin-top: 10px;"
       :for       = "state.name + '_checkbox'"
       v-t-plugin = "'qprocessing.outputs.outputvector.open_file_on_map'"
