@@ -172,15 +172,15 @@
           const id = setInterval(async () => {
             // check if timeout is defined
             timeout = timeout - interval;
+            let task;
             if (timeout > 0) {
-              let r;
               try {
-                r = await XHR.get({url: `${taskUrl}${r.task_id}`});
+                task = await XHR.get({url: `${taskUrl}${r.task_id}`});
               } catch(e) {
-                r = e;
+                task = e;
                 console.warn(e);
               }
-              listener({ task_id: r.task_id, timeout: false, response: r });
+              listener({ task_id: r.task_id, timeout: false, response: task });
             } else {
               listener({ timeout: true });
               this.stopTask(r.task_id);
