@@ -9,7 +9,15 @@
 
   new class extends Plugin {
     constructor() {
-      super({ name: 'qprocessing' });
+      super({ 
+        name: 'qprocessing',
+        //Add to avoid initial show plugin.qrocessing.title
+        i18n: {
+          [ApplicationState.language] : {
+            title: 'Geoprocessing',
+          }
+        } 
+      });
 
       // i18n
       const VM = new Vue();
