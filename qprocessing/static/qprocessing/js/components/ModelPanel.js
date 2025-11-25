@@ -301,18 +301,20 @@ export default ({
             taskUrl: qprocessing.config.urls.taskinfo, // url to ask task is end
             params: { data: JSON.stringify(data) },    // request params
             listener: ({ task_id, response }) => {     // handle task request
-              const {progress, status} = response;
-              // in case of complete
-              if ('complete' === status) {
-                //stop current task
+
+              // complete → stop current task
+              if ('complete' === response.status) {
+                //
                 qprocessing.stopTask(task_id);
                 time = null;
                 _handleCompleteModelResponse(response, { resolve, reject })
-              } else if ('executing' === status) {
+              }
+
+              if ('executing' === response.status) {
                 if (state.progress === null || state.progress === undefined) {
                   time = Date.now();
                 } else {
-                  if (progress > state.progress) {
+                  if (response.progress > state.progress) {
                     time = Date.now();
                   } else {
                     if ((Date.now() - time) > 600000){
@@ -328,8 +330,10 @@ export default ({
                     }
                   }
                 }
-                state.progress = progress;
-              } else if (_handleErrorModelResponse(response, { reject })) {
+                state.progress = response.progress;
+              }
+
+              if (!['complete', 'executing'].includes(response.status) && _handleErrorModelResponse(response, { reject })) {
                 state.progress = null;
                 time           = null;
                 qprocessing.stopTask(task_id);
