@@ -161,36 +161,25 @@
     async runTask({
       params = {},
       url,
-      taskUrl,
-      interval = 1000,
-      timeout = Infinity,
       listener = () => {}
     } = {}) {
       try {
         const r = await XHR.post({ url, data: params.data || {}, contentType: params.contentType || "application/json" });
-        if (r.result) {
-          const id = setInterval(async () => {
-            // check if timeout is defined
-            timeout = timeout - interval;
-            let task;
-            if (timeout > 0) {
-              try {
-                task = await XHR.get({url: `${taskUrl}${r.task_id}`});
-              } catch(e) {
-                task = e;
-                console.warn(e);
-              }
-              listener({ task_id: r.task_id, timeout: false, response: task });
-            } else {
-              listener({ timeout: true });
-              this.stopTask(r.task_id);
-            }
-          }, interval);
-          this.#tasks.push({ task_id: r.task_id, intervalId: id }); // add current task to list of task
-          listener({ task_id: r.task_id, response: r });            // run first time listener function
-        } else {
+        if (!r.result) {
           return Promise.reject(r);
         }
+        const id = setInterval(async () => {
+          let task;
+          try {
+            task = await XHR.get({url: `${this.config.urls.taskinfo}${r.task_id}`});
+          } catch(e) {
+            task = e;
+            console.warn(e);
+          }
+          listener({ task_id: r.task_id, timeout: false, response: task });
+        }, 1000);
+        this.#tasks.push({ task_id: r.task_id, intervalId: id }); // add current task to list of task
+        listener({ task_id: r.task_id, response: r });            // run first time listener function
       } catch(e) {
         console.warn(e);
         return Promise.reject(e);

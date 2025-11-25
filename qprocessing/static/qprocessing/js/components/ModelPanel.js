@@ -255,21 +255,18 @@ export default ({
               const [,layerExternalId] = input.value.split(`__g3w__external__:`);
               //get external layer from catalog service
               const {crs, name}        = GUI.getService('catalog').getExternalLayers({type: 'vector'}).find(l => layerExternalId === l.id);
-              //get map ol layer from map
-              const OLlayer = GUI.getService('map').getLayerById(layerExternalId);
               //create a geojson file from freatures
               const file    = qprocessing.createGeoJSONFile({
                 name,
                 crs,
-                features: OLlayer.getSource().getFeatures(),
+                features: GUI.getService('map').getLayerById(layerExternalId).getSource().getFeatures(),
               });
               //upload file to server
               try {
                 //change input value value from new value
                 input.value = (await qprocessing.uploadFile({ modelId: model.id, inputName: input.name, file}))?.value;
               } catch(e) {
-                caonsole.warn(e);
-                //reject
+                console.warn(e);
                 reject(r);
               }
             }
@@ -295,37 +292,29 @@ export default ({
           // start to run Task
           qprocessing.runTask({
             url,
-            taskUrl: qprocessing.config.urls.taskinfo, // url to ask task is end
             params: { data: JSON.stringify(data) },    // request params
             listener: ({ task_id, response }) => {     // handle task request
 
               // complete → stop current task
               if ('complete' === response.status) {
-                //
                 qprocessing.stopTask(task_id);
                 time = null;
                 _handleCompleteModelResponse(response, { resolve, reject })
               }
 
               if ('executing' === response.status) {
-                if (state.progress === null || state.progress === undefined) {
+                if (state.progress === null || state.progress === undefined || response.progress > state.progress) {
                   time = Date.now();
-                } else {
-                  if (response.progress > state.progress) {
-                    time = Date.now();
-                  } else {
-                    if ((Date.now() - time) > 600000){
-                      qprocessing.stopTask(task_id);
-                      GUI.showUserMessage({
-                        type:     'warning',
-                        message:  'Timeout',
-                        autoclose: true
-                      });
-                      state.progress = null;
-                      time = null;
-                      reject({ timeout: true });
-                    }
-                  }
+                } else if ((Date.now() - time) > 600000){
+                  qprocessing.stopTask(task_id);
+                  GUI.showUserMessage({
+                    type:     'warning',
+                    message:  'Timeout',
+                    autoclose: true
+                  });
+                  state.progress = null;
+                  time           = null;
+                  reject({ timeout: true });
                 }
                 state.progress = response.progress;
               }
