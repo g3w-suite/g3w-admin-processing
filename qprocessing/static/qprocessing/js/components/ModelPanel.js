@@ -30,20 +30,16 @@ export default ({
     <section class = "qprocessing-model-inputs">
       <div class = "title">INPUTS</div>
       <form class = "form-horizontal g3w-form">
-        <div class = "box-primary">
-          <div class = "box-body">
-            <component
-              v-for                  = "input in model.inputs"
-              :key                   = "input.name"
-              :modelId               = "model.id"
-              @register-change-input = "registerChangeInputEvent"
-              @addinput              = "addToValidate"
-              @changeinput           = "_changeInput(input)"
-              :state                 = "input"
-              :is                    = "input.input.type + '_input'"
-            />
-          </div>
-        </div>
+        <component
+          v-for                  = "input in model.inputs"
+          :key                   = "input.name"
+          :modelId               = "model.id"
+          @register-change-input = "registerChangeInputEvent"
+          @addinput              = "addToValidate"
+          @changeinput           = "_changeInput(input)"
+          :state                 = "input"
+          :is                    = "input.input.type + '_input'"
+        />
       </form>
     </section>
 
@@ -51,18 +47,14 @@ export default ({
     <section class = "qprocessing-model-outputs">
       <div class = "title">OUTPUTS</div>
       <form class = "form-horizontal g3w-form">
-        <div class = "box-primary">
-          <div class = "box-body">
-            <component
-              v-for                        = "output in model.outputs"
-              :key                         = "output.name"
-              @add-result-to-model-results = "addResultToModel"
-              :state                       = "output"
-              :task                        = "task"
-              :is                          = "output.input.type + ''"
-            />
-          </div>
-        </div>
+        <component
+          v-for                        = "output in model.outputs"
+          :key                         = "output.name"
+          @add-result-to-model-results = "addResultToModel"
+          :state                       = "output"
+          :task                        = "task"
+          :is                          = "output.input.type + ''"
+        />
       </form>
     </section>
 
@@ -524,7 +516,7 @@ document.head.insertAdjacentHTML(
     .qprocessing-model-results .icon.pulse                               { transform: scale(1); animation: pulse 2s infinite; }
     .qprocess-model-footer button.run                                    { width: 100%; }
     .qprocessing-model-inputs, .qprocessing-model-note                   { margin-bottom: 5px; }
-    :is(.qprocessing-model-inputs, .qprocessing-model-outputs) .g3w-form { background-color: transparent !important; }
+    :is(.qprocessing-model-inputs, .qprocessing-model-outputs) .g3w-form { background-color: transparent !important; padding: 10px; }
     .qprocess-model-footer .message                                      { font-weight: bold; }
     @keyframes pulse {
       0% { transform: scale(0.75); }

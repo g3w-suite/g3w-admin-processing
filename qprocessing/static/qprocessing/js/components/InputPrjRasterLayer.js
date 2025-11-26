@@ -6,15 +6,13 @@ export default ({
     v-if  = "state.visible"
     class = "form-group prj-raster-layer"
   >
-    <slot name = "label">
-      <label
-        :for       = "state.name"
-        v-disabled = "!state.editable">
-        {{ state.label }}
-        <span v-if = "state.validate && state.validate.required">*</span>
-      </label>
-    </slot>
 
+    <label
+      :for       = "state.name"
+      v-disabled = "!state.editable">
+      {{ state.label }}
+      <span v-if = "state.validate && state.validate.required">*</span>
+    </label>
 
     <section v-disabled = "upload" style = "margin-bottom: 5px">
       <section>
@@ -43,35 +41,31 @@ export default ({
       </section>
     </section>
 
-    <slot name = "body">
-      <select
-        v-select2 = "'value'"
-        :id       = "state.name"
-        ref       = "select"
-        style     = "width:100%;"
-        class     = "form-control"
-      >
-        <option
-          v-for  = "value in state.input.options.values"
-          :key   = "value.value"
-          :value = "value.value"
-        >{{ value.key }}</option>
-      </select>
-    </slot>
+    <select
+      v-select2 = "'value'"
+      :id       = "state.name"
+      ref       = "select"
+      style     = "width:100%;"
+      class     = "form-control"
+    >
+      <option
+        v-for  = "value in state.input.options.values"
+        :key   = "value.value"
+        :value = "value.value"
+      >{{ value.key }}</option>
+    </select>
 
-    <slot name = "message">
-      <p
-        v-if   = "notvalid"
-        v-html = "state.validate.message"
-        class  = "g3w-long-text error-input-message"
-        style  = "margin: 0"
-      ></p>
-      <p
-        v-else-if = "state.info"
-        v-html    = "state.info"
-        style     = "margin: 0"
-      ></p>
-    </slot>
+    <p
+      v-if   = "notvalid"
+      v-html = "state.validate.message"
+      class  = "g3w-long-text error-input-message"
+      style  = "margin: 0"
+    ></p>
+    <p
+      v-else-if = "state.info"
+      v-html    = "state.info"
+      style     = "margin: 0"
+    ></p>
 
     <div
       v-if   = "state.help && this.state.help.visible"
