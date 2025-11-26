@@ -120,7 +120,7 @@ export default ({
       // KMZ FILE
       if ('kmz' === type) {
         const zip = await (new JSZip()).loadAsync(data.arrayBuffer(data));
-        data      = await zip.file(/\.kml$/i).at(-1).async('text'); // get last kml file within folder      }
+        data      = await zip.file(/\.kml$/i).at(-1).async('text'); // get last kml file within folder
       }
       
       let features = ({
