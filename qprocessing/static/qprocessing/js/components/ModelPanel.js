@@ -13,7 +13,7 @@ export default ({
 
   // language=html
   template: /* html */ `
-  <div class = "qprocessing-model">
+  <div class = "qprocessing-model" v-disabled = "state.loading">
 
     <!-- MODEL NAME -->
     <section class = "qprocessing-model-header">
