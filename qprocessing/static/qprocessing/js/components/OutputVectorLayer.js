@@ -88,11 +88,8 @@ export default ({
       let data = await response.blob();
 
       // skip adding csv file to map
-      if ('csv' === type) {
-        return;
-      }
-
-      // ie. geojson, kml
+      if ('csv' !== type) {
+        // ie. geojson, kml
       if (!['zip', 'kmz'].includes(type)) {
         data = await (new Promise(resolve => {
           const reader = new FileReader();
@@ -158,6 +155,9 @@ export default ({
         downloadUrl,
         color: `#${((1<<24)*Math.random() | 0).toString(16)}`
       });
+      }
+
+      
 
      }
 
