@@ -415,9 +415,7 @@ export default ({
           }
         }
       }
-      this.valid = Object.values(this.tovalidate).reduce((bool, input) => {
-        return bool && input.validate.valid;
-      }, true);
+      this.valid = Object.values(this.tovalidate).every(input => input.validate.valid);
     },
 
   },
