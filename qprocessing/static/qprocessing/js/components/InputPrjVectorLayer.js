@@ -179,7 +179,7 @@ export default ({
           modelId:   this.modelId,
         });
         //need to add only one external file
-        this.state.input.options.values = this.state.input.options.values.filter(({key, value}) => !value.startsWith('file:'));
+        this.state.input.options.values = this.state.input.options.values.filter(({ key, value }) => !value.startsWith('file:'));
 
         //handle temp layer
 
