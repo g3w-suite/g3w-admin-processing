@@ -75,10 +75,6 @@ export default ({
       return false === this.state.validate.valid;
     },
 
-    autocomplete() {
-      return 'select_autocomplete' === this.state.input.type && this.state.input.options.usecompleter;
-    },
-
   },
 
   watch: {
