@@ -106,7 +106,6 @@ export default ({
 
     <!-- MODEL RESULTS   -->
     <section class = "qprocessing-model-results">
-      <span class = "divider"></span>
       <section style = "display: flex; justify-content: space-between; align-items: center">
         <div class = "title" v-t-plugin = "'qprocessing.results'"></div>
         <span
@@ -515,6 +514,7 @@ document.head.insertAdjacentHTML(
     .qprocessing-model-header                                            { font-size: 1.3em; font-weight: bold; margin-bottom: 10px; }
     .qprocessing-model .title                                            { font-weight: bold; margin-bottom: 5px; }
     .qprocessing-model > section > .title                                { border-bottom: 2px solid #eee; padding-bottom: 5px; }
+    .qprocessing-model > section.qprocessing-model-results               { border-top: 2px solid #eee; padding-top: 5px; }
     .qprocessing-model-results                                           { margin-top: 10px; }
     .qprocessing-model-results .icon                                     { cursor: pointer; border: 2px solid transparent; margin-bottom: 8px; padding: 3px; border-radius: 5px; }
     .qprocessing-model-results .icon.pulse                               { transform: scale(1); animation: pulse 2s infinite; }
