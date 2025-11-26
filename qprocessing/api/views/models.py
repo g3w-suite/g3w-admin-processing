@@ -209,6 +209,14 @@ class QProcessingDownLoadOutputView(G3WAPIView):
             content_type = 'application/geopackage+sqlite3'
         elif ext == 'sqlite':
             content_type = 'application / vnd.sqlite3'
+        elif ext in ['tiff', 'tif']:
+            content_type = 'image/tiff'
+        elif ext == 'png':
+            content_type = 'image/png'
+        elif ext in ['jpeg', 'jpg']:
+            content_type = 'image/jpeg'
+        elif ext == 'vrt':
+            content_type = 'application/xml'
         else:
             content_type = 'application/octet-stream'
 

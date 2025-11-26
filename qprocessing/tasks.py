@@ -23,7 +23,6 @@ from .models import QProcessingProject
 from .utils.data import QProcessingModel
 from qgis.core import QgsProcessingContext, QgsProcessingFeedback, QgsProject, Qgis
 
-
 import logging
 
 logger = logging.getLogger('qprocessing')
