@@ -143,10 +143,6 @@ export default ({
       return false === this.state.validate.valid;
     },
 
-    autocomplete() {
-      return 'select_autocomplete' === this.state.input.type && this.state.input.options.usecompleter;
-    },
-
   },
 
   methods: {
@@ -308,31 +304,12 @@ export default ({
       return layers;
     },
 
-    getLanguage() {
-      return window.initConfig.user.i18n || "en";
-    },
-
-    async changeSelect(value) {
-      this.state.value = 'null' === value ? null : value;
-      //need to be waited in case of autocomplete
-      await this.$nextTick();
-      this.change();
-    },
-
-    getValue(value) {
-      return null === value ? 'null' : value;
-    },
-
-    resetValues() {
-      this.state.input.options.values.splice(0);
-    },
-
   },
 
   watch: {
 
     // listen change of value (input select)
-    'value'(value) {
+    value(value) {
       if (true === this.isSelectedFeatures) {
         this.setDisabledSelectFeaturesCheckbox(value);
       }
@@ -342,7 +319,7 @@ export default ({
     },
 
     // Listen selected feature checkbox event change
-    'selected_features_checked'(checked) {
+    selected_features_checked(checked) {
       this.setInputValueFromSelectedFeatures(checked);
     },
 

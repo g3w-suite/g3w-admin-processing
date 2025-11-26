@@ -84,7 +84,7 @@ export default ({
   watch: {
 
     //listen change of value (input select)
-    'value'(value) {
+    value(value) {
       const is_multiple = this.state.input.options.multiple;
 
       // handle multiple/single selection
@@ -103,29 +103,6 @@ export default ({
       if (this.select2) {
         this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
       }
-    },
-
-  },
-
-  methods: {
-
-    getLanguage() {
-      return window.initConfig.user.i18n || "en";
-    },
-
-    async changeSelect(value) {
-      this.state.value = 'null' === value ? null : value;
-      //need to be waited in case of autocomplete
-      await this.$nextTick();
-      this.change();
-    },
-
-    getValue(value) {
-      return null === value ? 'null' : value;
-    },
-
-    resetValues() {
-      this.state.input.options.values.splice(0);
     },
 
   },

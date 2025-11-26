@@ -38,22 +38,14 @@ export default ({
     }
   },
 
-  methods: {
-
-    changeSelect(value) {
-      this.state.value = value;
-    },
-
-  },
-
   watch: {
 
     type(value) {
-      this.changeSelect(value)
+      this.state.value = value; // change select value
     },
 
     async task(response = {}) {
-     const {task_result={}} = response;
+     const { task_result = {} } = response;
       this.$emit('add-result-to-model-results', {
        output: this.state,
        result: task_result

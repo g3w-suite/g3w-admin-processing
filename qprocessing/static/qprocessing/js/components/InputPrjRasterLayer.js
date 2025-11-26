@@ -134,25 +134,6 @@ export default ({
       this.upload = false;
     },
 
-    getLanguage() {
-      return window.initConfig.user.i18n || "en";
-    },
-
-    async changeSelect(value) {
-      this.state.value = 'null' === value ? null : value;
-      //need to be waited in case of autocomplete
-      await this.$nextTick();
-      this.change();
-    },
-
-    getValue(value) {
-      return null === value ? 'null' : value;
-    },
-
-    resetValues() {
-      this.state.input.options.values.splice(0);
-    },
-
   },
 
   computed: {
@@ -162,16 +143,12 @@ export default ({
       return false === this.state.validate.valid;
     },
 
-    autocomplete() {
-      return 'select_autocomplete' === this.state.input.type && this.state.input.options.usecompleter;
-    },
-
   },
 
   watch: {
 
     //listen change of value (input select)
-    'value'(value) {
+    value(value) {
       this.state.value = value;
       this.$emit('changeinput', this.state);
     },

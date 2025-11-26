@@ -36,7 +36,7 @@ export default ({
           :modelId               = "model.id"
           @register-change-input = "registerChangeInputEvent"
           @addinput              = "addToValidate"
-          @changeinput           = "_changeInput(input)"
+          @changeinput           = "changeInput(input)"
           :state                 = "input"
           :is                    = "input.input.type + '_input'"
         />
@@ -195,14 +195,13 @@ export default ({
     /**
      * Method to handle change input
      */
-    async _changeInput(input) {
+    async changeInput(input) {
       //need to wait change value dom
       await this.$nextTick();
       if (Array.isArray(this.subscribe_change_input[input.name])) {
         this.subscribe_change_input[input.name].forEach(h => h(input.value))
       }
-      //call base changeInput method
-      this.changeInput(input);
+      this.isValid(input);
     },
 
     /**
@@ -354,10 +353,6 @@ export default ({
 
     addToValidate(input) {
       this.tovalidate.push(input);
-    },
-
-    changeInput(input) {
-      this.isValid(input);
     },
 
     // Every input sends to form it valid value that will change the genaral state of form
