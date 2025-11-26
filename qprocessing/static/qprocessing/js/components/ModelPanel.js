@@ -264,7 +264,7 @@ export default ({
               //upload file to server
               try {
                 //change input value value from new value
-                input.value = (await qprocessing.uploadFile({ modelId: model.id, inputName: input.name, file}))?.value;
+                input.value = (await qprocessing.uploadFile({ modelId: model.id, inputName: input.name, file, showUserMessage: false }))?.value;
               } catch(e) {
                 console.warn(e);
                 reject(r);
