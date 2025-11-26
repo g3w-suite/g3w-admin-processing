@@ -171,7 +171,7 @@ export default ({
       const out = this.model.results.find(result => data.output.name === result.id);
 
       if (out) {
-        out.urls.push(data.result[{ key, value: data.output.name }])
+        out.urls.push({ key, value: data.result[data.output.name] });
       } else {
         this.model.results.push({
           id:    data.output.name,
