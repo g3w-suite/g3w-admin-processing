@@ -28,7 +28,7 @@ export default ({
 
     <!-- INPUTS   -->
     <section class = "qprocessing-model-inputs">
-      <div class = "title" >INPUTS</div>
+      <div class = "title">INPUTS</div>
       <form class = "form-horizontal g3w-form">
         <div class = "box-primary">
           <div class = "box-body">
@@ -248,7 +248,7 @@ export default ({
         for (const input of model.inputs) {
           if (input.value) {
             if (
-              ('prjvectorlayer' === input.input.type) &&
+              (['prjvectorlayer', 'prjvectorlayerfeature'].includes(input.input.type)) &&
               input.value.startsWith(`__g3w__external__:`)
             ) {
               //extract layer id form input.value
