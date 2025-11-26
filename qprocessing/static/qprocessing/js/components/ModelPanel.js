@@ -82,13 +82,13 @@ export default ({
           class       = "btn skin-background-color run"
           @click.stop = "run"
           :disabled   = "!valid || state.loading">
-          <i :class = "g3wtemplate.font['run']"></i>
+          <i class = "fas fa-play"></i>
         </button>
 
         <div v-if = "state.message.show">
          <span
           class       ="message"
-          :style      = "{color: getMessageColor()}"
+          :style      = "{color: ({ success: 'green', error: 'red' })[this.state.message.type] }"
            v-t-plugin = "'qprocessing.run.messages.'+ state.message.type"
           ></span>
         </div>
@@ -174,34 +174,24 @@ export default ({
       this.newResults = true; // set new result to true
     },
 
-    //return message color
-    getMessageColor() {
-      switch(this.state.message.type) {
-        case 'success': return 'green';
-        case 'error':   return 'red';
-      }
-    },
-
     /**
      * Register by every inputs change of other input with dependence
      */
     registerChangeInputEvent({ inputName, handler } = {}) {
-      if (undefined === this.subscribe_change_input[inputName]) {
-        this.subscribe_change_input[inputName] = []
+      if (!this.subscribers[inputName]) {
+        this.subscribers[inputName] = [];
       }
-      this.subscribe_change_input[inputName].push(handler)
+      this.subscribers[inputName].push(handler);
     },
 
     /**
      * Method to handle change input
      */
     async validate(input) {
-      //need to wait change value dom
+      // wait DOM changes 
       await this.$nextTick();
 
-      if (Array.isArray(this.subscribe_change_input[input.name])) {
-        this.subscribe_change_input[input.name].forEach(h => h(input.value))
-      }
+      this.subscribers?.[input.name]?.forEach?.(h => h(input.value));
 
       const MUTUALLY          = input && input.validate.mutually;
       const MIN_MAX           = !MUTUALLY && input && (!input.validate.empty && (input.validate.min_field || input.validate.max_field));
@@ -265,123 +255,115 @@ export default ({
       this.state.message.show = false;
       await this.$nextTick();
       try {
+        const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+
         //Run task
-        this.task = await this.runModel({ model: this.model, state: this.state });
+        this.task = await (new Promise(async (resolve, reject) => {
+          //create inputs parmeters
+          const inputs = {};
+
+          //Loop through input model
+          for (const input of this.model.inputs) {
+            if (input.value) {
+              if (
+                (['prjvectorlayer', 'prjvectorlayerfeature'].includes(input.input.type)) &&
+                input.value.startsWith(`__g3w__external__:`)
+              ) {
+                //extract layer id form input.value
+                const [, layerExternalId] = input.value.split(`__g3w__external__:`);
+                //get external layer from catalog service
+                const { crs, name }       = GUI.getService('catalog').getExternalLayers({ type: 'vector' }).find(l => layerExternalId === l.id);
+                //create a geojson file from freatures
+                const file    = qprocessing.createGeoJSONFile({
+                  name,
+                  crs,
+                  features: GUI.getService('map').getLayerById(layerExternalId).getSource().getFeatures(),
+                });
+                //upload file to server
+                try {
+                  //change input value value from new value
+                  input.value = (await qprocessing.uploadFile({ modelId: this.model.id, inputName: input.name, file, showUserMessage: false }))?.value;
+                } catch(e) {
+                  console.warn(e);
+                  reject(r);
+                }
+              }
+              inputs[input.name] = input.value;
+            }
+          }
+
+          const data = {
+            inputs,
+            outputs: this.model.outputs.reduce((a, output) => {
+              if (output.value) {
+                a[output.name] = output.value;
+              }
+              return a;
+            }, {})
+          }
+
+          const url = `${qprocessing.config.urls.run}${this.model.id}/${qprocessing.getProject().getId()}/` // url model
+
+          //Check if configured in async mode
+          if (qprocessing.config.async) {
+            let time;
+            // start to run Task
+            qprocessing.runTask({
+              url,
+              params: { data: JSON.stringify(data) },    // request params
+              listener: ({ task_id, response }) => {     // handle task request
+
+                // complete → stop current task
+                if ('complete' === response.status) {
+                  qprocessing.stopTask(task_id);
+                  time = null;
+                  _handleCompleteModelResponse(response, { resolve, reject })
+                }
+
+                if ('executing' === response.status) {
+                  if (this.state.progress === null || this.state.progress === undefined || response.progress > this.state.progress) {
+                    time = Date.now();
+                  } else if ((Date.now() - time) > 600000){
+                    qprocessing.stopTask(task_id);
+                    GUI.showUserMessage({
+                      type:     'warning',
+                      message:  'Timeout',
+                      autoclose: true
+                    });
+                    this.state.progress = null;
+                    time           = null;
+                    reject({ timeout: true });
+                  }
+                  this.state.progress = response.progress;
+                }
+
+                if (!['complete', 'executing'].includes(response.status) && _handleErrorModelResponse(response, { reject })) {
+                  this.state.progress = null;
+                  time           = null;
+                  qprocessing.stopTask(task_id);
+                }
+              },
+            })
+          } else { //get result directly
+            XHR.post({
+              url,
+              data:         JSON.stringify(data),
+              contentType: 'application/json'
+            })
+              .then((res)  => { _handleCompleteModelResponse(res, { resolve, reject }) })
+              .catch((res) => {
+                res.status = 500;
+                _handleErrorModelResponse(res, { reject });
+              })
+          }
+        }));
         this.state.message.type = 'success';
       } catch(e) {
         console.warn(e);
         this.state.message.type = 'error';
       }
-
       this.state.loading      = false;
       this.state.message.show = true;
-    },
-
-    /**
-     * Method to run model
-     */
-    runModel({ model, state } = {}) {
-      const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
-
-      return new Promise(async (resolve, reject) => {
-        //create inputs parmeters
-        const inputs = {};
-
-        //Loop through input model
-        for (const input of model.inputs) {
-          if (input.value) {
-            if (
-              (['prjvectorlayer', 'prjvectorlayerfeature'].includes(input.input.type)) &&
-              input.value.startsWith(`__g3w__external__:`)
-            ) {
-              //extract layer id form input.value
-              const [, layerExternalId] = input.value.split(`__g3w__external__:`);
-              //get external layer from catalog service
-              const { crs, name }       = GUI.getService('catalog').getExternalLayers({ type: 'vector' }).find(l => layerExternalId === l.id);
-              //create a geojson file from freatures
-              const file    = qprocessing.createGeoJSONFile({
-                name,
-                crs,
-                features: GUI.getService('map').getLayerById(layerExternalId).getSource().getFeatures(),
-              });
-              //upload file to server
-              try {
-                //change input value value from new value
-                input.value = (await qprocessing.uploadFile({ modelId: model.id, inputName: input.name, file, showUserMessage: false }))?.value;
-              } catch(e) {
-                console.warn(e);
-                reject(r);
-              }
-            }
-            inputs[input.name] = input.value;
-          }
-        }
-
-        const data = {
-          inputs,
-          outputs: model.outputs.reduce((a, output) => {
-            if (output.value) {
-              a[output.name] = output.value;
-            }
-            return a;
-          }, {})
-        }
-
-        const url = `${qprocessing.config.urls.run}${model.id}/${qprocessing.getProject().getId()}/` // url model
-
-        //Check if configured in async mode
-        if (qprocessing.config.async) {
-          let time;
-          // start to run Task
-          qprocessing.runTask({
-            url,
-            params: { data: JSON.stringify(data) },    // request params
-            listener: ({ task_id, response }) => {     // handle task request
-
-              // complete → stop current task
-              if ('complete' === response.status) {
-                qprocessing.stopTask(task_id);
-                time = null;
-                _handleCompleteModelResponse(response, { resolve, reject })
-              }
-
-              if ('executing' === response.status) {
-                if (state.progress === null || state.progress === undefined || response.progress > state.progress) {
-                  time = Date.now();
-                } else if ((Date.now() - time) > 600000){
-                  qprocessing.stopTask(task_id);
-                  GUI.showUserMessage({
-                    type:     'warning',
-                    message:  'Timeout',
-                    autoclose: true
-                  });
-                  state.progress = null;
-                  time           = null;
-                  reject({ timeout: true });
-                }
-                state.progress = response.progress;
-              }
-
-              if (!['complete', 'executing'].includes(response.status) && _handleErrorModelResponse(response, { reject })) {
-                state.progress = null;
-                time           = null;
-                qprocessing.stopTask(task_id);
-              }
-            },
-          })
-        } else { //get result directly
-          XHR.post({
-            url,
-            data:         JSON.stringify(data),
-            contentType: 'application/json'
-          })
-            .then((res)  => { _handleCompleteModelResponse(res, { resolve, reject }) })
-            .catch((res) => {
-              res.status = 500;
-              _handleErrorModelResponse(res, { reject });
-            })
-        }
-      })
     },
 
     /**
@@ -412,8 +394,8 @@ export default ({
 
   created() {
     this.tovalidate = [];
-    //Object contains subscribers of change parent input
-    this.subscribe_change_input = {};
+    // object contains subscribers of change parent input
+    this.subscribers = {};
   },
 
   async mounted() {
