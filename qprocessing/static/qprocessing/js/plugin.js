@@ -8,6 +8,17 @@
   const { XHR }              = g3wsdk.core.utils;
 
   new class extends Plugin {
+
+    /**
+     * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
+     */
+    #tasks = [];
+
+    /**
+     * layer fields based on layerId and datatype
+     */
+    layerFields = {};
+
     constructor() {
       super({ 
         name: 'qprocessing',
@@ -43,9 +54,6 @@
         this.emitChangeSelectedFeatures            = () => this.emit('change-selected-features');
         this.registersSelectedFeatureLayersEvent   = this.registersSelectedFeatureLayersEvent.bind(this);
         this.unregistersSelectedFeatureLayersEvent = this.unregistersSelectedFeatureLayersEvent.bind(this);
-  
-        // layer fields based on layerId and datatype
-        this.layerFields = {};
 
         this.createSideBarComponent({
           data: () => ({ models: this.config.models, service: this }),
@@ -110,11 +118,6 @@
       );
     }
 
-    /**
-     * 
-     * @param {*} param0 
-     * @returns 
-     */
     async uploadFile({ modelId, inputName, file }) {
       const data = new FormData();
       data.append('file', file);
@@ -151,8 +154,6 @@
       }
       
     }
-
-    #tasks = [];
 
     /**
      * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
