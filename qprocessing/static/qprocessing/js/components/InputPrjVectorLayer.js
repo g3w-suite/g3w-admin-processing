@@ -70,7 +70,6 @@ export default ({
       class      = "prjvectorlayerfeature-only-selected-features"
     >
       <input
-        class   = "magic-checkbox"
         v-model = "selected_features_checked"
         type    = "checkbox"
         :id     = "state.name + '_checkbox'"

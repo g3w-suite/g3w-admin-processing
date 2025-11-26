@@ -27,7 +27,6 @@ export default ({
       </option>
     </select>
     <input
-      class   = "magic-checkbox"
       v-model = "checked"
       type    = "checkbox"
       :id     = "state.name + '_checkbox'"
