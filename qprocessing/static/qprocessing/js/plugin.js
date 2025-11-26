@@ -118,7 +118,7 @@
       );
     }
 
-    async uploadFile({ modelId, inputName, file }) {
+    async uploadFile({ modelId, inputName, file, showUserMessage = true }) {
       const data = new FormData();
       data.append('file', file);
       try {
@@ -127,7 +127,7 @@
           body:    data,
         })).json();
         if (response.result) {
-          GUI.showUserMessage({
+          showUserMessage && GUI.showUserMessage({
             type:    'success',
             message:  `UPLOAD FILE ${ file?.name }`,
             autoclose: true,
@@ -138,14 +138,14 @@
             value: `file:${response?.data?.file}`,
           }
         } else {
-          GUI.showUserMessage({
+          showUserMessage && GUI.showUserMessage({
             type: 'alert',
             message: response?.error || 'server_error',
           });
           return Promise.reject(response);
         }
       } catch(e) {
-        GUI.showUserMessage({
+        showUserMessage && GUI.showUserMessage({
           type:    'alert',
           message: e,
         })
