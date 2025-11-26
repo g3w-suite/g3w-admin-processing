@@ -113,8 +113,12 @@ class QProcessingInputUploadView(G3WAPIView):
             QgsProcessingParameterFeatureSource('').type()
             ]:
             formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS]
-        elif self.qpm.inputs[kwargs['input_name']]['qprocessing_type'] in [QgsProcessingParameterRasterLayer('').type()]:
+        
+        elif self.qpm.inputs[kwargs['input_name']]['qprocessing_type'] in [
+            QgsProcessingParameterRasterLayer('').type()
+            ]:
             formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_RASTER_FORMATS]
+        
         else:
             formats = []
             
