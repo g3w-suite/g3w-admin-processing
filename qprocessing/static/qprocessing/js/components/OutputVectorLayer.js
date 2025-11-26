@@ -119,11 +119,10 @@ export default ({
     
       // KMZ FILE
       if ('kmz' === type) {
-        const zip = new JSZip();
-        zip.load(await data.arrayBuffer(data));
-        data = zip.file(/.kml$/i).at(-1).asText(); // get last kml file within folder
+        const zip = await (new JSZip()).loadAsync(data.arrayBuffer(data));
+        data      = await zip.file(/\.kml$/i).at(-1).async('text'); // get last kml file within folder      }
       }
-
+      
       let features = ({
         'gpx'    : new ol.format.GPX(),
         'gml'    : new ol.format.WMSGetFeatureInfo(),
@@ -132,6 +131,7 @@ export default ({
         'kml'    : new ol.format.KML({ extractStyles: false }),
         'kmz'    : new ol.format.KML({ extractStyles: false }),
       })[type].readFeatures(data, { dataProjection: epsg, featureProjection: crs || epsg });
+      console.log(features)
     
       // ignore kml property [`<styleUrl>`](https://developers.google.com/kml/documentation/kmlreference)
       if (['kml', 'kmz'].includes(type)) {
