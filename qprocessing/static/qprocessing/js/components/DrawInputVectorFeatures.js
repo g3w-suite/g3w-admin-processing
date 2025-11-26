@@ -6,13 +6,15 @@ export default ({
   // language=html
   template: /* html */ `
   <div
-    class = "qprocessing-draw-vector-features"
-    style = "font-size: 1.3em;"
+    class                   = "qprocessing-draw-vector-features"
+    style                   = "font-size: 1.3em;"
+    
   >
     <button
       class               = "btn skin-background-color"
       style               = "height: 100%; margin-right: 0 !important;"
       @click.stop.prevent = "toggled = !toggled"
+      v-t-tooltip:top.create  = "'plugins.qprocessing.inputs.drawfeatures'"
     >
       <i class = "fas fa-pencil-alt"></i>
     </button>
@@ -72,9 +74,9 @@ export default ({
       this.setDrawInteraction();
       //whow tool component
       GUI.showUserMessage({
-        title: '', //@TODO add translation title
-        type: 'tool',
-        size: 'small',
+        title:    'plugins.qprocessing.inputs.drawfeatures', //@TODO add translation title
+        type:     'tool',
+        size:     'small',
         closable: false,
         hooks: {
           body: {
