@@ -32,7 +32,7 @@ export default ({
           <option
             v-for     = "value in state.input.options.values"
             :selected = "state.input.options.default_to_all_fields"
-            :key      ="value.value"
+            :key      = "value.value"
             :value    = "value.value"
           >{{ value.key }}</option>
         </select>
@@ -43,7 +43,7 @@ export default ({
           v-if        = "notvalid"
           class       = "g3w-long-text error-input-message"
           style       = "margin: 0"
-          v-t-plugin = "state.validate.message"
+          v-t-plugin  = "state.validate.message"
         ></p>
         <p
           v-else-if = "state.info"
@@ -76,7 +76,7 @@ export default ({
   computed: {
 
     notvalid() {
-      return this.state.validate.valid === false;
+      return false === this.state.validate.valid;
     },
 
     autocomplete() {
@@ -92,7 +92,7 @@ export default ({
       const is_multiple = this.state.input.options.multiple;
 
       // handle multiple/single selection
-      this.state.value = is_multiple ? value.join(',') : value;
+      this.state.value  = is_multiple ? value.join(',') : value;
 
       // validate in case of required
       if (true === this.state.validate.required) {
@@ -105,7 +105,7 @@ export default ({
     async notvalid(value) {
       await this.$nextTick();
       if (this.select2) {
-       this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
+        this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
       }
     },
 
@@ -196,7 +196,7 @@ export default ({
         }
 
         if (error) {
-          console.warn(e);
+          console.warn(error);
           this.state.input.options.values = [];
         } else {
           this.state.input.options.values = qprocessing.layerFields[layerId][JSON.stringify(params)]
