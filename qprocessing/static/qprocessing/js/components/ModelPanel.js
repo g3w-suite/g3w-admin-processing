@@ -36,7 +36,7 @@ export default ({
           :modelId               = "model.id"
           @register-change-input = "registerChangeInputEvent"
           @addinput              = "addToValidate"
-          @changeinput           = "changeInput(input)"
+          @changeinput           = "validate(input)"
           :state                 = "input"
           :is                    = "input.input.type + '_input'"
         />
@@ -195,13 +195,66 @@ export default ({
     /**
      * Method to handle change input
      */
-    async changeInput(input) {
+    async validate(input) {
       //need to wait change value dom
       await this.$nextTick();
+
       if (Array.isArray(this.subscribe_change_input[input.name])) {
         this.subscribe_change_input[input.name].forEach(h => h(input.value))
       }
-      this.isValid(input);
+
+      const MUTUALLY          = input && input.validate.mutually;
+      const MIN_MAX           = !MUTUALLY && input && (!input.validate.empty && (input.validate.min_field || input.validate.max_field));
+      const MUTUALLY_OPTIONAL = MUTUALLY && !input.validate.required;
+      const NOT_EMPTY         = [];
+
+      // check mutually
+      if (MUTUALLY_OPTIONAL && !input.validate.empty) {
+        input.validate._valid         = input.validate.valid;
+        input.validate.mutually_valid = input.validate.mutually.every(inputname => previous && this.tovalidate[inputname].validate.empty);
+        input.validate.valid          = input.validate.mutually_valid && input.validate.valid;
+      }
+      
+      if (MUTUALLY_OPTIONAL && input.validate.empty) {
+        input.value                   = null;
+        input.validate._valid         = true;
+        input.validate.mutually_valid = true;
+        input.validate.valid          = true;
+      }
+
+      if (MUTUALLY_OPTIONAL && input.validate.empty) {
+        for (let i = input.validate.mutually.length; i--;) {
+          const name = input.validate.mutually[i];
+          if (!this.tovalidate[name].validate.empty) {
+            NOT_EMPTY.push(name);
+          }
+        }
+      }
+
+      if (MUTUALLY_OPTIONAL && input.validate.empty && NOT_EMPTY.length < 2) {
+        NOT_EMPTY.forEach(name => {
+          this.tovalidate[name].validate.mutually_valid = true;
+          this.tovalidate[name].validate.valid          = true;
+          setTimeout(() => {
+            this.tovalidate[name].validate.valid = this.tovalidate[name].validate._valid;
+            this.state.valid = this.state.valid && this.tovalidate[name].validate.valid;
+          })
+        })
+      }
+
+      // check if min_field or max_field is set
+      if (MIN_MAX) {
+        input.validate.valid = input.validate.min_field
+          ? this.tovalidate[input.validate.min_field].validate.empty || 1*input.value > 1*this.tovalidate[input.validate.min_field].value
+          : this.tovalidate[input.validate.max_field].validate.empty || 1*input.value < 1*this.tovalidate[input.validate.max_field].value;
+      }
+
+      if (MIN_MAX && input.validate.valid) {
+        const input_name = input.validate.min_field || input.validate.max_field;
+        this.tovalidate[input_name].validate.valid = true
+      }
+
+      this.valid = Object.values(this.tovalidate).every(input => input.validate.valid);
     },
 
     /**
@@ -353,62 +406,6 @@ export default ({
 
     addToValidate(input) {
       this.tovalidate.push(input);
-    },
-
-    // Every input sends to form it valid value that will change the genaral state of form
-    isValid(input) {
-      const MUTUALLY          = input && input.validate.mutually;
-      const MIN_MAX           = !MUTUALLY && input && (!input.validate.empty && (input.validate.min_field || input.validate.max_field));
-      const MUTUALLY_OPTIONAL = MUTUALLY && !input.validate.required;
-      const NOT_EMPTY         = [];
-
-      // check mutually
-      if (MUTUALLY_OPTIONAL && !input.validate.empty) {
-        input.validate._valid         = input.validate.valid;
-        input.validate.mutually_valid = input.validate.mutually.every(inputname => previous && this.tovalidate[inputname].validate.empty);
-        input.validate.valid          = input.validate.mutually_valid && input.validate.valid;
-      }
-      
-      if (MUTUALLY_OPTIONAL && input.validate.empty) {
-        input.value                   = null;
-        input.validate._valid         = true;
-        input.validate.mutually_valid = true;
-        input.validate.valid          = true;
-      }
-
-      if (MUTUALLY_OPTIONAL && input.validate.empty) {
-        for (let i = input.validate.mutually.length; i--;) {
-          const name = input.validate.mutually[i];
-          if (!this.tovalidate[name].validate.empty) {
-            NOT_EMPTY.push(name);
-          }
-        }
-      }
-
-      if (MUTUALLY_OPTIONAL && input.validate.empty && NOT_EMPTY.length < 2) {
-        NOT_EMPTY.forEach(name => {
-          this.tovalidate[name].validate.mutually_valid = true;
-          this.tovalidate[name].validate.valid          = true;
-          setTimeout(() => {
-            this.tovalidate[name].validate.valid = this.tovalidate[name].validate._valid;
-            this.state.valid = this.state.valid && this.tovalidate[name].validate.valid;
-          })
-        })
-      }
-
-      // check if min_field or max_field is set
-      if (MIN_MAX) {
-        input.validate.valid = input.validate.min_field
-          ? this.tovalidate[input.validate.min_field].validate.empty || 1*input.value > 1*this.tovalidate[input.validate.min_field].value
-          : this.tovalidate[input.validate.max_field].validate.empty || 1*input.value < 1*this.tovalidate[input.validate.max_field].value;
-      }
-
-      if (MIN_MAX && input.validate.valid) {
-        const input_name = input.validate.min_field || input.validate.max_field;
-        this.tovalidate[input_name].validate.valid = true
-      }
-
-      this.valid = Object.values(this.tovalidate).every(input => input.validate.valid);
     },
 
   },
