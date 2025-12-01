@@ -1,5 +1,6 @@
 export default {
   title: 'Geoprocessing',
+  'inputs.drawfeatures': "Draw layer features",
   'inputs.prjvectorlayerfeature.selected_features': "Only selected features",
   'inputs.fieldchooser.validate.message.multiple': "Select at least a field",
   'inputs.fieldchooser.validate.message.single': "Select at least a field",

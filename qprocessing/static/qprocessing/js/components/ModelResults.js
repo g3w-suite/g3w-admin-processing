@@ -26,11 +26,11 @@ export default ({
             <section style = "padding: 3px; cursor: pointer; font-weight: bold;">
               <i
                 style               = "margin: 0 5px;"
-                :class              = "g3wtemplate.font['download']"
+                class               = "fas fa-download"
                 @click.stop.prevent = "downloadFile(url.value)"
               ></i>
               <i
-                :class              = "g3wtemplate.font['trash']"
+                class               = "fas fa-trash"
                 style               = "color: red"
                 @click.stop.prevent = "removeResult(result, index)"
               ></i>

@@ -30,20 +30,16 @@ export default ({
     <section class = "qprocessing-model-inputs">
       <div class = "title">INPUTS</div>
       <form class = "form-horizontal g3w-form">
-        <div class = "box-primary">
-          <div class = "box-body">
-            <component
-              v-for                  = "input in model.inputs"
-              :key                   = "input.name"
-              :modelId               = "model.id"
-              @register-change-input = "registerChangeInputEvent"
-              @addinput              = "addToValidate"
-              @changeinput           = "_changeInput(input)"
-              :state                 = "input"
-              :is                    = "input.input.type + '_input'"
-            />
-          </div>
-        </div>
+        <component
+          v-for                  = "input in model.inputs"
+          :key                   = "input.name"
+          :modelId               = "model.id"
+          @register-change-input = "registerChangeInputEvent"
+          @addinput              = "addToValidate"
+          @changeinput           = "validate(input)"
+          :state                 = "input"
+          :is                    = "input.input.type + '_input'"
+        />
       </form>
     </section>
 
@@ -51,18 +47,14 @@ export default ({
     <section class = "qprocessing-model-outputs">
       <div class = "title">OUTPUTS</div>
       <form class = "form-horizontal g3w-form">
-        <div class = "box-primary">
-          <div class = "box-body">
-            <component
-              v-for                        = "output in model.outputs"
-              :key                         = "output.name"
-              @add-result-to-model-results = "addResultToModel"
-              :state                       = "output"
-              :task                        = "task"
-              :is                          = "output.input.type + ''"
-            />
-          </div>
-        </div>
+        <component
+          v-for                        = "output in model.outputs"
+          :key                         = "output.name"
+          @add-result-to-model-results = "addResultToModel"
+          :state                       = "output"
+          :task                        = "task"
+          :is                          = "output.input.type + ''"
+        />
       </form>
     </section>
 
@@ -90,13 +82,13 @@ export default ({
           class       = "btn skin-background-color run"
           @click.stop = "run"
           :disabled   = "!valid || state.loading">
-          <i :class = "g3wtemplate.font['run']"></i>
+          <i class = "fas fa-play"></i>
         </button>
 
         <div v-if = "state.message.show">
          <span
           class       ="message"
-          :style      = "{color: getMessageColor()}"
+          :style      = "{color: ({ success: 'green', error: 'red' })[this.state.message.type] }"
            v-t-plugin = "'qprocessing.run.messages.'+ state.message.type"
           ></span>
         </div>
@@ -182,194 +174,25 @@ export default ({
       this.newResults = true; // set new result to true
     },
 
-    //return message color
-    getMessageColor() {
-      switch(this.state.message.type) {
-        case 'success': return 'green';
-        case 'error':   return 'red';
-      }
-    },
-
     /**
      * Register by every inputs change of other input with dependence
      */
     registerChangeInputEvent({ inputName, handler } = {}) {
-      if (undefined === this.subscribe_change_input[inputName]) {
-        this.subscribe_change_input[inputName] = []
+      if (!this.subscribers[inputName]) {
+        this.subscribers[inputName] = [];
       }
-      this.subscribe_change_input[inputName].push(handler)
+      this.subscribers[inputName].push(handler);
     },
 
     /**
      * Method to handle change input
      */
-    async _changeInput(input) {
-      //need to wait change value dom
+    async validate(input) {
+      // wait DOM changes 
       await this.$nextTick();
-      if (Array.isArray(this.subscribe_change_input[input.name])) {
-        this.subscribe_change_input[input.name].forEach(h => h(input.value))
-      }
-      //call base changeInput method
-      this.changeInput(input);
-    },
 
-    /**
-     * Run model method
-     */
-    async run() {
-      this.state.loading      = true;
-      this.state.message.show = false;
-      await this.$nextTick();
-      try {
-        //Run task
-        this.task = await this.runModel({ model: this.model, state: this.state });
-        this.state.message.type = 'success';
-      } catch(e) {
-        console.warn(e);
-        this.state.message.type = 'error';
-      }
+      this.subscribers?.[input.name]?.forEach?.(h => h(input.value));
 
-      this.state.loading      = false;
-      this.state.message.show = true;
-    },
-
-    /**
-     * Method to run model
-     */
-    runModel({ model, state } = {}) {
-      const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
-
-      return new Promise(async (resolve, reject) => {
-        //create inputs parmeters
-        const inputs = {};
-
-        //Loop through input model
-        for (const input of model.inputs) {
-          if (input.value) {
-            if (
-              (['prjvectorlayer', 'prjvectorlayerfeature'].includes(input.input.type)) &&
-              input.value.startsWith(`__g3w__external__:`)
-            ) {
-              //extract layer id form input.value
-              const [, layerExternalId] = input.value.split(`__g3w__external__:`);
-              //get external layer from catalog service
-              const { crs, name }       = GUI.getService('catalog').getExternalLayers({ type: 'vector' }).find(l => layerExternalId === l.id);
-              //create a geojson file from freatures
-              const file    = qprocessing.createGeoJSONFile({
-                name,
-                crs,
-                features: GUI.getService('map').getLayerById(layerExternalId).getSource().getFeatures(),
-              });
-              //upload file to server
-              try {
-                //change input value value from new value
-                input.value = (await qprocessing.uploadFile({ modelId: model.id, inputName: input.name, file, showUserMessage: false }))?.value;
-              } catch(e) {
-                console.warn(e);
-                reject(r);
-              }
-            }
-            inputs[input.name] = input.value;
-          }
-        }
-
-        const data = {
-          inputs,
-          outputs: model.outputs.reduce((a, output) => {
-            if (output.value) {
-              a[output.name] = output.value;
-            }
-            return a;
-          }, {})
-        }
-
-        const url = `${qprocessing.config.urls.run}${model.id}/${qprocessing.getProject().getId()}/` // url model
-
-        //Check if configured in async mode
-        if (qprocessing.config.async) {
-          let time;
-          // start to run Task
-          qprocessing.runTask({
-            url,
-            params: { data: JSON.stringify(data) },    // request params
-            listener: ({ task_id, response }) => {     // handle task request
-
-              // complete → stop current task
-              if ('complete' === response.status) {
-                qprocessing.stopTask(task_id);
-                time = null;
-                _handleCompleteModelResponse(response, { resolve, reject })
-              }
-
-              if ('executing' === response.status) {
-                if (state.progress === null || state.progress === undefined || response.progress > state.progress) {
-                  time = Date.now();
-                } else if ((Date.now() - time) > 600000){
-                  qprocessing.stopTask(task_id);
-                  GUI.showUserMessage({
-                    type:     'warning',
-                    message:  'Timeout',
-                    autoclose: true
-                  });
-                  state.progress = null;
-                  time           = null;
-                  reject({ timeout: true });
-                }
-                state.progress = response.progress;
-              }
-
-              if (!['complete', 'executing'].includes(response.status) && _handleErrorModelResponse(response, { reject })) {
-                state.progress = null;
-                time           = null;
-                qprocessing.stopTask(task_id);
-              }
-            },
-          })
-        } else { //get result directly
-          XHR.post({
-            url,
-            data:         JSON.stringify(data),
-            contentType: 'application/json'
-          })
-            .then((res)  => { _handleCompleteModelResponse(res, { resolve, reject }) })
-            .catch((res) => {
-              res.status = 500;
-              _handleErrorModelResponse(res, { reject });
-            })
-        }
-      })
-    },
-
-    /**
-     * Show Model results Panel
-     */
-    async showModelResults() {
-      const ModelResults = (await import('./ModelResults.js')).default;
-
-      new Panel({
-        id: `qprocessing-panel-results`,
-        title: `${this.model.display_name.toUpperCase()}`,
-        internalPanel: new (Vue.extend(ModelResults))({
-          propsData: {
-            model: this.model,
-          }
-        }),
-        show: true,
-      });
-      this.newResults         = false;
-      this.state.message.show = false;
-    },
-
-    addToValidate(input) {
-      this.tovalidate.push(input);
-    },
-
-    changeInput(input) {
-      this.isValid(input);
-    },
-
-    // Every input sends to form it valid value that will change the genaral state of form
-    isValid(input) {
       const MUTUALLY          = input && input.validate.mutually;
       const MIN_MAX           = !MUTUALLY && input && (!input.validate.empty && (input.validate.min_field || input.validate.max_field));
       const MUTUALLY_OPTIONAL = MUTUALLY && !input.validate.required;
@@ -424,12 +247,155 @@ export default ({
       this.valid = Object.values(this.tovalidate).every(input => input.validate.valid);
     },
 
+    /**
+     * Run model method
+     */
+    async run() {
+      this.state.loading      = true;
+      this.state.message.show = false;
+      await this.$nextTick();
+      try {
+        const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+
+        //Run task
+        this.task = await (new Promise(async (resolve, reject) => {
+          //create inputs parmeters
+          const inputs = {};
+
+          //Loop through input model
+          for (const input of this.model.inputs) {
+            if (input.value) {
+              if (
+                (['prjvectorlayer', 'prjvectorlayerfeature'].includes(input.input.type)) &&
+                input.value.startsWith(`__g3w__external__:`)
+              ) {
+                //extract layer id form input.value
+                const [, layerExternalId] = input.value.split(`__g3w__external__:`);
+                //get external layer from catalog service
+                const { crs, name }       = GUI.getService('catalog').getExternalLayers({ type: 'vector' }).find(l => layerExternalId === l.id);
+                //create a geojson file from freatures
+                const file    = qprocessing.createGeoJSONFile({
+                  name,
+                  crs,
+                  features: GUI.getService('map').getLayerById(layerExternalId).getSource().getFeatures(),
+                });
+                //upload file to server
+                try {
+                  //change input value value from new value
+                  input.value = (await qprocessing.uploadFile({ modelId: this.model.id, inputName: input.name, file, showUserMessage: false }))?.value;
+                } catch(e) {
+                  console.warn(e);
+                  reject(r);
+                }
+              }
+              inputs[input.name] = input.value;
+            }
+          }
+
+          const data = {
+            inputs,
+            outputs: this.model.outputs.reduce((a, output) => {
+              if (output.value) {
+                a[output.name] = output.value;
+              }
+              return a;
+            }, {})
+          }
+
+          const url = `${qprocessing.config.urls.run}${this.model.id}/${qprocessing.getProject().getId()}/` // url model
+
+          //Check if configured in async mode
+          if (qprocessing.config.async) {
+            let time;
+            // start to run Task
+            qprocessing.runTask({
+              url,
+              params: { data: JSON.stringify(data) },    // request params
+              listener: ({ task_id, response }) => {     // handle task request
+
+                // complete → stop current task
+                if ('complete' === response.status) {
+                  qprocessing.stopTask(task_id);
+                  time = null;
+                  _handleCompleteModelResponse(response, { resolve, reject })
+                }
+
+                if ('executing' === response.status) {
+                  if (this.state.progress === null || this.state.progress === undefined || response.progress > this.state.progress) {
+                    time = Date.now();
+                  } else if ((Date.now() - time) > 600000){
+                    qprocessing.stopTask(task_id);
+                    GUI.showUserMessage({
+                      type:     'warning',
+                      message:  'Timeout',
+                      autoclose: true
+                    });
+                    this.state.progress = null;
+                    time           = null;
+                    reject({ timeout: true });
+                  }
+                  this.state.progress = response.progress;
+                }
+
+                if (!['complete', 'executing'].includes(response.status) && _handleErrorModelResponse(response, { reject })) {
+                  this.state.progress = null;
+                  time           = null;
+                  qprocessing.stopTask(task_id);
+                }
+              },
+            })
+          } else { //get result directly
+            XHR.post({
+              url,
+              data:         JSON.stringify(data),
+              contentType: 'application/json'
+            })
+              .then((res)  => { _handleCompleteModelResponse(res, { resolve, reject }) })
+              .catch((res) => {
+                res.status = 500;
+                _handleErrorModelResponse(res, { reject });
+              })
+          }
+        }));
+        this.state.message.type = 'success';
+      } catch(e) {
+        console.warn(e);
+        this.state.message.type = 'error';
+      }
+      this.state.loading      = false;
+      this.state.message.show = true;
+    },
+
+    /**
+     * Show Model results Panel
+     */
+    async showModelResults() {
+      const ModelResults = (await import('./ModelResults.js')).default;
+
+      new Panel({
+        id: `qprocessing-panel-results`,
+        title: `${this.model.display_name.toUpperCase()}`,
+        internalPanel: new (Vue.extend(ModelResults))({
+          propsData: {
+            model: this.model,
+          }
+        }),
+        show: true,
+      });
+      this.newResults         = false;
+      this.state.message.show = false;
+    },
+
+    addToValidate(input) {
+      this.tovalidate.push(input);
+    },
+
   },
 
   created() {
     this.tovalidate = [];
-    //Object contains subscribers of change parent input
-    this.subscribe_change_input = {};
+    // object contains subscribers of change parent input
+    this.subscribers = {};
   },
 
   async mounted() {
@@ -524,7 +490,7 @@ document.head.insertAdjacentHTML(
     .qprocessing-model-results .icon.pulse                               { transform: scale(1); animation: pulse 2s infinite; }
     .qprocess-model-footer button.run                                    { width: 100%; }
     .qprocessing-model-inputs, .qprocessing-model-note                   { margin-bottom: 5px; }
-    :is(.qprocessing-model-inputs, .qprocessing-model-outputs) .g3w-form { background-color: transparent !important; }
+    :is(.qprocessing-model-inputs, .qprocessing-model-outputs) .g3w-form { background-color: transparent !important; padding: 10px; }
     .qprocess-model-footer .message                                      { font-weight: bold; }
     @keyframes pulse {
       0% { transform: scale(0.75); }

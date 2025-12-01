@@ -1,5 +1,6 @@
 export default {
   title: 'Géotraitements',
+  'inputs.drawfeatures': "Dessiner features",
   'inputs.prjvectorlayerfeature.selected_features': "Uniquement les entités sélectionnées",
   'inputs.fieldchooser.validate.message.multiple': "Sélectionner au moins un champ",
   'inputs.fieldchooser.validate.message.single': "Sélectionner au moins un champ",

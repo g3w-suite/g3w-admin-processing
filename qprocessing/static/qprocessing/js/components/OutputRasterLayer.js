@@ -40,16 +40,10 @@ export default ({
     }
   },
 
-  methods: {
-    changeSelect(value) {
-      this.state.value = value;
-    }
-  },
-
   watch: {
 
     type(value) {
-      this.changeSelect(value);
+      this.state.value = value; // change select value
     },
 
     async task( response = {}) {

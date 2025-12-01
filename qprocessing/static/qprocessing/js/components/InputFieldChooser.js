@@ -8,49 +8,45 @@ export default ({
       v-if  = "state.visible"
       class = "form-group field-chooser"
     >
-      <slot name = "label">
-        <label :for = "state.name" v-disabled = "!state.editable">
-          {{ state.label }}
-          <span v-if = "state.validate && state.validate.required">*</span>
-        </label>
-      </slot>
 
-      <slot name = "body">
-        <div v-if = "loading" class  = "bar-loader"></div>
-        <select
-          v-select2   = "'value'"
-          :multiple   = "state.input.options.multiple"
-          :id         = "state.name"
-          ref         = "select"
-          style       = "width:100%;"
-          class       = "form-control"
-        >
-          <option
-            v-if   = "state.validate.required && !state.input.options.multiple"
-            :value = "null"
-          >---</option>
-          <option
-            v-for     = "value in state.input.options.values"
-            :selected = "state.input.options.default_to_all_fields"
-            :key      = "value.value"
-            :value    = "value.value"
-          >{{ value.key }}</option>
-        </select>
-      </slot>
+      <label :for = "state.name" v-disabled = "!state.editable">
+        {{ state.label }}
+        <span v-if = "state.validate && state.validate.required">*</span>
+      </label>
+      
+      <div v-if = "loading" class  = "bar-loader"></div>
 
-      <slot name = "message">
-        <p
-          v-if        = "notvalid"
-          class       = "g3w-long-text error-input-message"
-          style       = "margin: 0"
-          v-t-plugin  = "state.validate.message"
-        ></p>
-        <p
-          v-else-if = "state.info"
-          style     = "margin: 0 "
-          v-html    = "state.info"
-        ></p>
-      </slot>
+      <select
+        v-select2   = "'value'"
+        :multiple   = "state.input.options.multiple"
+        :id         = "state.name"
+        ref         = "select"
+        style       = "width:100%;"
+        class       = "form-control"
+      >
+        <option
+          v-if   = "state.validate.required && !state.input.options.multiple"
+          :value = "null"
+        >---</option>
+        <option
+          v-for     = "value in state.input.options.values"
+          :selected = "state.input.options.default_to_all_fields"
+          :key      = "value.value"
+          :value    = "value.value"
+        >{{ value.key }}</option>
+      </select>
+
+      <p
+        v-if       = "notvalid"
+        class      = "g3w-long-text error-input-message"
+        style      = "margin: 0"
+        v-t-plugin = "state.validate.message"
+      ></p>
+      <p
+        v-else-if = "state.info"
+        style     = "margin: 0 "
+        v-html    = "state.info"
+      ></p>
 
       <div
         v-if   = "state.help && this.state.help.visible"
@@ -79,16 +75,12 @@ export default ({
       return false === this.state.validate.valid;
     },
 
-    autocomplete() {
-      return 'select_autocomplete' === this.state.input.type && this.state.input.options.usecompleter;
-    },
-
   },
 
   watch: {
 
     //listen change of value (input select)
-    'value'(value) {
+    value(value) {
       const is_multiple = this.state.input.options.multiple;
 
       // handle multiple/single selection
@@ -107,29 +99,6 @@ export default ({
       if (this.select2) {
         this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
       }
-    },
-
-  },
-
-  methods: {
-
-    getLanguage() {
-      return window.initConfig.user.i18n || "en";
-    },
-
-    async changeSelect(value) {
-      this.state.value = 'null' === value ? null : value;
-      //need to be waited in case of autocomplete
-      await this.$nextTick();
-      this.change();
-    },
-
-    getValue(value) {
-      return null === value ? 'null' : value;
-    },
-
-    resetValues() {
-      this.state.input.options.values.splice(0);
     },
 
   },
