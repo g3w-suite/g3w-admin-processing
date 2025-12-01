@@ -6,100 +6,104 @@ export default ({
 
   // language=html
   template: /* html */ `
-  <div
-    v-if  = "state.visible"
-    class = "form-group prj-vector-layer"
-  >
-
-    <label :for = "state.name" v-disabled = "!state.editable">
-      {{ state.label }}
-      <span v-if = "state.validate && state.validate.required">*</span>
-    </label>
-
-    <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
-      <section class = "vector-tools">
-        <div
-          class = "qprocessing-upload-vector-file"
-          style = "flex-grow: 2"
-        >
-          <section class = "upload-file-content">
-            <form
-              class                  = "addlayer skin-border-color"
-              v-t-tooltip:top.create = "'qprocessing.add_layer_drag'"
-            >
-              <input
-                ref     = "file"
-                type    = "file"
-                title   = " "
-                @change = "addLayer({ file: $refs.file.files[0], type: 'upload' })"
-                accept  = ".zip,.geojson,.GEOJSON,.kml,.kmz,.KMZ,.KML,.json,.gpx,.gml,.csv"
-              />
-              <div class = "drag_and_drop">
-                <i class = "fa-2x fas fa-cloud-upload-alt" aria-hidden = "true"></i>
-              </div>
-            </form>
-          </section>
-        </div>
-        
-        <draw-input-vector-features 
-          :upload       = "upload" 
-          @toggled-tool = "toggleTempLayer" 
-          :datatypes    = "state.input.options.datatypes" 
-          @add-layer    = "addLayer"
-        />
-      </section>
-  
-    </section>
-
-    <select
-      v-select2 = "'value'"
-      :id       = "state.name"
-      ref       = "select_layer"
-      style     = "width:100%;"
-      class     = "form-control"
-    >
-      <option
-        v-for  = "value in state.input.options.values"
-        :key   = "value.value"
-        :value = "value.value">{{ value.key }}
-      </option>
-    </select>
     <div
-      v-if       = "isSelectedFeatures"
-      v-disabled = "selected_features_disabled"
-      class      = "prjvectorlayerfeature-only-selected-features"
+      v-if  = "state.visible"
+      class = "form-group prj-vector-layer"
     >
-      <input
-        v-model = "selected_features_checked"
-        type    = "checkbox"
-        :id     = "state.name + '_checkbox'"
-      />
-      <label
-        style      = "margin-top: 10px;"
-        :for       = "state.name + '_checkbox'"
-        v-t-plugin = "'qprocessing.inputs.prjvectorlayerfeature.selected_features'">
+
+      <label :for = "state.name" v-disabled = "!state.editable">
+        {{ state.label }}
+        <span v-if = "state.validate && state.validate.required">*</span>
       </label>
+
+      <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
+        <section class = "vector-tools">
+          <div
+            class = "qprocessing-upload-vector-file"
+            style = "flex-grow: 2"
+          >
+            <section class = "upload-file-content">
+              <form
+                class = "addlayer skin-border-color"
+              >
+                <input
+                  ref     = "file"
+                  type    = "file"
+                  @change = "addLayer({ file: $refs.file.files[0], type: 'upload' })"
+                  accept  = ".zip,.geojson,.GEOJSON,.kml,.kmz,.KMZ,.KML,.json,.gpx,.gml,.csv"
+                />
+                <div class = "drag_and_drop">
+                  <i class = "fa-2x fas fa-file-upload" aria-hidden = "true"></i>
+                </div>
+              </form>
+            </section>
+          </div>
+        
+          <draw-input-vector-features 
+            :upload       = "upload" 
+            @toggled-tool = "toggleTempLayer" 
+            :datatypes    = "state.input.options.datatypes" 
+            @add-layer    = "addLayer"
+          />
+        </section>
+
+        <!-- FILE UPLOAD MAX SIZE -->
+        <section v-if = "max_upload_file_size" style = "font-weight: bold;">
+          <span v-t-plugin = "'qprocessing.inputs.file_max_size_upload'"></span> 
+          <span >{{ max_upload_file_size/ 1024 }} KB</span>
+        </section>
+
+      </section>
+
+      <select
+        v-select2 = "'value'"
+        :id       = "state.name"
+        ref       = "select_layer"
+        style     = "width:100%;"
+        class     = "form-control"
+      >
+        <option
+          v-for  = "value in state.input.options.values"
+          :key   = "value.value"
+          :value = "value.value">{{ value.key }}
+        </option>
+      </select>
+      <div
+        v-if       = "isSelectedFeatures"
+        v-disabled = "selected_features_disabled"
+        class      = "prjvectorlayerfeature-only-selected-features"
+      >
+        <input
+          v-model = "selected_features_checked"
+          type    = "checkbox"
+          :id     = "state.name + '_checkbox'"
+        />
+        <label
+          style      = "margin-top: 10px;"
+          :for       = "state.name + '_checkbox'"
+          v-t-plugin = "'qprocessing.inputs.prjvectorlayerfeature.selected_features'">
+        </label>
+      </div>
+
+      <p
+        v-if   = "notvalid"
+        class  = "g3w-long-text error-input-message"
+        style  = "margin: 0"
+        v-html = "state.validate.message"
+      ></p>
+      <p
+        v-else-if = "state.info"
+        style     = "margin: 0 "
+        v-html    = "state.info"
+      ></p>
+
+      <div
+        v-if   = "state.help && this.state.help.visible"
+        v-html = "state.help.message"
+        class  = "g3w_input_help skin-background-color extralighten">
+      </div>
+
     </div>
-
-    <p
-      v-if   = "notvalid"
-      class  = "g3w-long-text error-input-message"
-      style  = "margin: 0"
-      v-html = "state.validate.message"
-    ></p>
-    <p
-      v-else-if = "state.info"
-      style     = "margin: 0 "
-      v-html    = "state.info"
-    ></p>
-
-    <div
-      v-if   = "state.help && this.state.help.visible"
-      v-html = "state.help.message"
-      class  = "g3w_input_help skin-background-color extralighten">
-    </div>
-
-  </div>
   `,
 
   name: "InputPrjVectorLayer",
@@ -116,10 +120,10 @@ export default ({
   data() {
     return {
       upload:                     false,
-      errorUpload:                false,
       value:                      null,
       selected_features_checked:  false,
-      selected_features_disabled: true
+      selected_features_disabled: true,
+      max_upload_file_size: g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').config?.max_upload_file_size,
     }
   },
 
@@ -157,10 +161,20 @@ export default ({
      * @param {*} param0 
      */
     async addLayer({ file, features = [] } = {}) {
-     //set initial reactive properties
-     this.upload      = true;
-     this.errorUpload = false;
-     try {
+      //set initial reactive properties
+      this.upload      = true;
+      //check if file has size more than max_upload_file_size
+      if (this.max_upload_file_size && file.size > this.max_upload_file_size) {
+        g3wsdk.gui.GUI.showUserMessage({
+          type:     'warning',
+          message:  'plugins.qprocessing.warning.file_max_size_upload',
+          closable:  false,
+          autoclose: true,
+        })
+        this.upload  = false;
+        return;
+      }
+      try {
         const qprocessing    = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
         const { key, value } = await qprocessing.uploadFile({
           file,
@@ -185,12 +199,11 @@ export default ({
           .select2()
           .val(value)
           .trigger('change');
-     } catch(e) {
-       console.warn(e);
-       this.errorUpload = true;
-     }
-     this.upload = false;
-   },
+      } catch(e) {
+        console.warn(e);
+      }
+      this.upload = false;
+    },
 
     /**
      * Check if a layer has selected features
@@ -260,10 +273,10 @@ export default ({
       const nogeometry     = undefined !== datatypes.find(data_type => data_type === 'nogeometry');
       //get geometry_types only from data_types array
       const geometry_types = datatypes.map(type => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean);
-  
+      const exclude_layers = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').config?.exclude_layers || [];
       g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').getProject().getLayers()
-        //exclude base layer
-        .filter(l => !l.baselayer)
+        //exclude base layer and not excluded layer
+        .filter(l => !exclude_layers.includes(l.id) && !l.baselayer)
         .forEach(l => {
           const key   = l.name;
           const value = l.id;

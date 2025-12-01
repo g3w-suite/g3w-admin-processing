@@ -23,7 +23,6 @@ export default ({
           <section class = "upload-file-content">
             <form
               class                  = "addlayer skin-border-color"
-              v-t-tooltip:top.create = "'qprocessing.add_layer_drag'"
             >
               <input
                 type    = "file"
@@ -33,11 +32,18 @@ export default ({
                 accept  = ".tif,.geotif"
               />
               <div class = "drag_and_drop">
-                <i class = "fa-2x fas fa-cloud-upload-alt"  aria-hidden = "true"></i>
+                <i class = "fa-2x fas fa-file-upload"  aria-hidden = "true"></i>
               </div>
             </form>
           </section>
+          <!-- FILE UPLOAD MAX SIZE -->
+          <section v-if = "max_upload_file_size" style = "font-weight: bold;">
+            <span v-t-plugin = "'qprocessing.inputs.file_max_size_upload'"></span> 
+            <span >{{ max_upload_file_size/ 1024 }} KB</span>
+          </section>
+
         </div>
+      
       </section>
     </section>
 
@@ -86,9 +92,10 @@ export default ({
 
   data() {
     return {
-      upload:      false,
-      errorUpload: false,
-      value:       null,
+      upload:               false,
+      errorUpload:          false,
+      value:                null,
+      max_upload_file_size: g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').config?.max_upload_file_size,
     }
   },
 
@@ -99,8 +106,16 @@ export default ({
      */
     async addLayer(evt) {
       const file = evt?.target.files?.[0];
-      if (!file) {
-      return;
+      if (!file) { return }
+      //check if file has size more than max_upload_file_size
+      if (this.max_upload_file_size && file.size > this.max_upload_file_size) {
+        g3wsdk.gui.GUI.showUserMessage({
+          type:     'warning',
+          message:  'plugins.qprocessing.warning.file_max_size_upload',
+          closable:  false,
+          autoclose: true,
+        })
+        return;
       }
 
       //set initial reactive properties
@@ -163,9 +178,11 @@ export default ({
   },
 
   created() {
-    this.state.input.options.values = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').getProject().getLayers()
+    const qprocessing               = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing')
+    const exclude_layers            = qprocessing.config?.exclude_layers || [];
+    this.state.input.options.values = qprocessing.getProject().getLayers()
       //exclude base layer
-      .filter(l => !l.baselayer && 'gdal' === l?.source?.type)
+      .filter(l => !exclude_layers.includes(l.id) && !l.baselayer && 'gdal' === l?.source?.type)
       .map(l => ({
         key:   l.name,
         value: l.id

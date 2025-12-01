@@ -1,10 +1,12 @@
 export default {
   title: 'Geoprocessing',
+  'inputs.file_max_size_upload': "Maximun file size: ",
   'inputs.drawfeatures': "Draw layer features",
   'inputs.prjvectorlayerfeature.selected_features': "Only selected features",
   'inputs.fieldchooser.validate.message.multiple': "Select at least a field",
   'inputs.fieldchooser.validate.message.single': "Select at least a field",
   'outputs.outputvector.open_file_on_map': "Open output file after running algorithm",
+  'warning.file_max_size_upload': "The attachment size is larger than the maximum allowed",
   results: "RESULTS",
   'run.messages.success': "Model run successfully",
   'run.messages.error': "An Error occur on model",
