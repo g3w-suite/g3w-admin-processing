@@ -341,10 +341,9 @@ class QProcessingFormTypeBoolean(QProcessingFormType):
                 'type': self.field_type,
                 'options': {
                     'default': self.default,
-                    'label': 'True',
                     'values': [
-                        {'value': 'True', 'checked': True},
-                        {'value': 'False', 'checked': False},
+                        {'value': 'True', 'checked': True, 'label': 'True'},
+                        {'value': 'False', 'checked': False, 'label': 'False'},
                     ]
                 }
             }
