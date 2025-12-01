@@ -38,6 +38,14 @@ QPROCESSING_INPUT_SHP_EXTS = ['shp', 'shx', 'prj', 'dbf', 'shx']
 
 # Formats available for input upload
 # ----------------------------------    
+
+# Max file size for upload input files (in bytes),
+# if None no limit
+QPROCESSING_INPUT_UPLOAD_MAX_FILE_SIZE = None
+
+# I.e.:
+#QPROCESSING_INPUT_UPLOAD_MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
+
 # Vector formats
 QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS = [
     {
@@ -158,5 +166,7 @@ QPROCESSING_OUTPUT_RASTER_FORMATS = [
 
 # For download of ouputs
 QPROCESSING_CRYPTO_KEY = b'aAf72grwGaZYH9R7ZaGHgSSbtQVXPplXB4wpiMsKtJM='
+
+
 
 

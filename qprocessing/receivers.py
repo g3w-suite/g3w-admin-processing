@@ -42,6 +42,7 @@ def set_initconfig_value(sender, **kwargs):
             'version': get_version('qprocessing'),
             'gid': f"{kwargs['projectType']}:{kwargs['project']}",
             'async': settings.QPROCESSING_ASYNC_RUN,
+            'max_upload_file_size': settings.QPROCESSING_INPUT_UPLOAD_MAX_FILE_SIZE,
             'urls': {
                 'run': f'/qprocessing{__BASE_RUN_MODEL_URL}',
                 'taskinfo': f'/qprocessing{__BASE_TASK_INFO_URL}',
