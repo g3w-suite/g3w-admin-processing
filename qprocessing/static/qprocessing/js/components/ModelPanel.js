@@ -63,6 +63,7 @@ export default ({
     <section class = "qprocess-model-footer">
       <div>
         <!-- PROGRESS BAR -->
+        <div v-if = "state.progress" class  = "bar-loader"></div>
         <div
           v-if  = "(null !== state.progress && undefined !== state.progress)"
           style = "margin: 5px 0 5px 0; width: 100%; background-color: #FFF; border: 0; border-radius: 3px;"

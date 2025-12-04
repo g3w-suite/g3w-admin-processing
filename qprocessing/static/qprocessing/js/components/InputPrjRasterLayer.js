@@ -3,8 +3,9 @@ export default ({
   // language=html
   template: /* html */ `
   <div
-    v-if  = "state.visible"
-    class = "form-group prj-raster-layer"
+    v-if        = "state.visible"
+    class       = "form-group prj-raster-layer"
+    v-disabled  = "upload" 
   >
 
     <label
@@ -14,7 +15,7 @@ export default ({
       <span v-if = "state.validate && state.validate.required">*</span>
     </label>
 
-    <section v-disabled = "upload" style = "margin-bottom: 5px">
+    <section style = "margin-bottom: 5px">
       <section>
         <div v-if = "upload" class = "bar-loader" style = "margin-bottom: 5px;"></div>
         <div
@@ -117,6 +118,10 @@ export default ({
         })
         return;
       }
+      const disabled = document.querySelector('button.run').disabled;
+      if (!disabled) {
+        document.querySelector('button.run').disabled = true;  
+      }
 
       //set initial reactive properties
       this.upload               = true;
@@ -131,6 +136,8 @@ export default ({
         this.state.input.options.values = this.state.input.options.values.filter(({ key, value }) => !value.startsWith('file:'));
 
         this.state.input.options.values.push({ key, value });
+        //reset previous value
+        document.querySelector('button.run').disabled = disabled;
 
         await this.$nextTick();
         this.value = value;
@@ -143,7 +150,10 @@ export default ({
         console.warn(e);
         //reset input value to null
         this.$refs.file.value = null;
+        //reset previous value
+        document.querySelector('button.run').disabled = disabled;
       }
+      
       this.upload = false;
     },
 
