@@ -46,7 +46,7 @@ def run_model_test(qprocessing_project_pk, project_pk, params):
 def update_processinfo(progress, process_info):
     """ Update huey_monitor ProcessInfo progress """
 
-    process_info.update(progress)
+    process_info.update(progress - process_info.total_progress)
 
 def run_model(url_params, form_data, **kwargs):
     """
