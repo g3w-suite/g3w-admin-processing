@@ -16,6 +16,7 @@ export default ({
 
     <section v-disabled = "upload" style = "margin-bottom: 5px">
       <section>
+        <div v-if = "upload" class = "bar-loader" style = "margin-bottom: 5px;"></div>
         <div
           class = "qprocessing-upload-raster-file"
           style = "flex-grow: 2"
@@ -93,7 +94,6 @@ export default ({
   data() {
     return {
       upload:               false,
-      errorUpload:          false,
       value:                null,
       max_upload_file_size: g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').config?.max_upload_file_size,
     }
@@ -119,8 +119,7 @@ export default ({
       }
 
       //set initial reactive properties
-      this.upload      = true;
-      this.errorUpload = false;
+      this.upload               = true;
       try {
         const qprocessing    = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
         const { key, value } = await qprocessing.uploadFile({
@@ -142,7 +141,6 @@ export default ({
           .trigger('change');
       } catch(e) {
         console.warn(e);
-        this.errorUpload      = true;
         //reset input value to null
         this.$refs.file.value = null;
       }
@@ -164,7 +162,8 @@ export default ({
 
     //listen change of value (input select)
     value(value) {
-      this.state.value = value;
+      this.state.value          = value;
+      this.state.validate.valid = !this.state.required || !!value;
       this.$emit('changeinput', this.state);
     },
 

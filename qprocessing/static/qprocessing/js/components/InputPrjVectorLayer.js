@@ -17,6 +17,7 @@ export default ({
       </label>
 
       <section v-if = "showUploadFile" class = "vector-tools-context" v-disabled = "upload">
+        <div v-if = "upload" class = "bar-loader" style = "margin-bottom: 5px;"></div>
         <section class = "vector-tools">
           <div
             class = "qprocessing-upload-vector-file"
@@ -326,7 +327,7 @@ export default ({
         this.setDisabledSelectFeaturesCheckbox(value);
       }
       this.state.value          = value;
-      this.state.validate.valid = ![undefined, null].includes(value);
+      this.state.validate.valid = !this.state.required || !!value;
       this.$emit('changeinput', this.state);
     },
 
