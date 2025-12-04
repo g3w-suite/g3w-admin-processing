@@ -44,6 +44,7 @@ export default ({
 
     type(value) {
       this.state.value = value; // change select value
+      this.$emit('changeoutput', this.state);
     },
 
     async task( response = {}) {

@@ -20,7 +20,7 @@ export default ({
         v-for  = "({key, value}) in state.input.options.values"
         :key   = "key"
         :value = "value"
-      >{{key}}</option>
+      >{{ key }}</option>
     </select>
   </div>`,
 
@@ -42,6 +42,7 @@ export default ({
 
     type(value) {
       this.state.value = value; // change select value
+      this.$emit('changeoutput', this.state);
     },
 
     async task(response = {}) {

@@ -51,9 +51,10 @@ export default ({
           v-for                        = "output in model.outputs"
           :key                         = "output.name"
           @add-result-to-model-results = "addResultToModel"
+          @changeoutput                = "clearState"
           :state                       = "output"
           :task                        = "task"
-          :is                          = "output.input.type + ''"
+          :is                          = "output.input.type"
         />
       </form>
     </section>
@@ -183,11 +184,20 @@ export default ({
       }
       this.subscribers[inputName].push(handler);
     },
+    /***
+     * Clear run state from already run model
+     */
+    clearState() {
+      //clear state
+      this.state.message.show = false;
+      this.state.progress     = null;
+    },
 
     /**
      * Method to handle change input
      */
     async validate(input) {
+      this.clearState();
       // wait DOM changes 
       await this.$nextTick();
 
