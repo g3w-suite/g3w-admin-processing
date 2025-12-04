@@ -345,16 +345,21 @@ export default ({
               },
             })
           } else { //get result directly
-            XHR.post({
-              url,
-              data:         JSON.stringify(data),
-              contentType: 'application/json'
+            fetch(url, {
+              method: 'POST',
+              body:   JSON.stringify(data),
+              headers: {
+                "Content-Type": 'application/json'
+              }
             })
-              .then((res)  => { _handleCompleteModelResponse(res, { resolve, reject }) })
-              .catch((res) => {
-                res.status = 500;
-                _handleErrorModelResponse(res, { reject });
+              .then(async res => {
+                if (200 != res.status) {
+                  throw res;
+                }
+                _handleCompleteModelResponse(await res.json(), { resolve, reject });
+                
               })
+              .catch(res => _handleErrorModelResponse(res, { reject }) )
           }
         }));
         this.state.message.type = 'success';
@@ -435,11 +440,27 @@ function _handleErrorModelResponse(response, { reject }) {
       textMessage = undefined !== exception;
       statusError = true;
       break;
+    case 408:
+      message     = "TIMEOUT";
+      statusError = true;   
+    case 502:
+      message = (
+        response.responseJSON ?
+        (response.responseJSON.exception || response.responseJSON.error.message) :
+        'server_error'
+      );
+      textMessage = undefined !== exception;
+      statusError = true;
+      break;  
     case 'error':
       message = exception;
       textMessage = true;
       statusError = true;
       break;
+    default:
+      message = 'server_error';
+      statusError = true;
+
   }
 
   // in case of status error
@@ -448,12 +469,12 @@ function _handleErrorModelResponse(response, { reject }) {
     GUI.showUserMessage({
       type: 'alert',
       message,
-      textMessage
+      textMessage,
     });
 
     reject({
-      statusError:true,
-      timeout: false
+      statusError: true,
+      timeout:     false
     })
   }
 
