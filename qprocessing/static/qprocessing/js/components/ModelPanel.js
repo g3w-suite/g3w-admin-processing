@@ -136,7 +136,7 @@ export default ({
   data() {
     return {
       state: {
-        loading: false,
+        loading:  false,
         progress: null,
         message: {
           type: 'success', // error info
@@ -144,9 +144,9 @@ export default ({
         }
       },
       tovalidate: [],
-      task: null,
+      task:       null,
       newResults: false, // set true if new results are add to models
-      valid: false,
+      valid:      false, //valid format
     }
   },
 
