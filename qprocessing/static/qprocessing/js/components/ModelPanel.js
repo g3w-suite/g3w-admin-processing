@@ -63,20 +63,11 @@ export default ({
     <section class = "qprocess-model-footer">
       <div>
         <!-- PROGRESS BAR -->
-        <div v-if = "state.progress" class  = "bar-loader"></div>
-        <div
-          v-if  = "(null !== state.progress && undefined !== state.progress)"
-          style = "margin: 5px 0 5px 0; width: 100%; background-color: #FFF; border: 0; border-radius: 3px;"
-        >
-          <div
-            class  = "skin-background-color"
-            style  = "display: flex; justify-content: center; font-weight: bold;"
-            :style = "{ width: (state.progress < 10 ? 10 : state.progress) }"
-          >
-            <span>{{ state.progress }}</span>
-          </div>
-        </div>
-
+        <section v-if = "null !== state.progress" style = "margin-bottom: 5px;">
+          <progress  max = "100" :value = "state.progress" style = "width:100%; accent-color: var(--skin-color);">{{ state.progress }}%</progress>
+          <span style = "font-weight: bold; color: var(--skin-color);"> {{ state.progress }}% </span>
+        </section>
+      
         <!-- LOADING BAR -->
         <div v-else-if = "state.loading" class  = "bar-loader"></div>
 
