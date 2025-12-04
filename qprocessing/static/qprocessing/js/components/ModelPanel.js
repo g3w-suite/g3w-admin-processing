@@ -253,6 +253,7 @@ export default ({
     async run() {
       this.state.loading      = true;
       this.state.message.show = false;
+      this.state.progress     = null; 
       await this.$nextTick();
       try {
         const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
@@ -316,14 +317,15 @@ export default ({
                 // complete → stop current task
                 if ('complete' === response.status) {
                   qprocessing.stopTask(task_id);
+                  this.state.progress = response.progress;
                   time = null;
                   _handleCompleteModelResponse(response, { resolve, reject })
                 }
 
                 if ('executing' === response.status) {
-                  if (this.state.progress === null || this.state.progress === undefined || response.progress > this.state.progress) {
+                  if ([null, undefined].includes(this.state.progress) || response.progress > this.state.progress) {
                     time = Date.now();
-                  } else if ((Date.now() - time) > 600000){
+                  } else if ((Date.now() - time) > 600000) {
                     qprocessing.stopTask(task_id);
                     GUI.showUserMessage({
                       type:     'warning',

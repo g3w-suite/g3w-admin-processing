@@ -179,7 +179,6 @@
           listener({ task_id: r.task_id, timeout: false, response: task });
         }, 1000);
         this.#tasks.push({ task_id: r.task_id, intervalId: id }); // add current task to list of task
-        listener({ task_id: r.task_id, response: r });            // run first time listener function
       } catch(e) {
         console.warn(e);
         return Promise.reject(e);
