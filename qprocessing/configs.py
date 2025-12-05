@@ -168,5 +168,7 @@ QPROCESSING_OUTPUT_RASTER_FORMATS = [
 QPROCESSING_CRYPTO_KEY = b'aAf72grwGaZYH9R7ZaGHgSSbtQVXPplXB4wpiMsKtJM='
 
 
+# Time interval (in seconds) for check task info
+QPROCESSING_TASK_INFO_INTERVAL = 5
 
 
