@@ -113,6 +113,9 @@ class QProcessingRunInfoTaskView(G3WAPIView):
             except:
                 progress_percentage = 0
 
+            if task_model.state.signal_name == 'complete':
+                progress_percentage = 100
+
             try:
                 return JsonResponse({
                     'status': task_model.state.signal_name,
