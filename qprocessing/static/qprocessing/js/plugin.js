@@ -177,7 +177,7 @@
             console.warn(e);
           }
           listener({ task_id: r.task_id, timeout: false, response: task });
-        }, 1000);
+        }, (this.config?.task_info_interval * 1000 || 1000));
         this.#tasks.push({ task_id: r.task_id, intervalId: id }); // add current task to list of task
       } catch(e) {
         console.warn(e);
