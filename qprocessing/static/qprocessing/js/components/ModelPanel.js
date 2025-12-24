@@ -336,7 +336,7 @@ export default ({
                   qprocessing.stopTask(task_id);
                   this.state.progress = response.progress;
                   time = null;
-                  this.state.processing_html_log = response?.task_result?.processing_html_log;
+                  this.state.processing_html_log = response?.processing_html_log;
                   this.newLog = !!this.state.processing_html_log;
                   _handleCompleteModelResponse(response, { resolve, reject })
                 }
@@ -378,7 +378,7 @@ export default ({
                   throw res;
                 }
                 res = await res.json(); //get json value format
-                this.state.processing_html_log = res?.task_result?.processing_html_log;
+                this.state.processing_html_log = res?.processing_html_log;
                 this.newLog = !!this.state.processing_html_log;
                 _handleCompleteModelResponse(res, { resolve, reject });
                 
