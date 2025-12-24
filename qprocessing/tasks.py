@@ -88,6 +88,10 @@ def run_model(url_params, form_data, **kwargs):
     # Replace outputs
     res = qpm.make_outputs(res, url_params['qprocessingproject_pk'], url_params['project_pk'])
 
+    # Add processing log
+    res['processing_log'] = ctf.textLog()
+    res['processing_html_log'] = ctf.htmlLog()
+    
     return res
 
 def close_db(fn):
