@@ -377,9 +377,10 @@ export default ({
                 if (200 != res.status) {
                   throw res;
                 }
+                res = await res.json(); //get json value format
                 this.state.processing_html_log = res?.task_result?.processing_html_log;
                 this.newLog = !!this.state.processing_html_log;
-                _handleCompleteModelResponse(await res.json(), { resolve, reject });
+                _handleCompleteModelResponse(res, { resolve, reject });
                 
               })
               .catch(res => _handleErrorModelResponse(res, { reject }) )
