@@ -336,6 +336,8 @@ export default ({
                   qprocessing.stopTask(task_id);
                   this.state.progress = response.progress;
                   time = null;
+                  this.state.processing_html_log = response?.task_result?.processing_html_log;
+                  this.newLog = !!this.state.processing_html_log;
                   _handleCompleteModelResponse(response, { resolve, reject })
                 }
 
