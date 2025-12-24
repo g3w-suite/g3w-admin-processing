@@ -378,7 +378,7 @@ export default ({
                   throw res;
                 }
                 res = await res.json(); //get json value format
-                this.state.processing_html_log = res?.processing_html_log;
+                this.state.processing_html_log = res?.data?.processing_html_log;
                 this.newLog = !!this.state.processing_html_log;
                 _handleCompleteModelResponse(res, { resolve, reject });
                 
