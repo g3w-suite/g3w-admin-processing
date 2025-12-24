@@ -6,8 +6,8 @@ import outputrasterlayer    from '../components/OutputRasterLayer.js';
 import outputfile           from '../components/OutputFile.js';
 
 const { Panel }            = g3wsdk.gui;
-const { XHR }              = g3wsdk.core.utils;
 const { GUI }              = g3wsdk.gui;
+const { t }                = g3wsdk.core.i18n;
 
 export default ({
 
@@ -93,13 +93,25 @@ export default ({
     <section class = "qprocessing-model-results">
       <section style = "display: flex; justify-content: space-between; align-items: center">
         <div class = "title" v-t-plugin = "'qprocessing.results'"></div>
-        <span
-          v-disabled          = "model.results.length === 0"
-          class               = "icon skin-color skin-border-color fas fa-list-alt"
-          :class              = "[{ 'pulse': newResults }]"
-          @click.stop.prevent = "showModelResults"
-        ></span>
+        <section> 
+          <span                 
+            v-disabled          = "!state.processing_html_log"
+            class               = "icon skin-color skin-border-color fas fa-file-code"
+            :class              = "[{ 'pulse': newLog }]"
+            style               = "margin-right: 5px;"
+            @click.stop.prevent = "showProcessingLog"
+          ></span>
+          <span
+            v-disabled          = "model.results.length === 0"
+            class               = "icon skin-color skin-border-color fas fa-list-alt"
+            :class              = "[{ 'pulse': newResults }]"
+            @click.stop.prevent = "showModelResults"
+          ></span>
+        </section>
+        
+        
       </section>
+      
     </section>
 
   </div>
@@ -133,11 +145,13 @@ export default ({
         message: {
           type: 'success', // error info
           show: false
-        }
+        },
+        processing_html_log: null,
       },
       tovalidate: [],
       task:       null,
       newResults: false, // set true if new results are add to models
+      newLog:     false, //set new process log
       valid:      false, //valid format
     }
   },
@@ -253,9 +267,10 @@ export default ({
      * Run model method
      */
     async run() {
-      this.state.loading      = true;
-      this.state.message.show = false;
-      this.state.progress     = null; 
+      this.state.loading             = true;
+      this.state.message.show        = false;
+      this.state.progress            = null; 
+      this.state.processing_html_log = null;
       await this.$nextTick();
       try {
         const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
@@ -360,6 +375,8 @@ export default ({
                 if (200 != res.status) {
                   throw res;
                 }
+                this.state.processing_html_log = res?.task_result?.processing_html_log;
+                this.newLog = !!this.state.processing_html_log;
                 _handleCompleteModelResponse(await res.json(), { resolve, reject });
                 
               })
@@ -374,6 +391,36 @@ export default ({
       this.state.loading      = false;
       this.state.message.show = true;
     },
+
+    showProcessingLog() {
+      this.newLog = false;
+      const dialog = Object.assign(document.createElement('template'), {
+      innerHTML: /* html */ `
+        <dialog  style = "width: 50vw;">
+          <section style = "overflow: auto;">
+            ${ this.state.processing_html_log }
+          </section>
+          
+          <footer style = "border-top: 1px solid #eee; margin-top: 10px; display: flex; justify-content: flex-end; width: 100%">
+            <button
+              type   = "button"
+              class  = "btn btn-secondary"
+              style  = "margin-top: 5px;"
+            >${t('close')}</button>
+          </footer>
+        </dialog>
+      `.trim()
+      }).content.firstChild;
+      document.querySelector('.content-wrapper').insertAdjacentElement('afterbegin', dialog);
+      dialog.showModal();
+
+      // close dialog on x icon
+      dialog.querySelector('button').addEventListener('click', () => {
+        dialog.close();
+        dialog.remove();
+      });
+    },
+
 
     /**
      * Show Model results Panel
