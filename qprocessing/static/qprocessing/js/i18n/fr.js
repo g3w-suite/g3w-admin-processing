@@ -1,33 +1,17 @@
 export default {
   title: 'Géotraitements',
-  inputs: {
-    prjvectorlayerfeature: {
-      selected_features: "Uniquement les entités sélectionnées"
-    },
-    fieldchooser: {
-      validate: {
-        message: {
-          multiple: "Sélectionner au moins un champ",
-          single: "Sélectionner au moins un champ"
-        }
-      }
-    }
-  },
-  outputs: {
-    outputvector: {
-      open_file_on_map: "Ouvrir le fichier créé une fois l'algorithme terminé"
-    }
-  },
-  run :{
-    messages: {
-      success: "L'algorithme a été exécuté avec succès",
-      error: "Une erreur est apparue durant l'exécution"
-    }
-  },
-  draw_types: {
-    'Polygon': "Polygone",
-    'LineString': "Ligne",
-    'Point': "Point",
-  },
+  'inputs.file_max_size_upload': "Taille maximale du fichier: ",
+  'inputs.drawfeatures': "Dessiner features",
+  'inputs.prjvectorlayerfeature.selected_features': "Uniquement les entités sélectionnées",
+  'inputs.fieldchooser.validate.message.multiple': "Sélectionner au moins un champ",
+  'inputs.fieldchooser.validate.message.single': "Sélectionner au moins un champ",
+  'outputs.outputvector.open_file_on_map': "Ouvrir le fichier créé une fois l'algorithme terminé",
+  'warning.file_max_size_upload': "La taille de la pièce fixée est supérieure à la taille maximale autorisée",
+  results: "RÉSULTATS",
+  'run.messages.success': "L'algorithme a été exécuté avec succès",
+  'run.messages.error': "Une erreur est apparue durant l'exécution",
+  'draw_types.Polygon': "Polygone",
+  'draw_types.LineString': "Ligne",
+  'draw_types.Point': "Point",
   draw_filename: 'Couche de dessin',
 }

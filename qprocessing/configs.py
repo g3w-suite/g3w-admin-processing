@@ -37,6 +37,16 @@ QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT = 'html'
 QPROCESSING_INPUT_SHP_EXTS = ['shp', 'shx', 'prj', 'dbf', 'shx']
 
 # Formats available for input upload
+# ----------------------------------    
+
+# Max file size for upload input files (in bytes),
+# if None no limit
+QPROCESSING_INPUT_UPLOAD_MAX_FILE_SIZE = None
+
+# I.e.:
+#QPROCESSING_INPUT_UPLOAD_MAX_FILE_SIZE = 20 * 1024 * 1024  # 20 MB
+
+# Vector formats
 QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS = [
     {
         'value': 'zip',
@@ -58,6 +68,35 @@ QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS = [
         'value': 'sqlite',
         'key': 'Sqlite/Spatialite'
     }
+
+]
+
+# Raster formats
+QPROCESSING_INPUT_UPLOAD_RASTER_FORMATS = [
+    {
+        'value': 'vrt',
+        'key': 'VRT'
+    },
+    {
+        'value': 'tiff',
+        'key': 'TIFF'
+    },
+    {
+        'value': 'tif',
+        'key': 'TIF'
+    },
+    {
+        'value': 'png',
+        'key': 'PNG'
+    },
+    {
+        'value': 'jpeg',
+        'key': 'JPEG'
+    },
+    {
+        'value': 'jpg',
+        'key': 'JPG'
+    },
 
 ]
 
@@ -127,5 +166,9 @@ QPROCESSING_OUTPUT_RASTER_FORMATS = [
 
 # For download of ouputs
 QPROCESSING_CRYPTO_KEY = b'aAf72grwGaZYH9R7ZaGHgSSbtQVXPplXB4wpiMsKtJM='
+
+
+# Time interval (in seconds) for check task info
+QPROCESSING_TASK_INFO_INTERVAL = 5
 
 

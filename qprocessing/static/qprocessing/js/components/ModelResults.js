@@ -1,4 +1,5 @@
 const { ApplicationState } = g3wsdk.core;
+const { GUI } =              g3wsdk.gui;
 
 export default ({
 
@@ -10,25 +11,26 @@ export default ({
       v-if    = "result.urls.length"
       :key    = "result.id"
     >
-      <h4 style="font-weight: bold">{{ result.label }}</h4>
-      <divider/>
+      <h4 style = "font-weight: bold">{{ result.label }}</h4>
+      <span class = "divider"></span>
         <ul
           class = "treeview-menu menu-items"
           style = "background-color: #2c3b41"
         >
           <li
-            v-for  = "(url, index) in result.urls" :key="url"
+            v-for  = "( url, index) in result.urls" :key = "url.value"
             class  = "menu-item"
             style  = "display: flex; justify-content: space-between; padding: 5px;"
           >
-            <span>{{result.id}}_{{index}}</span>
+            <span>{{ url.key }}</span>
             <section style = "padding: 3px; cursor: pointer; font-weight: bold;">
               <i
-                :class              = "g3wtemplate.font['download']"
-                @click.stop.prevent = "downloadFile(url)"
+                style               = "margin: 0 5px;"
+                class               = "fas fa-download"
+                @click.stop.prevent = "downloadFile(url.value)"
               ></i>
               <i
-                :class              = "g3wtemplate.font['trash']"
+                class               = "fas fa-trash"
                 style               = "color: red"
                 @click.stop.prevent = "removeResult(result, index)"
               ></i>
@@ -39,20 +41,26 @@ export default ({
   </div>`,
 
   name: "ModelResults",
+
   props: {
-    model: {
-      type: Object,
-    }
+    model: { type: Object }
   },
+
   methods: {
+
     //@since v3.7.0
     removeResult(result, index) {
       result.urls.splice(index, 1);
+      //In case of no urls in result, remove from model result
+      if (0 === result.urls.length) {
+        this.model.results = this.model.results.filter(r => result.id !== r.id);
+      }
+      //Close results panel in case of no results
+      if (0 === this.model.results.length) {
+        GUI.closePanel();
+      }
     },
-    /**
-     * 
-     * @param {*} url 
-     */
+
     async downloadFile(url) {
       try {
         ApplicationState.download = true;
@@ -72,6 +80,7 @@ export default ({
       } finally {
         ApplicationState.download = false;
       }
-    }
+    },
+
   }
 });

@@ -21,7 +21,13 @@ from core.api.views import G3WAPIView
 from core.api.authentication import CsrfExemptSessionAuthentication
 from qprocessing.api.permissions import RunModelPermission
 from qprocessing.models import QProcessingInputUpload, QProcessingProject
-from qprocessing.utils.formtypes import MAPPING_QPROCESSINGTYPE_FORMTYPE, QProcessingFormTypeException
+from qprocessing.utils.formtypes import (
+    MAPPING_QPROCESSINGTYPE_FORMTYPE, 
+    QProcessingFormTypeException, 
+    QgsProcessingParameterFeatureSource, 
+    QgsProcessingParameterVectorLayer, 
+    QgsProcessingParameterRasterLayer
+)
 
 from zipfile import ZipFile
 import os
@@ -100,7 +106,22 @@ class QProcessingInputUploadView(G3WAPIView):
         # Validate by ext
         # -------------------------------------------------
         ext = os.path.splitext(f.name)[-1][1:].lower()
-        formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS]
+
+        # Get formats to check by input type
+        if self.qpm.inputs[kwargs['input_name']]['qprocessing_type'] in [
+            QgsProcessingParameterVectorLayer('').type(), 
+            QgsProcessingParameterFeatureSource('').type()
+            ]:
+            formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS]
+        
+        elif self.qpm.inputs[kwargs['input_name']]['qprocessing_type'] in [
+            QgsProcessingParameterRasterLayer('').type()
+            ]:
+            formats = [frm['value'] for frm in settings.QPROCESSING_INPUT_UPLOAD_RASTER_FORMATS]
+        
+        else:
+            formats = []
+            
         if ext not in formats:
             raise QProcessingInputUploadValidationException(
                 f"File type not allowed: {ext}. "

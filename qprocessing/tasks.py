@@ -23,7 +23,6 @@ from .models import QProcessingProject
 from .utils.data import QProcessingModel
 from qgis.core import QgsProcessingContext, QgsProcessingFeedback, QgsProject, Qgis
 
-
 import logging
 
 logger = logging.getLogger('qprocessing')
@@ -43,6 +42,11 @@ def run_model_test(qprocessing_project_pk, project_pk, params):
 
 
     return True
+
+def update_processinfo(progress, process_info):
+    """ Update huey_monitor ProcessInfo progress """
+
+    process_info.update(progress - process_info.total_progress)
 
 def run_model(url_params, form_data, **kwargs):
     """
@@ -67,14 +71,27 @@ def run_model(url_params, form_data, **kwargs):
     ctx = QgsProcessingContext()
     if settings.DEBUG and Qgis.QGIS_VERSION_INT >= 33400:
         ctx.setLogLevel(QgsProcessingContext.LogLevel.ModelDebug)
+    
+    process_info = kwargs.get('process_info')
+
     ctf = QgsProcessingFeedback()
 
+    # Connect progress signal
+    ctf.progressChanged.connect(
+        lambda progress: update_processinfo(progress, process_info)
+    )
+
     ctx.setProject(prj)
+
     res = qpm.process_algorithm(params, ctx, ctf)
 
     # Replace outputs
     res = qpm.make_outputs(res, url_params['qprocessingproject_pk'], url_params['project_pk'])
 
+    # Add processing log
+    res['processing_log'] = ctf.textLog()
+    res['processing_html_log'] = ctf.htmlLog()
+    
     return res
 
 def close_db(fn):
@@ -120,12 +137,12 @@ def run_model_task(url_params, form_data, task, **kwargs):
     Run processing model
     """
 
-    process_info = ProcessInfo(
+    kwargs['process_info'] = ProcessInfo(
         task,
-        desc='Run Processing Model'
+        desc='Run Processing Model',
+        total=100  # Total steps for progress
     )
 
-    #return run_model(qpp.pk, url_params['project_pk'], params)
     return run_model(url_params, form_data, **kwargs)
 
 @shared_task(name='run_model_celery', bind=True)

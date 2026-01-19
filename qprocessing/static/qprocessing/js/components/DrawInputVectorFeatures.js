@@ -1,34 +1,33 @@
-const { GUI }     = g3wsdk.gui;
-const { tPlugin } = g3wsdk.core.i18n;
+const { GUI } = g3wsdk.gui;
+const _       = g3wsdk.core.i18n.t;
 
 export default ({
 
   // language=html
   template: /* html */ `
   <div
-    class = "qprocessing-draw-vector-features"
-    style = "font-size: 1.3em;"
+    class                   = "qprocessing-draw-vector-features"
+    style                   = "font-size: 1.3em;"
+    
   >
     <button
       class               = "btn skin-background-color"
       style               = "height: 100%; margin-right: 0 !important;"
       @click.stop.prevent = "toggled = !toggled"
+      v-t-tooltip:top.create  = "'plugins.qprocessing.inputs.drawfeatures'"
     >
-      <i :class = "[g3wtemplate.getFontClass('pencil')]"></i>
+      <i class = "fas fa-pencil-alt"></i>
     </button>
   </div>
   `,
 
   name: "DrawInputVectorFeatures",
+
   props: {
-    datatypes: {
-      type:    Array, //array of datatypes from input
-      default: []
-    },
-    upload:{
-      type: Boolean, //Boolean when file is upload ot not
-    }
+    datatypes: { type: Array, default: [] }, // array of datatypes from input
+    upload:    { type: Boolean }             // Boolean when file is upload ot not
   },
+
   data() {
     return {
       toggled: false, //draw button toggled
@@ -38,7 +37,9 @@ export default ({
       }
     }
   },
+
   methods: {
+
     /**
      * handle draw interaction flow
      */
@@ -50,14 +51,18 @@ export default ({
       this.drawInteraction.on('drawend', () => this.drawTool.disabled = false);                     // enable upload button on drawend 
       GUI.getService('map').getMap().addInteraction(this.drawInteraction);                          // add interaction to Map
     },
+
     clear() {
       this.drawLayer.getSource().clear();
       GUI.getService('map').disableClickMapControls(false);
       GUI.getService('map').getMap().removeInteraction(this.drawInteraction);
       GUI.closeUserMessage();
     },
+
   },
+
   watch: {
+
     //listen toggled button
     toggled(bool) {
       if (!bool) {
@@ -69,14 +74,14 @@ export default ({
       this.setDrawInteraction();
       //whow tool component
       GUI.showUserMessage({
-        title: '', //@TODO add translation title
-        type: 'tool',
-        size: 'small',
+        title:    'plugins.qprocessing.inputs.drawfeatures', //@TODO add translation title
+        type:     'tool',
+        size:     'small',
         closable: false,
         hooks: {
           body: {
             template: /* html */`
-              <div style="width: 100%; padding: 5px;" v-disabled="state.loading">
+              <div style = "width: 100%; padding: 5px;" v-disabled = "state.loading">
                 <!-- NB: it makes use of built-in g3w-client directive: "v-select2" -->
                 <select
                   v-select2 = "'type'"
@@ -91,14 +96,15 @@ export default ({
                   ></option>
                 </select>
 
-                <bar-loader :loading = "state.loading"/>
+                <div v-if = "state.loading" class = "bar-loader"></div>
 
                 <button
                   v-disabled          = "state.disabled"
                   class               = "btn skin-background-color"
                   @click.stop.prevent = "uploadLayer(type)"
-                  style               = "margin: 3px; width: 100%">
-                  <i :class           = "[g3wtemplate.getFontClass('cloud-upload')]"></i>
+                  style               = "margin: 3px; width: 100%"
+                >
+                  <i class = "fas fa-cloud-upload-alt"></i>
                 </button>
 
               </div>`,
@@ -115,7 +121,7 @@ export default ({
                * @listens type change of drawed geometry
                * @fires   change-draw-type
                */
-              'type': (type) => this.setDrawInteraction(type),
+              'type': type => this.setDrawInteraction(type),
 
             },
             methods: {
@@ -127,7 +133,7 @@ export default ({
                 this.$emit('add-layer', {
                   file: qprocessing.createGeoJSONFile({
                     features,
-                    name: `${tPlugin('qprocessing.draw_filename')}(${tPlugin('qprocessing.draw_types.'+type)})`
+                    name: `${_('plugins.qprocessing.draw_filename')}(${_('plugins.qprocessing.draw_types.' + type)})`
                   }),
                   features,
                   type: 'draw'
@@ -139,6 +145,7 @@ export default ({
       });
       this.$emit('toggled-tool', !bool);
     },
+
     upload(bool) {
       //listen upload status. Boolean
       this.drawTool.loading  = bool;
@@ -147,17 +154,18 @@ export default ({
         this.clear();
         this.toggled = bool;
       }
-    }
-  },
-  created() {
+    },
 
+  },
+
+  created() {
     //set geometries type
     this.drawGeometryTypes = Object.entries({
       point:   'Point',
       line:    'LineString',
       polygon: 'Polygon'
-    }).reduce((a, [type, olGeometry]) => {
-      if (this.datatypes.find(dt => dt === 'anygeometry')){
+    }).reduce((a, [ type, olGeometry ]) => {
+      if (this.datatypes.find(dt => 'anygeometry' === dt)){
         a.push(olGeometry);
       } else {
         this.datatypes.find(dt => type === dt) && a.push(olGeometry)
@@ -169,10 +177,12 @@ export default ({
     this.drawLayer       = new ol.layer.Vector({ source: new ol.source.Vector() });
     GUI.getService('map').getMap().addLayer(this.drawLayer);
   },
+
   beforeDestroy() {
     this.clear();
     GUI.getService('map').getMap().removeLayer(this.drawLayer);
-    this.drawLayer = null;
+    this.drawLayer       = null;
     this.drawInteraction = null;
-  }
+  },
+
 });

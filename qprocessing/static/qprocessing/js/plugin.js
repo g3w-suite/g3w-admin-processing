@@ -4,17 +4,36 @@
 
   const { ApplicationState } = g3wsdk.core;
   const { Plugin }           = g3wsdk.core.plugin;
-  const { ProjectsRegistry } = g3wsdk.core.project;
   const { GUI, Panel }       = g3wsdk.gui;
+  const { XHR }              = g3wsdk.core.utils;
 
   new class extends Plugin {
+
+    /**
+     * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
+     */
+    #tasks = [];
+
+    /**
+     * layer fields based on layerId and datatype
+     */
+    layerFields = {};
+
     constructor() {
-      super({ name: 'qprocessing' });
+      super({ 
+        name: 'qprocessing',
+        //Add to avoid initial show plugin.qrocessing.title
+        i18n: {
+          [ApplicationState.language] : {
+            title: 'Geoprocessing',
+          }
+        } 
+      });
 
       // i18n
       const VM = new Vue();
       const i18n = async lang => {
-        import(`${BASE_URL}/i18n/${lang}.js`)
+        import(`${BASE_URL}/i18n/${['it', 'en', 'fr'].includes(lang) ? lang : 'en'}.js`)
         .then(m => this.setLocale({ [lang]: m.default }))
         .catch(console.warn)
       };
@@ -35,9 +54,6 @@
         this.emitChangeSelectedFeatures            = () => this.emit('change-selected-features');
         this.registersSelectedFeatureLayersEvent   = this.registersSelectedFeatureLayersEvent.bind(this);
         this.unregistersSelectedFeatureLayersEvent = this.unregistersSelectedFeatureLayersEvent.bind(this);
-  
-        // layer fields based on layerId and datatype
-        this.layerFields = {};
 
         this.createSideBarComponent({
           data: () => ({ models: this.config.models, service: this }),
@@ -51,7 +67,7 @@
                 :key        = "model.id"
                 @click.stop = "service.showPanel(model)"
               >
-                <i :class="g3wtemplate.getFontClass('tool')"></i>
+                <i class="fas fa-cog"></i>
                 <span>{{ model.display_name }}</span>
               </li>
             </ul>
@@ -90,10 +106,9 @@
         [JSON.stringify(Object.assign(
           (new ol.format.GeoJSON()).writeFeaturesObject(features), {
             crs: {
-              type: "name",
-              properties: {
-                "name": crs || GUI.getService('map').getCrs() //add crs to geojsonObject
-              }
+              type:       "name",
+              properties: { "name": crs || GUI.getService('map').getCrs() } //add crs to geojsonObject
+            
             }
           }))],
         `${name}.geojson`,
@@ -103,22 +118,83 @@
       );
     }
 
-    async uploadFile({modelId, inputName, file}) {
+    async uploadFile({ modelId, inputName, file, showUserMessage = true }) {
       const data = new FormData();
       data.append('file', file);
-      const response = await fetch(`${this.config.urls.upload}${modelId}/${ProjectsRegistry.getCurrentProject().getId()}/${inputName}/`, {
-        method: 'POST',
-        body:    data,
-      });
-      const json = await response.json();
-      if (json.result) {
-        return {
-          key:    file.name,
-          value: `file:${json.data.file}`
+      try {
+        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${this.getProject().getId()}/${inputName}/`, {
+          method: 'POST',
+          body:    data,
+        })).json();
+        if (response.result) {
+          showUserMessage && GUI.showUserMessage({
+            type:    'success',
+            message:  `UPLOAD FILE ${ file?.name }`,
+            autoclose: true,
+            closable:  false,
+          })
+          return {
+            key:    file.name,
+            value: `file:${response?.data?.file}`,
+          }
+        } else {
+          showUserMessage && GUI.showUserMessage({
+            type: 'alert',
+            message: response?.error || 'server_error',
+          });
+          return Promise.reject(response);
         }
+      } catch(e) {
+        showUserMessage && GUI.showUserMessage({
+          type:    'alert',
+          message: e,
+        })
+        console.warn(e);
+        return Promise.reject({ error: e });
+      }
+      
+    }
+
+    /**
+     * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
+     */
+    async runTask({
+      params = {},
+      url,
+      listener = () => {}
+    } = {}) {
+      try {
+        const r = await XHR.post({ url, data: params.data || {}, contentType: params.contentType || "application/json" });
+        if (!r.result) {
+          return Promise.reject(r);
+        }
+        const id = setInterval(async () => {
+          let task;
+          try {
+            task = await XHR.get({url: `${this.config.urls.taskinfo}${r.task_id}`});
+          } catch(e) {
+            task = e;
+            console.warn(e);
+          }
+          listener({ task_id: r.task_id, timeout: false, response: task });
+        }, (this.config?.task_info_interval * 1000 || 1000));
+        this.#tasks.push({ task_id: r.task_id, intervalId: id }); // add current task to list of task
+      } catch(e) {
+        console.warn(e);
+        return Promise.reject(e);
+      }
+    }
+
+    /**
+     * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
+     */
+    stopTask(task_id) {
+      const task = this.#tasks.find(t => task_id === t.task_id);
+      if (task) {
+        clearInterval(task.intervalId);
       }
     }
 
   }
 
-} catch (e) { console.error(e); } })();
+} catch(e) { console.error(e); } })();

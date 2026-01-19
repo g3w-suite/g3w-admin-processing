@@ -1,33 +1,19 @@
 export default {
   title: 'Geoprocessing',
-  inputs: {
-    prjvectorlayerfeature: {
-      selected_features: "Only selected features"
-    },
-    fieldchooser: {
-      validate: {
-        message: {
-          multiple: "Select at least a field",
-          single: "Select at least a field"
-        }
-      }
-    }
-  },
-  outputs: {
-    outputvector: {
-      open_file_on_map: "Open output file after running algorithm"
-    }
-  },
-  run :{
-    messages: {
-      success: "Model run successfully",
-      error: "An Error occur on model"
-    }
-  },
-  draw_types: {
-    'Polygon': "Polygon",
-    'LineString': "Line",
-    'Point': "Point",
-  },
+  'inputs.file_max_size_upload': "Maximun file size: ",
+  'inputs.drawfeatures': "Draw layer features",
+  'inputs.prjvectorlayerfeature.selected_features': "Only selected features",
+  'inputs.fieldchooser.validate.message.multiple': "Select at least a field",
+  'inputs.fieldchooser.validate.message.single': "Select at least a field",
+  'outputs.outputvector.open_file_on_map': "Open output file after running algorithm",
+  'warning.file_max_size_upload': "The attachment size is larger than the maximum allowed",
+  results: "RESULTS",
+  'run.messages.success': "Model run successfully",
+  'run.messages.error': "An Error occur on model",
+  'draw_types.Polygon': "Polygon",
+  'draw_types.LineString': "Line",
+  'draw_types.Point': "Point",
   draw_filename: 'Draw layer',
+  add_layer_drag: "Add your file here",
+  add_layer_header: "Add Layer",
 }

@@ -1,33 +1,17 @@
 export default {
   title: 'Geoprocessing',
-  inputs: {
-    prjvectorlayerfeature: {
-      selected_features: "Solo features selezionate",
-    },
-    fieldchooser: {
-      validate: {
-        message: {
-          multiple: "Seleziona almeno un campo",
-          single: "Seleziona un campo"
-        }
-      }
-    }
-  },
-  outputs: {
-    outputvector: {
-      open_file_on_map: "Apri il file sulla mappa"
-    }
-  },
-  run :{
-    messages: {
-      success: "Modello eseguito con successo",
-      error: "Errore durante l'esecuzione del modello"
-    }
-  },
-  draw_types: {
-    'Polygon': "Poligono",
-    'LineString': "Linea",
-    'Point': "Punto",
-  },
+  'inputs.file_max_size_upload': "Dimensione massima del file: ",
+  'inputs.drawfeatures': "Disegna le feature del layer",
+  'inputs.prjvectorlayerfeature.selected_features': "Solo feature selezionate",
+  'inputs.fieldchooser.validate.message.multiple': "Seleziona almeno un campo",
+  'inputs.fieldchooser.validate.message.single': "Seleziona un campo",
+  'outputs.outputvector.open_file_on_map': "Apri il file sulla mappa",
+  'warning.file_max_size_upload': "La dimensione dell'allegato è superiore al massimo consentito",
+  results: "RISULTATI",
+  'run.messages.success': "Modello eseguito con successo",
+  'run.messages.error': "Errore durante l'esecuzione del modello",
+  'draw_types.Polygon': "Poligono",
+  'draw_types.LineString': "Linea",
+  'draw_types.Point': "Punto",
   draw_filename: 'Layer disegnato',
 }
