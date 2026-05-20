@@ -1,5 +1,7 @@
 # G3W-ADMIN-QPROCESSING v1.4.1
 
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/g3w-suite/g3w-admin-processing)
+
 A dedicated [QGIS Processing](https://docs.qgis.org/3.28/en/docs/training_manual/processing/index.html) module for G3W-SUITE framework:
 
 ![QProcessing schema](doc/images/qprocessing_schema.png)
