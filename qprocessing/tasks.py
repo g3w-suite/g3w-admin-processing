@@ -77,9 +77,10 @@ def run_model(url_params, form_data, **kwargs):
     ctf = QgsProcessingFeedback()
 
     # Connect progress signal
-    ctf.progressChanged.connect(
-        lambda progress: update_processinfo(progress, process_info)
-    )
+    if process_info:
+        ctf.progressChanged.connect(
+            lambda progress: update_processinfo(progress, process_info)
+        )
 
     ctx.setProject(prj)
 
