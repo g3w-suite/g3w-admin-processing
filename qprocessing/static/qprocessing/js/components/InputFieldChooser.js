@@ -1,4 +1,5 @@
-const { XHR } = g3wsdk.core.utils;
+const GUI     = g3w.app;
+const { XHR } = g3w.utils;
 
 export default ({
 
@@ -16,25 +17,26 @@ export default ({
       
       <div v-if = "loading" class  = "bar-loader"></div>
 
-      <select
-        v-select2   = "'value'"
-        :multiple   = "state.input.options.multiple"
+      <x-select
         :id         = "state.name"
         ref         = "select"
+        :value      = "state.input.options.multiple ? null : value"
+        :multiple   = "state.input.options.multiple"
+        searchable
+        @change     = "onSelectChange"
         style       = "width:100%;"
-        class       = "form-control"
       >
-        <option
+        <x-option
           v-if   = "state.validate.required && !state.input.options.multiple"
-          :value = "null"
-        >---</option>
-        <option
+          value  = ""
+        >---</x-option>
+        <x-option
           v-for     = "value in state.input.options.values"
           :selected = "state.input.options.default_to_all_fields"
           :key      = "value.value"
           :value    = "value.value"
-        >{{ value.key }}</option>
-      </select>
+        >{{ value.key }}</x-option>
+      </x-select>
 
       <p
         v-if       = "notvalid"
@@ -65,7 +67,9 @@ export default ({
   data() {
     return {
       loading: false,
-      value:   this.state.input.options.multiple ? [] : null,
+      value:   this.state.input.options?.multiple
+        ? (this.state.input.options.default_to_all_fields ? (this.state.input.options.values || []).map(({ value }) => value) : [])
+        : null,
     }
   },
 
@@ -73,6 +77,41 @@ export default ({
 
     notvalid() {
       return false === this.state.validate.valid;
+    },
+
+  },
+
+  methods: {
+
+    onSelectChange({ target }) {
+      this.value = this.state.input.options.multiple
+        ? target.selected_options.map(option => option.value)
+        : (target.value || null);
+    },
+
+    syncSelect(value = this.value) {
+      const select = this.$refs.select;
+      if (!select?.container) {
+        return;
+      }
+      const multiple = this.state.input.options.multiple;
+      const values = (multiple ? value : [value])
+        .filter(value => null !== value && undefined !== value)
+        .map(String);
+      const options = Array.from(select.container.querySelectorAll('x-option'));
+      select.selected_options = [];
+      options.forEach(option => option.removeAttribute('selected'));
+      values.forEach(value => {
+        const option = options.find(option => option.value === value);
+        if (option) {
+          select.select(option, { autoclose: false, emit: false });
+        }
+      });
+      if (!values.length) {
+        const emptyOption = !multiple && options.find(option => !option.value);
+        select.select(emptyOption || null, { autoclose: false, emit: false });
+      }
+      select.setAttribute('value', values.join(','));
     },
 
   },
@@ -96,9 +135,7 @@ export default ({
 
     async notvalid(value) {
       await this.$nextTick();
-      if (this.select2) {
-        this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
-      }
+      this.$refs.select?.classList.toggle('input-error-validation', value);
     },
 
   },
@@ -115,8 +152,9 @@ export default ({
     }
 
     await this.$nextTick();
-    //set this.select2 element
-    this.select2 = $(this.$refs.select);
+    if (this.state.input.options.multiple) {
+      this.syncSelect();
+    }
 
     //emit register change input to listen parent input layer value and get related fields
     this.$emit('register-change-input', {
@@ -136,7 +174,7 @@ export default ({
         this.loading = true;
         let error;
 
-        const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+        const qprocessing = GUI.getPlugin('qprocessing');
 
         // Check if it already fills by layerId
         if (undefined === qprocessing.layerFields[layerId]) {
@@ -183,12 +221,13 @@ export default ({
 
         // in case of no value or values set value to null
         if (this.value === null || (Array.isArray(this.value) && this.value.length === 0)) {
-          this.select2.val(null).trigger('change');
+          this.syncSelect();
         }
       }
     })
 
-    this.state.validate.valid = !this.state.validate.required;
+    this.state.value = this.state.input.options.multiple ? this.value.join(',') : this.value;
+    this.state.validate.valid = !this.state.validate.required || (this.state.input.options.multiple ? this.value.length > 0 : true);
     //emit add input
     this.$emit('addinput', this.state);
   },
@@ -200,5 +239,6 @@ document.head.insertAdjacentHTML(
   <style>
   /* Replicate same scoped style in InputBase.vue */
   .field-chooser label { text-align: left !important; padding-top: 0 !important; margin-bottom: 3px; }
+  .input-error-validation .x-select-trigger { border-color: #dc3545; }
   </style>`,
 );

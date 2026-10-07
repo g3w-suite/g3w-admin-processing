@@ -1,5 +1,5 @@
-const { ApplicationState } = g3wsdk.core;
-const { GUI } =              g3wsdk.gui;
+const GUI                 = g3w.app;
+const ApplicationState    = g3w.state;
 
 export default ({
 

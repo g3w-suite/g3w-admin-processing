@@ -1,6 +1,6 @@
-const { GUI }                      = g3wsdk.gui;
-const { GEOMETRY_FIELDS }          = g3wsdk.constant;
-const { uniqueId, getUniqueDomId } = g3wsdk.core.utils;
+const GUI                 = g3w.app;
+const { GEOMETRY_FIELDS } = g3w.constants;
+const { getUniqueDomId }  = g3w.utils;
 
 export default ({
 
@@ -14,18 +14,19 @@ export default ({
       style = "color:#fff !important;"
       :for  = "state.name"
     >{{ state.label }}</label>
-    <select
+    <x-select
       :id       = "state.name"
-      v-select2 = "'type'"
-      ref       = "select2"
-      class     = "form-control qprocessing-output-vectorlayer-select"
+      :value    = "type"
+      searchable
+      @change   = "type = $event.target.value"
+      class     = "qprocessing-output-vectorlayer-select"
     >
-      <option
+      <x-option
         v-for  = "({key, value}) in state.input.options.values"
         :key   = "key"
         :value = "value">{{key}}
-      </option>
-    </select>
+      </x-option>
+    </x-select>
     <input
       v-model = "checked"
       type    = "checkbox"
@@ -66,7 +67,7 @@ export default ({
 
       //add to map
       if (this.checked) {
-        let name =  `${uniqueId()}_${this.type}`;
+        let name =  `${getUniqueDomId()}_${this.type}`;
         let crs  = GUI.getService('map').getEpsg();
 
         // convert shp → zip
@@ -144,7 +145,7 @@ export default ({
             throw 'invalid layer';
           }
 
-          GUI.getService('map').addExternalLayer(olLayer, {
+          GUI.addExternalLayer(olLayer, {
             type,
             downloadUrl,
             color: `#${((1<<24)*Math.random() | 0).toString(16)}`

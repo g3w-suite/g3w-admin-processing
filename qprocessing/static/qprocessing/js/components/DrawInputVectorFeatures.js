@@ -1,6 +1,5 @@
-const { GUI } = g3wsdk.gui;
-const _       = g3wsdk.core.i18n.t;
-
+const GUI                 = g3w.app;
+const _                   = g3w.gettext;
 export default ({
 
   // language=html
@@ -44,18 +43,18 @@ export default ({
      * handle draw interaction flow
      */
     setDrawInteraction(type = this.drawGeometryTypes[0]){
-      GUI.getService('map').disableClickMapControls(true);                                          // avoid click conflicts
+      GUI.disableClickMapControls(true);                                          // avoid click conflicts
       this.drawLayer.getSource().clear();                                                           // clear previous features
-      GUI.getService('map').getMap().removeInteraction(this.drawInteraction);                       // remove previous draw interaction
+      GUI.removeInteraction(this.drawInteraction);                       // remove previous draw interaction
       this.drawInteraction = new ol.interaction.Draw({ type, source: this.drawLayer.getSource() }); // create draw interaction
       this.drawInteraction.on('drawend', () => this.drawTool.disabled = false);                     // enable upload button on drawend 
-      GUI.getService('map').getMap().addInteraction(this.drawInteraction);                          // add interaction to Map
+      GUI.addInteraction(this.drawInteraction);                          // add interaction to Map
     },
 
     clear() {
       this.drawLayer.getSource().clear();
-      GUI.getService('map').disableClickMapControls(false);
-      GUI.getService('map').getMap().removeInteraction(this.drawInteraction);
+      GUI.disableClickMapControls(false);
+      GUI.removeInteraction(this.drawInteraction);
       GUI.closeUserMessage();
     },
 
@@ -82,19 +81,18 @@ export default ({
           body: {
             template: /* html */`
               <div style = "width: 100%; padding: 5px;" v-disabled = "state.loading">
-                <!-- NB: it makes use of built-in g3w-client directive: "v-select2" -->
-                <select
-                  v-select2 = "'type'"
-                  :search   = "false"
-                  ref       = "select"
-                  style     = "width: 100%">
-                  <option
+                <x-select
+                  :value  = "type"
+                  ref     = "select"
+                  @change = "type = $event.target.value"
+                  style   = "width: 100%">
+                  <x-option
                     v-for      = "type in types"
                     :key       = "type"
                     :value     = "type"
                     v-t-plugin = "'qprocessing.draw_types.'+type"
-                  ></option>
-                </select>
+                  ></x-option>
+                </x-select>
 
                 <div v-if = "state.loading" class = "bar-loader"></div>
 
@@ -126,7 +124,7 @@ export default ({
             },
             methods: {
               uploadLayer: async (type) => {
-                const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+                const qprocessing = GUI.getPlugin('qprocessing');
                 const features    = this.drawLayer.getSource().getFeatures();
                 await this.$nextTick();
                 //emit event
@@ -175,12 +173,12 @@ export default ({
 
     this.drawInteraction = null;
     this.drawLayer       = new ol.layer.Vector({ source: new ol.source.Vector() });
-    GUI.getService('map').getMap().addLayer(this.drawLayer);
+    GUI.getMap().addLayer(this.drawLayer);
   },
 
   beforeDestroy() {
     this.clear();
-    GUI.getService('map').getMap().removeLayer(this.drawLayer);
+    GUI.getMap().removeLayer(this.drawLayer);
     this.drawLayer       = null;
     this.drawInteraction = null;
   },

@@ -1,6 +1,8 @@
 import DrawInputVectorFeatures from './DrawInputVectorFeatures.js';
 
-const { GUI } = g3wsdk.gui;
+const GUI              = g3w.app;
+const ApplicationState = g3w.state;
+
 
 export default ({
 
@@ -56,19 +58,20 @@ export default ({
 
       </section>
 
-      <select
-        v-select2 = "'value'"
+      <x-select
         :id       = "state.name"
         ref       = "select_layer"
+        :value    = "value"
+        searchable
+        @change   = "value = $event.target.value"
         style     = "width:100%;"
-        class     = "form-control"
       >
-        <option
+        <x-option
           v-for  = "value in state.input.options.values"
           :key   = "value.value"
           :value = "value.value">{{ value.key }}
-        </option>
-      </select>
+        </x-option>
+      </x-select>
       <div
         v-if       = "isSelectedFeatures"
         v-disabled = "selected_features_disabled"
@@ -124,7 +127,7 @@ export default ({
       value:                      null,
       selected_features_checked:  false,
       selected_features_disabled: true,
-      max_upload_file_size: g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').config?.max_upload_file_size,
+      max_upload_file_size: GUI.getPlugin('qprocessing').config?.max_upload_file_size,
     }
   },
 
@@ -166,7 +169,7 @@ export default ({
       this.upload      = true;
       //check if file has size more than max_upload_file_size
       if (this.max_upload_file_size && file.size > this.max_upload_file_size) {
-        g3wsdk.gui.GUI.showUserMessage({
+        GUI.showUserMessage({
           type:     'warning',
           message:  'plugins.qprocessing.warning.file_max_size_upload',
           closable:  false,
@@ -176,7 +179,7 @@ export default ({
         return;
       }
       try {
-        const qprocessing    = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+        const qprocessing    = GUI.getPlugin('qprocessing');
         const { key, value } = await qprocessing.uploadFile({
           file,
           inputName: this.state.name,
@@ -195,11 +198,7 @@ export default ({
 
         await this.$nextTick();
         this.value = value;
-        //set current select item
-        $(this.$refs.select_layer)
-          .select2()
-          .val(value)
-          .trigger('change');
+        this.$refs.select_layer.value = value;
       } catch(e) {
         console.warn(e);
       }
@@ -213,7 +212,7 @@ export default ({
      * @returns {*}
      */
     getLayerSelectedFeaturesIds(layerId) {
-      return GUI.getService('map').defaultsLayers.selectionLayer.getSource().getFeatures().filter(f => layerId === f.__layerId).map(f => f.getId());
+      return GUI.defaultsLayers.selectionLayer.getSource().getFeatures().filter(f => layerId === f.__layerId).map(f => f.getId());
     },
 
     /**
@@ -221,7 +220,7 @@ export default ({
      * @param layerId
      */
     setDisabledSelectFeaturesCheckbox(layerId){
-      this.selected_features_disabled = 0 === this.getLayerSelectedFeaturesIds(layerId).length === 0;
+      this.selected_features_disabled = 0 === this.getLayerSelectedFeaturesIds(layerId).length;
       //in case go disabled, uncheck checkbox
       if (true === this.selected_features_disabled) {
         this.selected_features_checked = false;
@@ -252,7 +251,7 @@ export default ({
     isExternalLayerValidForInputDatatypes({ layer, datatypes = [] } = {}) {
       return (
         undefined !== datatypes.find(type => 'anygeometry' === type) ||
-        undefined !== datatypes.map(type  => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean).find(type => type.replace('Multi','') === layer.geometryType.replace('Multi',''))
+        undefined !== datatypes.map(type  => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean).find(type => type.replace('Multi','') === layer.getSource().getFeatures()[0]?.getGeometry().getType().replace('Multi',''))
       )
     },
 
@@ -269,31 +268,32 @@ export default ({
     getInputPrjVectorLayerData(datatypes = []) {
       const layers = [];
       //check if any geometry layer type is request
-      const anygeometry    = undefined !== datatypes.find(data_type => data_type === 'anygeometry');
+      const anygeometry    = datatypes.find(data_type => 'anygeometry' === data_type) ?? false;
       //check if no geometry layer type is request
-      const nogeometry     = undefined !== datatypes.find(data_type => data_type === 'nogeometry');
+      const nogeometry     = datatypes.find(data_type => 'nogeometry' === data_type) ?? false;
       //get geometry_types only from data_types array
       const geometry_types = datatypes.map(type => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean);
-      const exclude_layers = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').config?.exclude_layers || [];
-      g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').getProject().getLayers()
+      const exclude_layers = GUI.getPlugin('qprocessing').config?.exclude_layers || [];
+      // iterate through project layers
+      ApplicationState.project.getLayers()
         //exclude base layer and not excluded layer
-        .filter(l => !exclude_layers.includes(l.id) && !l.baselayer)
+        .filter(l => !exclude_layers.includes(l.state.id) && !l.state.baselayer)
         .forEach(l => {
-          const key   = l.name;
-          const value = l.id;
+          const key   = l.state.name;
+          const value = l.state.id;
           //get layer if it has no geometry
-          if (true === nogeometry && (undefined === l.geometrytype || "NoGeometry" === l.geometrytype)) {
+          if (true === nogeometry && (undefined === l.state.geometrytype || "NoGeometry" === l.state.geometrytype)) {
             layers.push({ key, value })
             return;
           }
   
-          if (null !== l.geometrytype && undefined !== l.geometrytype && "NoGeometry" !== l.geometrytype) {
+          if (null !== l.state.geometrytype && undefined !== l.state.geometrytype && "NoGeometry" !== l.state.geometrytype) {
             // in the case of any geometry type
             if (true === anygeometry) {
               layers.push({ key, value })
             } else {
               if (geometry_types.length > 0) {
-                if (undefined !== geometry_types.find(geometry_type => geometry_type.replace('Multi','') === l.geometrytype.replace('Multi',''))) {
+                if (undefined !== geometry_types.find(geometry_type => geometry_type.replace('Multi','') === l.state.geometrytype.replace('Multi',''))) {
                   layers.push({key, value})
                 }
               }
@@ -304,11 +304,11 @@ export default ({
       //check for external
       if (anygeometry || geometry_types.length > 0) {
         //get external layers from catalog
-        GUI.getService('catalog').getExternalLayers({ type: 'vector' }).forEach(l => {
+        GUI.getExternalLayers('vector').forEach(l => {
           if (this.isExternalLayerValidForInputDatatypes({ layer: l, datatypes })) {
             layers.push({
-              key:   l.name,
-              value: `__g3w__external__:${l.id}`
+              key:   l.get('name'),
+              value: `__g3w__external__:${l.get('id')}`
             })
           }
         })
@@ -338,19 +338,16 @@ export default ({
 
     async notvalid(value) {
       await this.$nextTick();
-      if (this.select2) {
-       this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
-      }
+      this.$refs.select_layer?.classList.toggle('input-error-validation', value);
     },
 
   },
 
   created() {
-    const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+    const qprocessing = GUI.getPlugin('qprocessing');
 
     //set initial values
     this.state.input.options.values = this.getInputPrjVectorLayerData(this.state.input.options.datatypes);
-
     if (this.state.input.options.values.length > 0) {
       this.value                = this.state.input.options.values[0].value;
       this.state.validate.valid = true;
@@ -371,7 +368,7 @@ export default ({
     this.addTempLayer = new ol.layer.Vector({ source: new ol.source.Vector() });
 
     // add to map
-    GUI.getService('map').getMap().addLayer(this.addTempLayer);
+    GUI.getMap().addLayer(this.addTempLayer);
 
     // set initial visibility to false
     this.addTempLayer.setVisible(false);
@@ -379,7 +376,9 @@ export default ({
     // listen add external Layer
     this.keyAddExternal =  GUI.getService('catalog')
       .onafter('addExternalLayer', ({ type, layer }) => {
-        if ('vector' !== type) { return }
+        if ('vector' !== type) { 
+          return; 
+        }
         if (this.isExternalLayerValidForInputDatatypes({ layer, datatypes: this.state.input.options.datatypes })) {
           this.state.input.options.values.push({
             key:   layer.name,
@@ -392,14 +391,13 @@ export default ({
 
   async mounted() {
     await this.$nextTick();
-    this.select2 = $(this.$refs.select_layer);
     // emit add input to validate
     this.$emit('addinput', this.state);
     this.$emit('changeinput', this.state);
   },
 
   beforeDestroy() {
-    const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+    const qprocessing = GUI.getPlugin('qprocessing');
 
     if (this.isSelectedFeatures) {
       qprocessing.unregistersSelectedFeatureLayersEvent();
@@ -408,7 +406,7 @@ export default ({
 
     // remove temp layer
     this.addTempLayer.getSource().clear();
-    GUI.getService('map').getMap().removeLayer(this.addTempLayer);
+    GUI.getMap().removeLayer(this.addTempLayer);
     this.addTempLayer = null;
 
     // remove external layer

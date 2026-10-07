@@ -2,10 +2,9 @@
 
   const BASE_URL = `${initConfig.group.plugins.qprocessing.baseUrl}qprocessing/js`;
 
-  const { ApplicationState } = g3wsdk.core;
-  const { Plugin }           = g3wsdk.core.plugin;
-  const { GUI, Panel }       = g3wsdk.gui;
-  const { XHR }              = g3wsdk.core.utils;
+  const { Plugin, Panel }   = g3w;
+  const GUI                 = g3w.app;
+  const { XHR }             = g3w.utils;
 
   new class extends Plugin {
 
@@ -23,23 +22,10 @@
       super({ 
         name: 'qprocessing',
         //Add to avoid initial show plugin.qrocessing.title
-        i18n: {
-          [ApplicationState.language] : {
-            title: 'Geoprocessing',
-          }
-        } 
+        i18n: `${BASE_URL}/i18n/`,
       });
 
-      // i18n
-      const VM = new Vue();
-      const i18n = async lang => {
-        import(`${BASE_URL}/i18n/${['it', 'en', 'fr'].includes(lang) ? lang : 'en'}.js`)
-        .then(m => this.setLocale({ [lang]: m.default }))
-        .catch(console.warn)
-      };
-
-      VM.$watch(() => ApplicationState.language, i18n);
-
+      
       // Show loading plugin icon
       this.setHookLoading({ loading: true });
 
@@ -48,9 +34,7 @@
          if (!this.registerPlugin(this.config.gid)) {
           return;
         }
- 
-        await i18n(ApplicationState.language);
-        
+         
         this.emitChangeSelectedFeatures            = () => this.emit('change-selected-features');
         this.registersSelectedFeatureLayersEvent   = this.registersSelectedFeatureLayersEvent.bind(this);
         this.unregistersSelectedFeatureLayersEvent = this.unregistersSelectedFeatureLayersEvent.bind(this);
@@ -92,13 +76,13 @@
     }
 
     registersSelectedFeatureLayersEvent() {
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().on('addfeature', this.emitChangeSelectedFeatures);
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().on('removefeature', this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().on('addfeature', this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().on('removefeature', this.emitChangeSelectedFeatures);
     }
 
     unregistersSelectedFeatureLayersEvent() {
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().un('addfeature', this.emitChangeSelectedFeatures);
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().un('removefeature', this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().un('addfeature', this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().un('removefeature', this.emitChangeSelectedFeatures);
     }
 
     createGeoJSONFile({ features = [], name, crs } = {}) {

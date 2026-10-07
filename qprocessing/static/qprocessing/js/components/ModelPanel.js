@@ -4,11 +4,11 @@ import fieldchooser_input   from '../components/InputFieldChooser.js';
 import outputvectorlayer    from '../components/OutputVectorLayer.js';
 import outputrasterlayer    from '../components/OutputRasterLayer.js';
 import outputfile           from '../components/OutputFile.js';
+import model_input          from '../components/ModelInput.js';
 
-const { Panel }            = g3wsdk.gui;
-const { GUI }              = g3wsdk.gui;
-const { t }                = g3wsdk.core.i18n;
-
+const { Panel }           = g3w;
+const GUI                 = g3w.app;
+const t                   = g3w.gettext;
 export default ({
 
   // language=html
@@ -27,7 +27,7 @@ export default ({
     </section>
 
     <!-- INPUTS   -->
-    <section class = "qprocessing-model-inputs">
+    <section class = "qprocessing-model-inputs" @keydown.enter = "preventInputEnter">
       <div class = "title">INPUTS</div>
       <form class = "form-horizontal g3w-form">
         <component
@@ -38,7 +38,7 @@ export default ({
           @addinput              = "addToValidate"
           @changeinput           = "validate(input)"
           :state                 = "input"
-          :is                    = "input.input.type + '_input'"
+          :is                    = "inputComponent(input)"
         />
       </form>
     </section>
@@ -121,7 +121,7 @@ export default ({
 
   components: {
     // inputs
-    ...g3wsdk.gui.vue.Inputs.InputsComponents,
+    model_input,
     prjvectorlayer_input,
     prjrasterlayer_input,
     prjvectorlayerfeature_input: prjvectorlayer_input,
@@ -157,6 +157,21 @@ export default ({
   },
 
   methods: {
+
+    inputComponent(input) {
+      return ({
+        prjvectorlayer: 'prjvectorlayer_input',
+        prjvectorlayerfeature: 'prjvectorlayerfeature_input',
+        prjrasterlayer: 'prjrasterlayer_input',
+        fieldchooser: 'fieldchooser_input',
+      })[input.input.type] || 'model_input';
+    },
+
+    preventInputEnter(event) {
+      if ('INPUT' === event.target.tagName) {
+        event.preventDefault();
+      }
+    },
 
     //add model result to results
     addResultToModel(data = {}) {
@@ -273,7 +288,7 @@ export default ({
       this.state.processing_html_log = null;
       await this.$nextTick();
       try {
-        const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+        const qprocessing = GUI.getPlugin('qprocessing');
 
         //Run task
         this.task = await (new Promise(async (resolve, reject) => {
@@ -455,17 +470,6 @@ export default ({
     this.tovalidate = [];
     // object contains subscribers of change parent input
     this.subscribers = {};
-  },
-
-  async mounted() {
-    await this.$nextTick();
-    //@TODO
-    $('.qprocessing-model-inputs input')
-      .keypress((event) => {
-        if (event.which === 13) {
-          event.preventDefault();
-        }
-    });
   },
 
   destroyed() {

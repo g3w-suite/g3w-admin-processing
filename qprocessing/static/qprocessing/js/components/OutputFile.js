@@ -10,18 +10,19 @@ export default ({
       style = "color:#fff !important;"
       :for  = "state.name"
     >{{ state.label }}</label>
-    <select
+    <x-select
       :id       = "state.name"
-      v-select2 = "'type'"
-      ref       = "select2"
-      class     = "form-control qprocessing-output-vectorlayer-select"
+      :value    = "type"
+      searchable
+      @change   = "type = $event.target.value"
+      class     = "qprocessing-output-vectorlayer-select"
     >
-      <option
+      <x-option
         v-for  = "({key, value}) in state.input.options.values"
         :key   = "key"
         :value = "value"
-      >{{ key }}</option>
-    </select>
+      >{{ key }}</x-option>
+    </x-select>
   </div>`,
 
   name: "OutputFile",
