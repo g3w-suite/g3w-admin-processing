@@ -49,6 +49,7 @@ export default ({
   methods: {
 
     //@since v3.7.0
+    // Remove a result and close the panel when no results remain.
     removeResult(result, index) {
       result.urls.splice(index, 1);
       //In case of no urls in result, remove from model result
@@ -61,6 +62,7 @@ export default ({
       }
     },
 
+    // Download a result file and trigger a browser save.
     async downloadFile(url) {
       try {
         ApplicationState.download = true;

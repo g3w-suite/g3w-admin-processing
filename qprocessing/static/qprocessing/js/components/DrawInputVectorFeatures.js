@@ -17,6 +17,7 @@ export default ({
     >
       <i class = "fas fa-pencil-alt"></i>
     </button>
+        // Initialize drawing and upload state.
   </div>
   `,
 
@@ -28,6 +29,7 @@ export default ({
   },
 
   data() {
+    // Initialize drawing and upload state.
     return {
       toggled: false, //draw button toggled
       drawTool: {
@@ -40,6 +42,7 @@ export default ({
   methods: {
 
     /**
+          // Clear drawn features and release the active map interaction.
      * handle draw interaction flow
      */
     setDrawInteraction(type = this.drawGeometryTypes[0]){
@@ -52,6 +55,7 @@ export default ({
     },
 
     clear() {
+      // Clear drawn features and release the active map interaction.
       this.drawLayer.getSource().clear();
       GUI.disableClickMapControls(false);
       GUI.removeInteraction(this.drawInteraction);
@@ -62,7 +66,7 @@ export default ({
 
   watch: {
 
-    //listen toggled button
+    // Start or stop the drawing tool and its user prompt.
     toggled(bool) {
       if (!bool) {
         this.clear();
@@ -123,6 +127,7 @@ export default ({
 
             },
             methods: {
+              // Emit the drawn features as an uploadable layer.
               uploadLayer: async (type) => {
                 const qprocessing = GUI.getPlugin('qprocessing');
                 const features    = this.drawLayer.getSource().getFeatures();
@@ -144,8 +149,9 @@ export default ({
       this.$emit('toggled-tool', !bool);
     },
 
+        // Prepare supported geometries and add the temporary layer to the map.
+    // Keep drawing controls synchronized with the upload state.
     upload(bool) {
-      //listen upload status. Boolean
       this.drawTool.loading  = bool;
       this.drawTool.disabled = !bool;
       if (!bool) {
@@ -157,12 +163,14 @@ export default ({
   },
 
   created() {
+    // Prepare supported geometries and add the temporary layer to the map.
     //set geometries type
     this.drawGeometryTypes = Object.entries({
       point:   'Point',
       line:    'LineString',
       polygon: 'Polygon'
     }).reduce((a, [ type, olGeometry ]) => {
+        // Remove the temporary layer and release drawing resources.
       if (this.datatypes.find(dt => 'anygeometry' === dt)){
         a.push(olGeometry);
       } else {
@@ -177,6 +185,7 @@ export default ({
   },
 
   beforeDestroy() {
+    // Remove the temporary layer and release drawing resources.
     this.clear();
     GUI.getMap().removeLayer(this.drawLayer);
     this.drawLayer       = null;

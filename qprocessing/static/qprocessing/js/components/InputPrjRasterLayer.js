@@ -96,6 +96,7 @@ export default ({
   },
 
   data() {
+    // Initialize upload state and the selected raster layer.
     return {
       upload:               false,
       value:                null,
@@ -105,9 +106,7 @@ export default ({
 
   methods: {
 
-    /**
-     * Add Raster Layer
-     */
+    /** Upload a raster file and add it to the available input layers. */
     async addLayer(evt) {
       const file = evt?.target.files?.[0];
       if (!file) { return }
@@ -160,7 +159,7 @@ export default ({
 
   computed: {
 
-    //recreate same computed property of input editing
+    // Expose the current input validation state.
     notvalid() {
       return false === this.state.validate.valid;
     },
@@ -169,7 +168,7 @@ export default ({
 
   watch: {
 
-    //listen change of value (input select)
+    // Update the shared input value and required-field validity.
     value(value) {
       this.state.value          = value;
       this.state.validate.valid = !this.state.required || !!value;
@@ -177,6 +176,7 @@ export default ({
     },
 
     async notvalid(value) {
+      // Reflect validation errors on the layer selector after rendering.
       await this.$nextTick();
       this.$refs.select?.classList.toggle('input-error-validation', value);
     },
@@ -184,6 +184,7 @@ export default ({
   },
 
   created() {
+    // Populate raster options from the current project layers.
     const qprocessing               = GUI.getPlugin('qprocessing')
     const exclude_layers            = qprocessing.config?.exclude_layers || [];
     this.state.input.options.values = qprocessing.getProject().getLayers()
@@ -201,6 +202,7 @@ export default ({
   },
 
   async mounted(){
+    // Register the initialized input with the parent component.
     await this.$nextTick();
     this.$emit('addinput', this.state);
   },

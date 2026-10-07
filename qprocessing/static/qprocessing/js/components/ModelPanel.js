@@ -138,6 +138,7 @@ export default ({
   },
 
   data() {
+    // Initialize panel state, validation inputs, and task results.
     return {
       state: {
         loading:  false,
@@ -159,6 +160,7 @@ export default ({
   methods: {
 
     inputComponent(input) {
+      // Resolve the Vue component registered for an input type.
       return ({
         prjvectorlayer: 'prjvectorlayer_input',
         prjvectorlayerfeature: 'prjvectorlayerfeature_input',
@@ -168,12 +170,13 @@ export default ({
     },
 
     preventInputEnter(event) {
+      // Prevent Enter from submitting text inputs in the panel.
       if ('INPUT' === event.target.tagName) {
         event.preventDefault();
       }
     },
 
-    //add model result to results
+    // Add or append a processing result to the model.
     addResultToModel(data = {}) {
       if (undefined === data?.result) {
         return;
@@ -197,7 +200,7 @@ export default ({
     },
 
     /**
-     * Register by every inputs change of other input with dependence
+    * Register a callback for changes to a dependent input.
      */
     registerChangeInputEvent({ inputName, handler } = {}) {
       if (!this.subscribers[inputName]) {
@@ -206,7 +209,7 @@ export default ({
       this.subscribers[inputName].push(handler);
     },
     /***
-     * Clear run state from already run model
+    * Clear status and progress from the previous run.
      */
     clearState() {
       //clear state
@@ -215,7 +218,7 @@ export default ({
     },
 
     /**
-     * Method to handle change input
+    * Validate an input and update the model's overall validity.
      */
     async validate(input) {
       this.clearState();
@@ -279,7 +282,7 @@ export default ({
     },
 
     /**
-     * Run model method
+    * Validate, submit, and report the result of a model run.
      */
     async run() {
       this.state.loading             = true;
@@ -410,6 +413,7 @@ export default ({
       this.state.message.show = true;
     },
 
+    // Open the processing log in a modal dialog.
     showProcessingLog() {
       this.newLog = false;
       const dialog = Object.assign(document.createElement('template'), {
@@ -441,7 +445,7 @@ export default ({
 
 
     /**
-     * Show Model results Panel
+    * Open the panel containing the model's results.
      */
     async showModelResults() {
       const ModelResults = (await import('./ModelResults.js')).default;
@@ -461,18 +465,21 @@ export default ({
     },
 
     addToValidate(input) {
+      // Track an input so the model can validate it before running.
       this.tovalidate.push(input);
     },
 
   },
 
   created() {
+    // Initialize input validation and dependency subscribers.
     this.tovalidate = [];
     // object contains subscribers of change parent input
     this.subscribers = {};
   },
 
   destroyed() {
+    // Release the input validation collection when the panel is destroyed.
     this.tovalidate = null;
   },
 

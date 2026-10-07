@@ -122,6 +122,7 @@ export default ({
   },
 
   data() {
+    // Initialize upload, layer-selection, and selected-feature state.
     return {
       upload:                     false,
       value:                      null,
@@ -137,16 +138,19 @@ export default ({
      * @returns { boolean } whether datatypes contain geometries values
      */
     showUploadFile() {
+      // Show upload controls only for geometry-compatible inputs.
       return !!this.state.input.options.datatypes.find(datatype => (datatype === 'anygeometry') || (['point', 'line', 'polygon'].indexOf(datatype) !== -1));
     },
 
     //check if it can take in account of selected features
     isSelectedFeatures() {
+      // Identify inputs that support selecting individual features.
       return 'prjvectorlayerfeature' === this.state.input.type;
     },
 
     //check if is no valid
     notvalid() {
+      // Expose the current input validation state.
       return false === this.state.validate.valid;
     },
 
@@ -158,6 +162,7 @@ export default ({
      * Show/hide temp tool
      */
     toggleTempLayer(bool) {
+      // Show or hide the temporary layer used for uploads and drawing.
       this.addTempLayer.setVisible(bool);
     },
 
@@ -165,6 +170,7 @@ export default ({
      * @param {*} param0 
      */
     async addLayer({ file, features = [] } = {}) {
+      // Upload a vector file and add it to the available input layers.
       //set initial reactive properties
       this.upload      = true;
       //check if file has size more than max_upload_file_size
@@ -212,13 +218,11 @@ export default ({
      * @returns {*}
      */
     getLayerSelectedFeaturesIds(layerId) {
+      // Return selected feature IDs belonging to the given layer.
       return GUI.defaultsLayers.selectionLayer.getSource().getFeatures().filter(f => layerId === f.__layerId).map(f => f.getId());
     },
 
-    /**
-     * @TODO
-     * @param layerId
-     */
+    /** Disable the selected-features checkbox when the layer has no selection. */
     setDisabledSelectFeaturesCheckbox(layerId){
       this.selected_features_disabled = 0 === this.getLayerSelectedFeaturesIds(layerId).length;
       //in case go disabled, uncheck checkbox
@@ -232,6 +236,7 @@ export default ({
      * @param checked
      */
     setInputValueFromSelectedFeatures(checked) {
+      // Include selected feature IDs in the input value when requested.
       const currentLayerFeatureSelectedIds = this.getLayerSelectedFeaturesIds(this.value);
       if (true === checked && currentLayerFeatureSelectedIds.length > 0) {
         this.state.value = `${this.value}:${currentLayerFeatureSelectedIds.join(',')}`
@@ -249,6 +254,7 @@ export default ({
      * @returns {boolean}
      */
     isExternalLayerValidForInputDatatypes({ layer, datatypes = [] } = {}) {
+      // Check whether an external layer matches the accepted geometry types.
       return (
         undefined !== datatypes.find(type => 'anygeometry' === type) ||
         undefined !== datatypes.map(type  => ({ 'point': 'Point', 'line': 'LineString', 'polygon': 'Polygon' })[type]).filter(Boolean).find(type => type.replace('Multi','') === layer.getSource().getFeatures()[0]?.getGeometry().getType().replace('Multi',''))
@@ -256,7 +262,7 @@ export default ({
     },
 
     /**
-     * Get all Project Vector Layers that has geometry types
+    * Build the project and external vector layer options for this input.
      * @param datatypes <Array> of String
      *   'nogeometry',
      *   'point',
@@ -323,6 +329,7 @@ export default ({
 
     // listen change of value (input select)
     value(value) {
+      // Update the shared input value and its required-field validity.
       if (true === this.isSelectedFeatures) {
         this.setDisabledSelectFeaturesCheckbox(value);
       }
@@ -333,10 +340,12 @@ export default ({
 
     // Listen selected feature checkbox event change
     selected_features_checked(checked) {
+      // Refresh the input value when selected-feature mode changes.
       this.setInputValueFromSelectedFeatures(checked);
     },
 
     async notvalid(value) {
+      // Reflect validation errors on the layer selector after rendering.
       await this.$nextTick();
       this.$refs.select_layer?.classList.toggle('input-error-validation', value);
     },
@@ -344,6 +353,7 @@ export default ({
   },
 
   created() {
+    // Populate layer options and register map and external-layer listeners.
     const qprocessing = GUI.getPlugin('qprocessing');
 
     //set initial values
@@ -389,6 +399,7 @@ export default ({
   },
 
   async mounted() {
+    // Register the initialized input with the parent component.
     await this.$nextTick();
     // emit add input to validate
     this.$emit('addinput', this.state);
@@ -396,6 +407,7 @@ export default ({
   },
 
   beforeDestroy() {
+    // Unregister listeners and remove the temporary map layer.
     const qprocessing = GUI.getPlugin('qprocessing');
 
     if (this.isSelectedFeatures) {

@@ -68,12 +68,15 @@ export default {
   },
 
   computed: {
+    // Normalize the configured type for template checks.
     type() {
       return this.state.input.type.endsWith('_input') ? this.state.input.type : `${this.state.input.type}_input`;
     },
+    // Return the configured options or an empty object.
     options() {
       return this.state.input.options || {};
     },
+    // Check whether this input should render as a select control.
     hasOptions() {
       return Array.isArray(this.options.values) && [
         'select_input',
@@ -82,29 +85,35 @@ export default {
         'radio_input',
       ].includes(this.type);
     },
+    // Map processing input types to native input types.
     controlType() {
       if ('color_input' === this.type) { return 'color'; }
       if (['integer_input', 'bigint_input', 'float_input', 'range_input', 'slider_input'].includes(this.type)) { return 'number'; }
       if ('check_input' === this.type) { return 'checkbox'; }
       return 'text';
     },
+    // Provide a stable ID for the validation message.
     errorId() {
       return `${this.state.name}-error`;
     },
   },
 
+  // Register the input and report its initial validation state.
   mounted() {
     this.$emit('addinput', this.state);
     this.updateValidation();
   },
 
   methods: {
+    // Extract a value from either an option object or a primitive.
     optionValue(option) {
       return option && 'object' === typeof option ? option.value : option;
     },
+    // Extract a label from either an option object or a primitive.
     optionLabel(option) {
       return option && 'object' === typeof option ? (option.key ?? option.value) : option;
     },
+    // Store selected values and revalidate the input.
     updateSelect(event) {
       const { target } = event;
       this.state.value = target.multiple
@@ -112,6 +121,7 @@ export default {
         : ('' === target.value ? null : target.value);
       this.updateValidation();
     },
+    // Normalize a native input value before updating component state.
     updateValue(event) {
       const { target } = event;
       this.state.value = 'checkbox' === target.type
@@ -119,6 +129,7 @@ export default {
         : ('number' === target.type && '' !== target.value ? Number(target.value) : ('' === target.value ? null : target.value));
       this.updateValidation();
     },
+    // Update required-field validity and notify the parent component.
     updateValidation() {
       const value = this.state.value;
       const empty = null === value || undefined === value || '' === value || (Array.isArray(value) && 0 === value.length);

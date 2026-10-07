@@ -47,6 +47,7 @@ export default ({
   },
 
   data() {
+    // Initialize the selected vector format and map-opening option.
     this.state.value = this.state.input.options.values[0].value;
     return {
       checked: true,
@@ -56,11 +57,13 @@ export default ({
 
   watch: {
 
+    // Update the selected output format in shared state.
     type(value) {
       this.state.value = value; // change select value
       this.$emit('changeoutput', this.state);
     },
 
+    // Download the completed vector output and optionally add it to the map.
     async task(res = {}) {
       const { task_result = {} } = res;
       const downloadUrl = task_result[this.state.name]; // get value from name of the output

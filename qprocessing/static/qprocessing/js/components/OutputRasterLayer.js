@@ -35,6 +35,7 @@ export default ({
   },
 
   data() {
+    // Initialize the selected raster output format.
     this.state.value = this.state.input.options.values[0]?.value;
     return {
       type: this.state.value,
@@ -43,11 +44,13 @@ export default ({
 
   watch: {
 
+    // Update the selected output format in shared state.
     type(value) {
       this.state.value = value; // change select value
       this.$emit('changeoutput', this.state);
     },
 
+    // Publish the completed raster output to the model panel.
     async task( response = {}) {
      const { task_result = {} } = response;
      const fileUrl = task_result[this.state.name];

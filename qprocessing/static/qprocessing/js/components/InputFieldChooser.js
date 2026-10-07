@@ -64,6 +64,7 @@ export default ({
     state: { type: Object, required: true },
   },
 
+  // Initialize the selected value from the input configuration.
   data() {
     return {
       loading: false,
@@ -75,6 +76,7 @@ export default ({
 
   computed: {
 
+    // Expose the current validation state to the template.
     notvalid() {
       return false === this.state.validate.valid;
     },
@@ -83,12 +85,14 @@ export default ({
 
   methods: {
 
+    // Copy the selected option values into component state.
     onSelectChange({ target }) {
       this.value = this.state.input.options.multiple
         ? target.selected_options.map(option => option.value)
         : (target.value || null);
     },
 
+    // Synchronize the select UI without emitting another change event.
     syncSelect(value = this.value) {
       const select = this.$refs.select;
       if (!select?.container) {
@@ -118,7 +122,7 @@ export default ({
 
   watch: {
 
-    //listen change of value (input select)
+    // Update shared input state and validate required selections.
     value(value) {
       const is_multiple = this.state.input.options.multiple;
 
@@ -133,6 +137,7 @@ export default ({
       this.$emit('changeinput', this.state);
     },
 
+    // Reflect validation errors on the select after rendering.
     async notvalid(value) {
       await this.$nextTick();
       this.$refs.select?.classList.toggle('input-error-validation', value);
@@ -140,11 +145,13 @@ export default ({
 
   },
 
+  // Start the component with a valid initial state.
   created() {
     //set it true at beginning to reactivity
     this.state.validate.valid = true;
   },
 
+  // Initialize validation and register the parent-field change handler.
   async mounted() {
     //if required we set message of not valid input
     if (this.state.validate.required) {
@@ -159,6 +166,7 @@ export default ({
     //emit register change input to listen parent input layer value and get related fields
     this.$emit('register-change-input', {
       inputName: this.state.input.options.parent_field,
+      // Load available fields whenever the parent layer changes.
       handler:   async (layerId) => {
 
         //in case of change parent value change, in case of selectefeature need to get only layerId without featuresid
