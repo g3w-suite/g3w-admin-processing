@@ -374,8 +374,7 @@ export default ({
     this.addTempLayer.setVisible(false);
 
     // listen add external Layer
-    this.keyAddExternal =  GUI.getService('catalog')
-      .onafter('addExternalLayer', ({ type, layer }) => {
+    this.keyAddExternal = GUI.onafter('loadExternalLayer', ({ type, layer }) => {
         if ('vector' !== type) { 
           return; 
         }
@@ -410,7 +409,7 @@ export default ({
     this.addTempLayer = null;
 
     // remove external layer
-    GUI.getService('catalog').un('addExternalLayer', this.keyAddExternal);
+    GUI.un('loadExternalLayer', this.keyAddExternal);
   },
 
 });
