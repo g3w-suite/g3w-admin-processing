@@ -193,13 +193,13 @@ export default ({
         const GIVE_ME_A_NAME = qprocessing.layerFields[layerId][JSON.stringify(params)];
 
         //check if layerId belong to project layer or is id of temporary upload layer
-        if (undefined === GIVE_ME_A_NAME && undefined === qprocessing.getProject().getLayers().find(layer => layer.id === layerId)) {
+        if (undefined === GIVE_ME_A_NAME && undefined === g3w.state.project.getLayers().find(l => layerId === l.state.id)) {
           qprocessing.layerFields[layerId][JSON.stringify(params)] = [];
         } else if (undefined === GIVE_ME_A_NAME) {
           try {
             //do request to api
             const response = await XHR.get({
-              url: `${qprocessing.config.urls.fields}${qprocessing.getProject().getId()}/${layerId}/`,
+              url: `${qprocessing.config.urls.fields}${g3w.state.project.getId()}/${layerId}/`,
               params
             });
             if (true === response.result) {

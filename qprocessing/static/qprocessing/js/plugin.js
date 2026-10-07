@@ -113,7 +113,7 @@
       const data = new FormData();
       data.append('file', file);
       try {
-        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${this.getProject().getId()}/${inputName}/`, {
+        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${g3w.state.project.getId()}/${inputName}/`, {
           method: 'POST',
           body:    data,
         })).json();

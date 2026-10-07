@@ -8,7 +8,9 @@ import model_input          from '../components/ModelInput.js';
 
 const { Panel }           = g3w;
 const GUI                 = g3w.app;
+const ApplicationState    = g3w.state;
 const t                   = g3w.gettext;
+
 export default ({
 
   // language=html
@@ -224,7 +226,6 @@ export default ({
       this.clearState();
       // wait DOM changes 
       await this.$nextTick();
-
       this.subscribers?.[input.name]?.forEach?.(h => h(input.value));
 
       const MUTUALLY          = input && input.validate.mutually;
@@ -338,7 +339,7 @@ export default ({
             }, {})
           }
 
-          const url = `${qprocessing.config.urls.run}${this.model.id}/${qprocessing.getProject().getId()}/` // url model
+          const url = `${qprocessing.config.urls.run}${this.model.id}/${ApplicationState.project.getId()}/` // url model
 
           //Check if configured in async mode
           if (qprocessing.config.async) {

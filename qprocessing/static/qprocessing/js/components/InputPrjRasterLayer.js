@@ -187,12 +187,12 @@ export default ({
     // Populate raster options from the current project layers.
     const qprocessing               = GUI.getPlugin('qprocessing')
     const exclude_layers            = qprocessing.config?.exclude_layers || [];
-    this.state.input.options.values = qprocessing.getProject().getLayers()
+    this.state.input.options.values = g3w.state.project.getLayers()
       //exclude base layer
-      .filter(l => !exclude_layers.includes(l.id) && !l.baselayer && 'gdal' === l?.source?.type)
+      .filter(l => !exclude_layers.includes(l.state.id) && !l.state.baselayer && 'gdal' === l?.state?.source?.type)
       .map(l => ({
-        key:   l.name,
-        value: l.id
+        key:   l.state.name,
+        value: l.state.id
       }));
 
     if (this.state.input.options.values.length > 0) {
