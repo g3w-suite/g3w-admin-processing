@@ -17,7 +17,6 @@ export default ({
     >
       <i class = "fas fa-pencil-alt"></i>
     </button>
-        // Initialize drawing and upload state.
   </div>
   `,
 
@@ -42,8 +41,7 @@ export default ({
   methods: {
 
     /**
-          // Clear drawn features and release the active map interaction.
-     * handle draw interaction flow
+      * Configure and activate the map drawing interaction.
      */
     setDrawInteraction(type = this.drawGeometryTypes[0]){
       GUI.disableClickMapControls(true);                                          // avoid click conflicts
@@ -54,8 +52,8 @@ export default ({
       GUI.addInteraction(this.drawInteraction);                          // add interaction to Map
     },
 
+    // Clear drawn features and release the active map interaction.
     clear() {
-      // Clear drawn features and release the active map interaction.
       this.drawLayer.getSource().clear();
       GUI.disableClickMapControls(false);
       GUI.removeInteraction(this.drawInteraction);
