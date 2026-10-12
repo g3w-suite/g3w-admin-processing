@@ -6,7 +6,7 @@ export default ({
   // language=html
   template: /* html */ `
     <div
-      v-if  = "state.visible"
+      v-show = "state.visible"
       class = "form-group field-chooser"
     >
 
@@ -15,7 +15,7 @@ export default ({
         <span v-if = "state.validate && state.validate.required">*</span>
       </label>
       
-      <div v-if = "loading" class  = "bar-loader"></div>
+      <div v-show = "loading" class  = "bar-loader"></div>
 
       <x-select
         :id         = "state.name"
@@ -69,8 +69,8 @@ export default ({
     return {
       loading: false,
       value:   this.state.input.options?.multiple
-        ? (this.state.input.options.default_to_all_fields ? (this.state.input.options.values || []).map(({ value }) => value) : [])
-        : null,
+        ? (this.state.input.options.default_to_all_fields && null !== this.state.input.options.default ? (this.state.input.options.values || []).map(({ value }) => value) : [])
+        : (this.state.input.options.default ?? null),
     }
   },
 
@@ -84,12 +84,11 @@ export default ({
   },
 
   methods: {
-
     // Copy the selected option values into component state.
     onSelectChange({ target }) {
       this.value = this.state.input.options.multiple
-        ? target.selected_options.map(option => option.value)
-        : (target.value || null);
+        ? target.selected_options.map(option => option.value).filter(value => 'null' !== value)
+        : ('null' === target.value ? null : (target.value || null));
     },
 
     // Synchronize the select UI without emitting another change event.
@@ -112,18 +111,23 @@ export default ({
         }
       });
       if (!values.length) {
-        const emptyOption = !multiple && options.find(option => !option.value);
+        const emptyOption = !multiple && options.find(option => 'null' === option.value);
         select.select(emptyOption || null, { autoclose: false, emit: false });
       }
-      select.setAttribute('value', values.join(','));
+      select.setAttribute('value', values.join(',') || 'null');
     },
 
   },
 
   watch: {
 
+    async 'state.input.options.values'(values = []) {
+      await this.$nextTick();
+      this.syncSelect();
+    },
+
     // Update shared input state and validate required selections.
-    value(value) {
+    async value(value) {
       const is_multiple = this.state.input.options.multiple;
 
       // handle multiple/single selection
@@ -135,6 +139,8 @@ export default ({
       }
 
       this.$emit('changeinput', this.state);
+      await this.$nextTick();
+      this.syncSelect();
     },
 
     // Reflect validation errors on the select after rendering.
@@ -159,9 +165,6 @@ export default ({
     }
 
     await this.$nextTick();
-    if (this.state.input.options.multiple) {
-      this.syncSelect();
-    }
 
     //emit register change input to listen parent input layer value and get related fields
     this.$emit('register-change-input', {
@@ -222,20 +225,18 @@ export default ({
         //check if multiple
         if (this.state.input.options.multiple) {
           //value is set checking if default_all_fields is true, set all options values by defaults, otherwise empty array
-          this.value = this.state.input.options.default_to_all_fields ? this.state.input.options.values.map(({value}) => value) : [];
+          this.value = this.state.input.options.default_to_all_fields && null !== this.state.input.options.default ? (this.state.input.options.values || []).map(({value}) => value) : [];
         } else {
           this.value = null;
         }
 
-        // in case of no value or values set value to null
-        if (this.value === null || (Array.isArray(this.value) && this.value.length === 0)) {
-          this.syncSelect();
-        }
+        await this.$nextTick();
+        this.syncSelect();
       }
     })
 
     this.state.value = this.state.input.options.multiple ? this.value.join(',') : this.value;
-    this.state.validate.valid = !this.state.validate.required || (this.state.input.options.multiple ? this.value.length > 0 : true);
+    this.state.validate.valid = !this.state.validate.required || (this.state.input.options.multiple ? this.value.length > 0 : ("" !== this.value && null !== this.value));
     //emit add input
     this.$emit('addinput', this.state);
   },
