@@ -412,7 +412,7 @@ export default ({
 
     if (this.isSelectedFeatures) {
       qprocessing.unregistersSelectedFeatureLayersEvent();
-      qprocessing.removeAllListeners('change-selected-features');
+      qprocessing.off('change-selected-features');
     }
 
     // remove temp layer
