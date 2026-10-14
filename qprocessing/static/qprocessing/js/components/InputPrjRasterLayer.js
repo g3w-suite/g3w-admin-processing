@@ -1,3 +1,5 @@
+const GUI = g3w.app;
+
 export default ({
 
   // language=html
@@ -49,19 +51,20 @@ export default ({
       </section>
     </section>
 
-    <select
-      v-select2 = "'value'"
+    <x-select
       :id       = "state.name"
       ref       = "select"
+      :value    = "value"
+      searchable
+      @change   = "value = $event.target.value"
       style     = "width:100%;"
-      class     = "form-control"
     >
-      <option
+      <x-option
         v-for  = "value in state.input.options.values"
         :key   = "value.value"
         :value = "value.value"
-      >{{ value.key }}</option>
-    </select>
+      >{{ value.key }}</x-option>
+    </x-select>
 
     <p
       v-if   = "notvalid"
@@ -93,24 +96,23 @@ export default ({
   },
 
   data() {
+    // Initialize upload state and the selected raster layer.
     return {
       upload:               false,
       value:                null,
-      max_upload_file_size: g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing').config?.max_upload_file_size,
+      max_upload_file_size: GUI.getPlugin('qprocessing').config?.max_upload_file_size,
     }
   },
 
   methods: {
 
-    /**
-     * Add Raster Layer
-     */
+    /** Upload a raster file and add it to the available input layers. */
     async addLayer(evt) {
       const file = evt?.target.files?.[0];
       if (!file) { return }
       //check if file has size more than max_upload_file_size
       if (this.max_upload_file_size && file.size > this.max_upload_file_size) {
-        g3wsdk.gui.GUI.showUserMessage({
+        GUI.showUserMessage({
           type:     'warning',
           message:  'plugins.qprocessing.warning.file_max_size_upload',
           closable:  false,
@@ -126,7 +128,7 @@ export default ({
       //set initial reactive properties
       this.upload               = true;
       try {
-        const qprocessing    = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+        const qprocessing    = GUI.getPlugin('qprocessing');
         const { key, value } = await qprocessing.uploadFile({
           file,
           inputName: this.state.name,
@@ -141,11 +143,7 @@ export default ({
 
         await this.$nextTick();
         this.value = value;
-        //set current select item
-        $(this.$refs.select)
-          .select2()
-          .val(value)
-          .trigger('change');
+        this.$refs.select.value = value;
       } catch(e) {
         console.warn(e);
         //reset input value to null
@@ -161,7 +159,7 @@ export default ({
 
   computed: {
 
-    //recreate same computed property of input editing
+    // Expose the current input validation state.
     notvalid() {
       return false === this.state.validate.valid;
     },
@@ -170,7 +168,7 @@ export default ({
 
   watch: {
 
-    //listen change of value (input select)
+    // Update the shared input value and required-field validity.
     value(value) {
       this.state.value          = value;
       this.state.validate.valid = !this.state.required || !!value;
@@ -178,23 +176,23 @@ export default ({
     },
 
     async notvalid(value) {
+      // Reflect validation errors on the layer selector after rendering.
       await this.$nextTick();
-      if (this.select2) {
-       this.select2.data('select2').$container[value ? "addClass" : "removeClass"]("input-error-validation")
-      }
+      this.$refs.select?.classList.toggle('input-error-validation', value);
     },
 
   },
 
   created() {
-    const qprocessing               = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing')
+    // Populate raster options from the current project layers.
+    const qprocessing               = GUI.getPlugin('qprocessing')
     const exclude_layers            = qprocessing.config?.exclude_layers || [];
-    this.state.input.options.values = qprocessing.getProject().getLayers()
+    this.state.input.options.values = g3w.state.project.getLayers()
       //exclude base layer
-      .filter(l => !exclude_layers.includes(l.id) && !l.baselayer && 'gdal' === l?.source?.type)
+      .filter(l => !exclude_layers.includes(l.state.id) && !l.state.baselayer && 'gdal' === l?.state?.source?.type)
       .map(l => ({
-        key:   l.name,
-        value: l.id
+        key:   l.state.name,
+        value: l.state.id
       }));
 
     if (this.state.input.options.values.length > 0) {
@@ -204,8 +202,8 @@ export default ({
   },
 
   async mounted(){
+    // Register the initialized input with the parent component.
     await this.$nextTick();
-    this.select2 = $(this.$refs.select);
     this.$emit('addinput', this.state);
   },
 

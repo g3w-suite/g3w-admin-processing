@@ -4,10 +4,12 @@ import fieldchooser_input   from '../components/InputFieldChooser.js';
 import outputvectorlayer    from '../components/OutputVectorLayer.js';
 import outputrasterlayer    from '../components/OutputRasterLayer.js';
 import outputfile           from '../components/OutputFile.js';
+import model_input          from '../components/ModelInput.js';
 
-const { Panel }            = g3wsdk.gui;
-const { GUI }              = g3wsdk.gui;
-const { t }                = g3wsdk.core.i18n;
+const { Panel }           = g3w;
+const GUI                 = g3w.app;
+const ApplicationState    = g3w.state;
+const t                   = g3w.gettext;
 
 export default ({
 
@@ -27,7 +29,7 @@ export default ({
     </section>
 
     <!-- INPUTS   -->
-    <section class = "qprocessing-model-inputs">
+    <section class = "qprocessing-model-inputs" @keydown.enter = "preventInputEnter">
       <div class = "title">INPUTS</div>
       <form class = "form-horizontal g3w-form">
         <component
@@ -38,7 +40,7 @@ export default ({
           @addinput              = "addToValidate"
           @changeinput           = "validate(input)"
           :state                 = "input"
-          :is                    = "input.input.type + '_input'"
+          :is                    = "inputComponent(input)"
         />
       </form>
     </section>
@@ -121,7 +123,7 @@ export default ({
 
   components: {
     // inputs
-    ...g3wsdk.gui.vue.Inputs.InputsComponents,
+    model_input,
     prjvectorlayer_input,
     prjrasterlayer_input,
     prjvectorlayerfeature_input: prjvectorlayer_input,
@@ -138,6 +140,7 @@ export default ({
   },
 
   data() {
+    // Initialize panel state, validation inputs, and task results.
     return {
       state: {
         loading:  false,
@@ -158,7 +161,24 @@ export default ({
 
   methods: {
 
-    //add model result to results
+    inputComponent(input) {
+      // Resolve the Vue component registered for an input type.
+      return ({
+        prjvectorlayer: 'prjvectorlayer_input',
+        prjvectorlayerfeature: 'prjvectorlayerfeature_input',
+        prjrasterlayer: 'prjrasterlayer_input',
+        fieldchooser: 'fieldchooser_input',
+      })[input.input.type] || 'model_input';
+    },
+
+    preventInputEnter(event) {
+      // Prevent Enter from submitting text inputs in the panel.
+      if ('INPUT' === event.target.tagName) {
+        event.preventDefault();
+      }
+    },
+
+    // Add or append a processing result to the model.
     addResultToModel(data = {}) {
       if (undefined === data?.result) {
         return;
@@ -182,7 +202,7 @@ export default ({
     },
 
     /**
-     * Register by every inputs change of other input with dependence
+    * Register a callback for changes to a dependent input.
      */
     registerChangeInputEvent({ inputName, handler } = {}) {
       if (!this.subscribers[inputName]) {
@@ -191,7 +211,7 @@ export default ({
       this.subscribers[inputName].push(handler);
     },
     /***
-     * Clear run state from already run model
+    * Clear status and progress from the previous run.
      */
     clearState() {
       //clear state
@@ -200,13 +220,12 @@ export default ({
     },
 
     /**
-     * Method to handle change input
+    * Validate an input and update the model's overall validity.
      */
     async validate(input) {
       this.clearState();
       // wait DOM changes 
       await this.$nextTick();
-
       this.subscribers?.[input.name]?.forEach?.(h => h(input.value));
 
       const MUTUALLY          = input && input.validate.mutually;
@@ -264,7 +283,7 @@ export default ({
     },
 
     /**
-     * Run model method
+    * Validate, submit, and report the result of a model run.
      */
     async run() {
       this.state.loading             = true;
@@ -273,7 +292,7 @@ export default ({
       this.state.processing_html_log = null;
       await this.$nextTick();
       try {
-        const qprocessing = g3wsdk.core.plugin.PluginsRegistry.getPlugin('qprocessing');
+        const qprocessing = GUI.getPlugin('qprocessing');
 
         //Run task
         this.task = await (new Promise(async (resolve, reject) => {
@@ -320,7 +339,7 @@ export default ({
             }, {})
           }
 
-          const url = `${qprocessing.config.urls.run}${this.model.id}/${qprocessing.getProject().getId()}/` // url model
+          const url = `${qprocessing.config.urls.run}${this.model.id}/${ApplicationState.project.getId()}/` // url model
 
           //Check if configured in async mode
           if (qprocessing.config.async) {
@@ -395,6 +414,7 @@ export default ({
       this.state.message.show = true;
     },
 
+    // Open the processing log in a modal dialog.
     showProcessingLog() {
       this.newLog = false;
       const dialog = Object.assign(document.createElement('template'), {
@@ -426,7 +446,7 @@ export default ({
 
 
     /**
-     * Show Model results Panel
+    * Open the panel containing the model's results.
      */
     async showModelResults() {
       const ModelResults = (await import('./ModelResults.js')).default;
@@ -446,29 +466,21 @@ export default ({
     },
 
     addToValidate(input) {
+      // Track an input so the model can validate it before running.
       this.tovalidate.push(input);
     },
 
   },
 
   created() {
+    // Initialize input validation and dependency subscribers.
     this.tovalidate = [];
     // object contains subscribers of change parent input
     this.subscribers = {};
   },
 
-  async mounted() {
-    await this.$nextTick();
-    //@TODO
-    $('.qprocessing-model-inputs input')
-      .keypress((event) => {
-        if (event.which === 13) {
-          event.preventDefault();
-        }
-    });
-  },
-
   destroyed() {
+    // Release the input validation collection when the panel is destroyed.
     this.tovalidate = null;
   },
 

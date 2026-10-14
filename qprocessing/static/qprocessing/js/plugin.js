@@ -2,10 +2,9 @@
 
   const BASE_URL = `${initConfig.group.plugins.qprocessing.baseUrl}qprocessing/js`;
 
-  const { ApplicationState } = g3wsdk.core;
-  const { Plugin }           = g3wsdk.core.plugin;
-  const { GUI, Panel }       = g3wsdk.gui;
-  const { XHR }              = g3wsdk.core.utils;
+  const { Plugin, Panel }   = g3w;
+  const GUI                 = g3w.app;
+  const { XHR }             = g3w.utils;
 
   new class extends Plugin {
 
@@ -19,27 +18,15 @@
      */
     layerFields = {};
 
+    /** Initialize the plugin, register its sidebar, and mark it ready. */
     constructor() {
       super({ 
         name: 'qprocessing',
         //Add to avoid initial show plugin.qrocessing.title
-        i18n: {
-          [ApplicationState.language] : {
-            title: 'Geoprocessing',
-          }
-        } 
+        i18n: `${BASE_URL}/i18n/`,
       });
 
-      // i18n
-      const VM = new Vue();
-      const i18n = async lang => {
-        import(`${BASE_URL}/i18n/${['it', 'en', 'fr'].includes(lang) ? lang : 'en'}.js`)
-        .then(m => this.setLocale({ [lang]: m.default }))
-        .catch(console.warn)
-      };
-
-      VM.$watch(() => ApplicationState.language, i18n);
-
+      
       // Show loading plugin icon
       this.setHookLoading({ loading: true });
 
@@ -48,9 +35,8 @@
          if (!this.registerPlugin(this.config.gid)) {
           return;
         }
- 
-        await i18n(ApplicationState.language);
-        
+         
+        // Notify components when selected map features change.
         this.emitChangeSelectedFeatures            = () => this.emit('change-selected-features');
         this.registersSelectedFeatureLayersEvent   = this.registersSelectedFeatureLayersEvent.bind(this);
         this.unregistersSelectedFeatureLayersEvent = this.unregistersSelectedFeatureLayersEvent.bind(this);
@@ -80,27 +66,31 @@
       });
     }
 
+    /** Open the processing panel for the selected model. */
     async showPanel(model) {
       new Panel({
         id:           'qprocessing-panel',
         title:        'plugins.qprocessing.title',
-        internalPanel: new (Vue.extend((await import(BASE_URL + '/components/ModelPanel.js')).default))({
+        internalPanel: new (Vue.extend((await import(`${BASE_URL}/components/ModelPanel.js`)).default))({
           propsData: { model },
         }),
         show: true,
       });
     }
 
+    /** Subscribe to feature selection changes on the map. */
     registersSelectedFeatureLayersEvent() {
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().on('addfeature', this.emitChangeSelectedFeatures);
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().on('removefeature', this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().on('addfeature',    this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().on('removefeature', this.emitChangeSelectedFeatures);
     }
 
+    /** Remove the map feature selection subscriptions. */
     unregistersSelectedFeatureLayersEvent() {
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().un('addfeature', this.emitChangeSelectedFeatures);
-      GUI.getService('map').defaultsLayers.selectionLayer.getSource().un('removefeature', this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().un('addfeature',    this.emitChangeSelectedFeatures);
+      GUI.defaultsLayers.selectionLayer.getSource().un('removefeature', this.emitChangeSelectedFeatures);
     }
 
+    /** Serialize features into a GeoJSON file using the requested CRS. */
     createGeoJSONFile({ features = [], name, crs } = {}) {
       return new File(
         [JSON.stringify(Object.assign(
@@ -118,11 +108,12 @@
       );
     }
 
+    /** Upload an input file and return its server-side reference. */
     async uploadFile({ modelId, inputName, file, showUserMessage = true }) {
       const data = new FormData();
       data.append('file', file);
       try {
-        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${this.getProject().getId()}/${inputName}/`, {
+        const response = await (await fetch(`${this.config.urls.upload}${modelId}/${g3w.state.project.getId()}/${inputName}/`, {
           method: 'POST',
           body:    data,
         })).json();
@@ -158,6 +149,7 @@
     /**
      * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
      */
+    /** Start a processing task and periodically report its status. */
     async runTask({
       params = {},
       url,
@@ -188,6 +180,7 @@
     /**
      * ORIGINAL SOURCE: g3wsdk.core.task.TaskService@v4.0.0
      */
+    /** Stop polling the specified task. */
     stopTask(task_id) {
       const task = this.#tasks.find(t => task_id === t.task_id);
       if (task) {
