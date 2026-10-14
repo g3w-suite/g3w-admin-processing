@@ -1,4 +1,4 @@
-# G3W-ADMIN-QPROCESSING v1.4.1
+# G3W-ADMIN-QPROCESSING v2.0.0
 
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/g3w-suite/g3w-admin-processing)
 
