@@ -15,7 +15,7 @@ from django.forms.models import ModelForm, ValidationError
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Div, HTML, Field
-from django_bleach.forms import BleachField
+from django_nh3.forms import Nh3Field
 from django_file_form.forms import FileFormMixin, UploadedFileField
 from usersmanage.forms import G3WACLForm
 from usersmanage.utils import crispyBoxACL
@@ -37,7 +37,7 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WACLForm, G3WRequest
 
     # TODO: add ACL
 
-    note = BleachField(required=False)
+    note = Nh3Field(required=False)
 
     class Meta:
         model = QProcessingProject
@@ -129,5 +129,4 @@ class QProcessingProjectForm(FileFormMixin, G3WFormMixin, G3WACLForm, G3WRequest
         self._ACLPolicy()
 
         return instance
-
 
