@@ -67,6 +67,20 @@ G3WADMIN_LOCAL_MORE_APPS = [
 
 Refer to [g3w-suite-docker](https://github.com/g3w-suite/g3w-suite-docker) repository for more info about running this on a docker instance.
 
+### Tests
+
+The Gherkin scenarios use Behave and are run in CI. Install the test dependencies
+with `pip install -r requirements-test.txt`. Use a configured G3W-ADMIN/QGIS
+environment with PostGIS and Node.js. Add `behave_django` to Django's
+`INSTALLED_APPS` (as a third-party app, not `G3WADMIN_LOCAL_MORE_APPS`) and
+enable G3W-ADMIN's `base.settings.tests_settings`
+for the test run (including its in-memory Huey configuration), and run from the
+G3W-ADMIN directory:
+
+```sh
+python manage.py behave --simple qprocessing/tests
+```
+
 **NB** On Ubuntu Jammy you could get an `UNKNOWN` package install instead of `g3w-admin-processing`, you can retry installing it as follows to fix it:
 
 ```sh

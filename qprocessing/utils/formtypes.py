@@ -54,6 +54,7 @@ from qgis.core import \
     QgsProcessingOutputHtml, \
     QgsWkbTypes,
     QgsProcessingFeatureSourceDefinition,
+    QgsRasterLayer,
     QgsVectorLayer)
 
 # Processing ouput types
@@ -279,7 +280,10 @@ class QProcessingFormTypeRasterLayer(QProcessingFormType):
         # Split by `:`
         subparams = parameter.split(":")
         if len(subparams) == 1:
-            return qgs_project.mapLayer(parameter).source()
+            layer = qgs_project.mapLayer(parameter)
+            if not isinstance(layer, QgsRasterLayer) or not layer.isValid():
+                raise QProcessingFormTypeException(f"Project raster layer '{parameter}' not found or invalid")
+            return layer
 
         # Build path to file
         from qprocessing.models import QProcessingInputUpload

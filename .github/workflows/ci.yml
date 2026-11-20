@@ -50,7 +50,7 @@ jobs:
       - name: Install plugin source
         run: |
           mv plugin/qprocessing g3w-admin/
-          cp plugin/requirements.txt g3w-admin/qprocessing/
+          cp plugin/requirements.txt plugin/requirements-test.txt g3w-admin/qprocessing/
       - name: Start services
         run: docker compose -f docker-compose.ltr.yml up -d
       - name: Copy source into container
@@ -58,12 +58,12 @@ jobs:
       - name: Install dependencies
         run: |
           docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c \
-            'cd /code && pip3 install --break-system-packages -r requirements_docker.txt -r requirements_huey.txt -r g3w-admin/qprocessing/requirements.txt'
+            'cd /code && pip3 install --break-system-packages -r requirements_docker.txt -r requirements_huey.txt -r g3w-admin/qprocessing/requirements.txt -r g3w-admin/qprocessing/requirements-test.txt'
       - name: Configure and set up G3W-ADMIN
         run: |
           docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c \
-            'printf "\nG3WADMIN_LOCAL_MORE_APPS = [\"qprocessing\"]\n" >> /code/settings_docker.py && /code/ci_scripts/build_suite.sh && /code/ci_scripts/setup_suite.sh'
+            'printf "\nG3WADMIN_LOCAL_MORE_APPS = [\"qprocessing\"]\nfrom base.settings.base import THIRD_PARTY_APPS\nTHIRD_PARTY_APPS = THIRD_PARTY_APPS + [\"behave_django\"]\n" >> /code/settings_docker.py && /code/ci_scripts/build_suite.sh && /code/ci_scripts/setup_suite.sh && printf "\nfrom base.settings.tests_settings import *\n" >> /code/g3w-admin/base/settings/local_settings.py'
       - name: Run plugin tests
         run: |
           docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c \
-            'cd /code/g3w-admin && python3 manage.py test qprocessing'
+            'cd /code/g3w-admin && python3 manage.py behave --simple qprocessing/tests'
