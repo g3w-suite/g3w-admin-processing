@@ -105,13 +105,15 @@ class QProcessingRunInfoTaskView(G3WAPIView):
                 ret_status = 500
 
             task_model = TaskModel.objects.get(task_id=task_id)
-            progress_info = task_model.progress_info
+            if hasattr(task_model, 'progress_count'):
+                progress_count = task_model.progress_count
+            else:
+                progress_count = task_model.progress_info[0]
 
-            try:
-                progress_percentage = int(
-                    100 * progress_info[0] / task_model.total)
-            except:
-                progress_percentage = 0
+            progress_percentage = (
+                int(100 * progress_count / task_model.total)
+                if progress_count is not None and task_model.total else 0
+            )
 
             if task_model.state.signal_name == 'complete':
                 progress_percentage = 100

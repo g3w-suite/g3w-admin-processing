@@ -40,6 +40,8 @@ import zipfile
 import time
 from io import BytesIO
 import os
+from types import SimpleNamespace
+from unittest.mock import patch
 
 
 class TestQProcessingModelsAPIREST(TestQProcessingBase):
@@ -138,7 +140,7 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
 
             self.assertEqual(jres['status'], 'complete')
             self.assertEqual(jres['exception'], '')
-            self.assertEqual(jres['progress'], 0)
+            self.assertEqual(jres['progress'], 100)
             # self.assertEqual(jres['task_result'], {'native:buffer_1:Buffer results': '/qprocessing/api/download/gAAAAABkq-KAS1ExRItPOBL1Bi8CTBcl0INK6VL9ipYiQjy-48Fmo4r-2ERNDMa0paQcG_2vzFVFY11Lgmcl_qCN1qsykovFOQFf67CtJhK3OLvPU7HjqygYSX0rdJrwv0NE_xADuBdZ02orxcH_IxU24-bib8YMsw==/'})
 
             # Get file result file ZIP
@@ -191,7 +193,7 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
 
             self.assertEqual(jres['status'], 'complete')
             self.assertEqual(jres['exception'], '')
-            self.assertEqual(jres['progress'], 0)
+            self.assertEqual(jres['progress'], 100)
 
             # Get file result file GeoJson
             res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
@@ -234,7 +236,7 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
 
             self.assertEqual(jres['status'], 'complete')
             self.assertEqual(jres['exception'], '')
-            self.assertEqual(jres['progress'], 0)
+            self.assertEqual(jres['progress'], 100)
 
             # Get file result file GeoJson
             res = self.client.get(jres['task_result']['native:countpointsinpolygon_1:Points in polygons'])
@@ -285,6 +287,24 @@ class TestQProcessingModelsAPIREST(TestQProcessingBase):
         """
 
         self._test_models_results()
+
+    def test_task_progress(self):
+        state = SimpleNamespace(signal_name='executing', exception_line='')
+        url = reverse('qprocessing-infotask', args=['00000000-0000-0000-0000-000000000001'])
+        self.client.login(username=self.test_admin1.username, password=self.test_admin1.username)
+        tasks = (
+            (SimpleNamespace(state=state, total=100, progress_count=25), 25),
+            (SimpleNamespace(state=state, total=100, progress_info=(25, None)), 25),
+            (SimpleNamespace(state=state, total=0, progress_count=None), 0),
+        )
+        with patch('qprocessing.api.views.models.HUEY.result', return_value=None), \
+                patch('qprocessing.api.views.models.TaskModel.objects.get') as get_task:
+            for task, expected in tasks:
+                with self.subTest(task=task):
+                    get_task.return_value = task
+                    response = self.client.get(url)
+                    self.assertEqual(response.status_code, 200)
+                    self.assertEqual(response.json()['progress'], expected)
 
     @override_settings(
         QPROCESSING_ASYNC_RUN=False,
