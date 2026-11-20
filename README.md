@@ -196,9 +196,17 @@ run:
 python manage.py behave --settings=base.settings.qprocessing_test_settings --simple qprocessing/tests
 ```
 
+### Automatic releases
+
+After CI succeeds for a push, CD creates and tags an empty commit named after
+the version, then publishes to PyPI and GitHub Releases. The commit has the
+same content as the tested commit. If the branch advances, CD skips that run
+and waits for CI on the latest commit. Release notes include commit messages,
+authors and links.
+
 **Compatibile with:**
-[![g3w-admin version](https://img.shields.io/badge/g3w--admin-3.7-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-admin/tree/v.3.7.x)
-[![g3w-suite-docker version](https://img.shields.io/badge/g3w--suite--docker-3.7-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-suite-docker/tree/v3.6.x)
+[![g3w-admin version](https://img.shields.io/badge/g3w--admin-4.0-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-admin/tree/v.4.0.x)
+[![g3w-suite-docker version](https://img.shields.io/badge/g3w--suite--docker-4.0-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-suite-docker/tree/v4.0.x)
 
 ---
 

@@ -1,5 +1,7 @@
 name: CD
 
+# A completed CI run is only a trigger; the job below also checks its result
+# and origin before it can publish anything.
 on:
   workflow_run:
     workflows: [CI]
@@ -8,21 +10,27 @@ on:
 permissions:
   contents: read
 
+# Serialize releases so concurrent CI completions cannot choose the same
+# version. Queue runs rather than canceling an in-progress publication.
 concurrency:
   group: publish-qprocessing
   queue: max
 
 jobs:
   publish:
+    # PR checks and runs from another repository must never publish a release.
     if: >-
       github.event.workflow_run.conclusion == 'success' &&
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
     permissions:
+      # Push the release commit and tag; authenticate to PyPI with OIDC.
       contents: write
       id-token: write
     steps:
+      # Build from the exact commit CI tested, with its history and tags.
+      # Credentials are supplied explicitly for Git operations that need them.
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
@@ -32,14 +40,30 @@ jobs:
         with:
           python-version: '3.11'
       - name: Select next version
+        # A tag annotation records the CI SHA, allowing a rerun to resume the
+        # same release rather than allocate a second version.
         id: version
         env:
           COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
+          GH_TOKEN: ${{ github.token }}
         run: |
-          tag=$(git tag --points-at "$COMMIT_SHA" -l 'v*' --format='%(refname:short) %(contents:subject)' | sed -n "s/^\(v[0-9][0-9]*\.[0-9]\.[0-9]\) Automated release for $COMMIT_SHA$/\1/p" | head -n 1)
+          tag=$(git tag -l 'v*' --format='%(refname:short) %(contents:subject)' | sed -n "s/^\(v[0-9][0-9]*\.[0-9]\.[0-9]\) Automated release for $COMMIT_SHA$/\1/p" | head -n 1)
           if [ -z "$tag" ]; then
+            # Only publish the tested tip. If newer commits arrived, their CI
+            # run will handle the release instead.
+            git check-ref-format --branch "$BRANCH" >/dev/null
+            auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+            current=$(git -c http.extraheader="$auth" ls-remote --exit-code origin "refs/heads/$BRANCH" | cut -f1)
+            if [ "$current" != "$COMMIT_SHA" ]; then
+              echo "Branch has advanced; waiting for CI on its latest commit."
+              echo "proceed=false" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
             latest=$(git tag -l 'v*' | grep -E '^v[0-9]+\.[0-9]\.[0-9]$' | sort -V | tail -n 1)
             test -n "$latest" || { echo "No stable version tag found" >&2; exit 1; }
+            # Increment patch, carrying at 10 into minor and then major.
+            # Only stable tags with single-digit minor and patch are eligible.
             bump() {
               local major minor patch
               IFS=. read -r major minor patch <<< "${1#v}"
@@ -58,37 +82,82 @@ jobs:
             test "$(bump v1.2.9)" = v1.3.0
             test "$(bump v1.9.9)" = v2.0.0
             tag=$(bump "$latest")
+            echo "existing=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "existing=true" >> "$GITHUB_OUTPUT"
           fi
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
       - name: Build package
+        # Build before changing Git refs, using the version that will be tagged.
+        # This gives setuptools-scm the release version even before the tag exists.
+        if: steps.version.outputs.proceed == 'true'
         env:
           SETUPTOOLS_SCM_PRETEND_VERSION: ${{ steps.version.outputs.tag }}
         run: |
           python -m pip install build twine
           python -m build
           python -m twine check dist/*
-      - name: Create tag
+      - name: Create release commit and tag
+        # The commit is empty: its tree is exactly the one CI tested. Its
+        # subject is the version without "v"; the annotated tag retains "v".
+        id: release
+        if: steps.version.outputs.proceed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
+          EXISTING: ${{ steps.version.outputs.existing }}
           COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
+          BRANCH: ${{ github.event.workflow_run.head_branch }}
         run: |
-          if ! git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
+          if [ "$EXISTING" != true ]; then
             git config user.name github-actions[bot]
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git tag -a "$TAG" "$COMMIT_SHA" -m "Automated release for $COMMIT_SHA"
-            git -c http.extraheader="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)" push origin "refs/tags/$TAG"
+            git commit --allow-empty -m "${TAG#v}"
+            git tag -a "$TAG" HEAD -m "Automated release for $COMMIT_SHA"
+            auth="AUTHORIZATION: basic $(printf 'x-access-token:%s' "$GH_TOKEN" | base64 -w0)"
+            # Push branch and tag together, only if the remote branch still
+            # points at the tested SHA. The new commit is its direct child.
+            if ! git -c http.extraheader="$auth" push --atomic \
+              --force-with-lease="refs/heads/$BRANCH:$COMMIT_SHA" origin \
+              "HEAD:refs/heads/$BRANCH" "refs/tags/$TAG:refs/tags/$TAG"; then
+              current=$(git -c http.extraheader="$auth" ls-remote --exit-code origin "refs/heads/$BRANCH" | cut -f1)
+              # A race with another push is a skip; other push failures fail
+              # the workflow rather than publishing an untagged package.
+              if [ "$current" != "$COMMIT_SHA" ]; then
+                echo "Branch advanced during the build; waiting for its CI."
+                echo "proceed=false" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              echo "Could not push the release commit and tag." >&2
+              exit 1
+            fi
           fi
+          echo "proceed=true" >> "$GITHUB_OUTPUT"
       - name: Publish to PyPI
+        # Trusted publishing uses the job's OIDC token. Existing distributions
+        # are skipped so a partially completed run can be retried.
+        if: steps.release.outputs.proceed == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
       - name: Create GitHub release
+        # Keep GitHub's generated PR notes and prepend a list of commits.
+        # A previously published release is left unchanged on retry.
+        if: steps.release.outputs.proceed == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.version.outputs.tag }}
           COMMIT_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
           released=$(gh api --paginate "repos/$GITHUB_REPOSITORY/releases?per_page=100" --jq '.[] | select(.draft == false) | .tag_name')
+          if grep -Fxq -- "$TAG" <<< "$released"; then
+            echo "Release $TAG already exists."
+            exit 0
+          fi
           previous=
+          # Select the highest-version published tag reachable from the
+          # tested commit, ignoring unpublished tags and the current tag.
           while IFS= read -r candidate; do
             if [ "$candidate" != "$TAG" ] && grep -Fxq -- "$candidate" <<< "$released"; then
               previous=$candidate
@@ -97,11 +166,40 @@ jobs:
           done < <(git tag --merged "$COMMIT_SHA" --sort=-version:refname)
 
           notes="$RUNNER_TEMP/release-notes.md"
-          printf '## Commits\n\n' > "$notes"
           if [ -n "$previous" ]; then
-            git log --no-merges --format="- [%h](https://github.com/$GITHUB_REPOSITORY/commit/%H) %s" "$previous..$COMMIT_SHA" >> "$notes"
+            range="$previous..$COMMIT_SHA"
+          else
+            range="$COMMIT_SHA"
+          fi
+          commits=$(git rev-list --no-merges "$range")
+          while IFS= read -r sha; do
+            [ -n "$sha" ] || continue
+            subject=$(git show -s --format=%s "$sha")
+            email=$(git show -s --format=%ae "$sha")
+            # Exclude empty version commits made by this workflow's bot, but
+            # retain numeric subjects authored by others or containing changes.
+            if [[ "$subject" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$email" = '41898282+github-actions[bot]@users.noreply.github.com' ]; then
+              parent=$(git show -s --format=%P "$sha")
+              if [ -n "$parent" ]; then
+                tree=$(git rev-parse "$sha^{tree}")
+                parent_tree=$(git rev-parse "${parent%% *}^{tree}")
+                if [ "$tree" = "$parent_tree" ]; then
+                  continue
+                fi
+              fi
+            fi
+            # GitHub may not associate an account with the commit author; in
+            # that case show the Git author name instead of inventing a handle.
+            login=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha" --jq '.author.login // empty')
+            if [ -n "$login" ]; then
+              author="@$login"
+            else
+              author=$(git show -s --format=%an "$sha")
+            fi
+            printf -- '- %s by %s in [%s](https://github.com/%s/commit/%s)\n' "$subject" "$author" "${sha:0:7}" "$GITHUB_REPOSITORY" "$sha" >> "$notes"
+          done <<< "$commits"
+          if [ -n "$previous" ]; then
             gh release create "$TAG" dist/* --verify-tag --generate-notes --notes-start-tag "$previous" --notes-file "$notes"
           else
-            git log --no-merges --format="- [%h](https://github.com/$GITHUB_REPOSITORY/commit/%H) %s" "$COMMIT_SHA" >> "$notes"
             gh release create "$TAG" dist/* --verify-tag --generate-notes --notes-file "$notes"
           fi

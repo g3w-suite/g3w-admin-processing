@@ -1,5 +1,7 @@
 name: CI
 
+# Run on pushes to any branch and on pull requests. CD separately decides
+# whether a successful run is eligible to create a release.
 on:
   push:
     branches: ['**']
@@ -9,18 +11,190 @@ permissions:
   contents: read
 
 jobs:
+  # Packaging and plugin integration run independently; both must succeed
+  # for the overall CI run to succeed.
   package:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
+          # setuptools-scm needs Git history and tags to determine the version.
           fetch-depth: 0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
       - run: python -m pip install build twine
       - run: python -m build && python -m twine check dist/*
+      - name: Test release notes
+        # Exercise the actual CD step in a temporary Git repository. The fake
+        # gh command avoids contacting GitHub or publishing a release.
+        run: |
+          python - <<'PY'
+          import os
+          import shutil
+          import subprocess
+          import tempfile
+          import textwrap
+          from pathlib import Path
+
+          # Extract the workflow's shell script so the test cannot drift from it.
+          content = Path('.github/workflows/cd.yml').read_text(encoding='utf-8')
+          script = textwrap.dedent(content.split('      - name: Create GitHub release\n', 1)[1]
+                                   .split('        run: |\n', 1)[1])
+          with tempfile.TemporaryDirectory() as directory:
+              root = Path(directory)
+              repo = root / 'repo'
+              repo.mkdir()
+
+              def git(*args):
+                  return subprocess.run(['git', *args], cwd=repo, check=True, stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE, encoding='utf-8').stdout.strip()
+
+              git('init')
+              git('config', 'user.name', 'Local Author')
+              git('config', 'user.email', 'local@example.invalid')
+              git('commit', '--allow-empty', '-m', 'initial')
+              git('tag', 'v1.0.0')
+              git('commit', '--allow-empty', '-m', 'ci: fix tests')
+              direct = git('rev-parse', 'HEAD')
+              # A human-authored version subject must remain in the notes; an
+              # empty version commit by the release bot must not.
+              git('commit', '--allow-empty', '-m', '1.2.0')
+              manual = git('rev-parse', 'HEAD')
+              git('-c', 'user.name=github-actions[bot]',
+                  '-c', 'user.email=41898282+github-actions[bot]@users.noreply.github.com',
+                  'commit', '--allow-empty', '-m', '1.2.1')
+              automatic = git('rev-parse', 'HEAD')
+
+              gh = root / 'gh'
+              gh.write_text(textwrap.dedent('''\
+                  #!/usr/bin/env bash
+                  if [ "$1" = api ] && [ "$2" = --paginate ]; then
+                    if [ -z "$NO_PREVIOUS" ]; then echo v1.0.0; fi
+                  elif [ "$1" = api ]; then
+                    if [[ "$2" = *"$DIRECT" ]]; then echo Alice; fi
+                  elif [ "$1" = release ] && [ "$2" = create ]; then
+                    printf '%s\\n' "$@" > "$RUNNER_TEMP/args"
+                  else
+                    exit 1
+                  fi
+              '''), encoding='utf-8')
+              gh.chmod(0o755)
+              bash = shutil.which('bash')
+              runner_temp = str(root)
+              if os.name == 'nt':
+                  bash = str(Path(shutil.which('git')).parent.parent / 'bin' / 'bash.exe')
+                  runner_temp = f'/{root.drive[0].lower()}{root.as_posix()[2:]}'
+              env = {
+                  **os.environ, 'PATH': str(root) + os.pathsep + os.environ['PATH'],
+                  'GITHUB_REPOSITORY': 'owner/repo', 'RUNNER_TEMP': runner_temp,
+                  'COMMIT_SHA': automatic, 'TAG': 'v1.2.1', 'DIRECT': direct,
+              }
+              subprocess.run([bash, '-eo', 'pipefail', '-c', script], cwd=repo, env=env, check=True)
+              notes = (root / 'release-notes.md').read_text(encoding='utf-8')
+              assert f'- ci: fix tests by @Alice in [{direct[:7]}](https://github.com/owner/repo/commit/{direct})' in notes
+              assert f'- 1.2.0 by Local Author in [{manual[:7]}]' in notes
+              assert automatic[:7] not in notes
+              assert '--notes-start-tag\nv1.0.0' in (root / 'args').read_text()
+
+              # With no previous release, include history and omit the start tag.
+              env['NO_PREVIOUS'] = '1'
+              subprocess.run([bash, '-eo', 'pipefail', '-c', script], cwd=repo, env=env, check=True)
+              notes = (root / 'release-notes.md').read_text(encoding='utf-8')
+              assert '- initial by Local Author' in notes
+              assert automatic[:7] not in notes
+              assert '--notes-start-tag' not in (root / 'args').read_text()
+          PY
+      - name: Test release commit
+        # Run the real CD version and tag steps against a temporary bare remote.
+        # No Git push in this test targets the project repository.
+        run: |
+          python - <<'PY'
+          import os
+          import shutil
+          import subprocess
+          import tempfile
+          import textwrap
+          from pathlib import Path
+
+          content = Path('.github/workflows/cd.yml').read_text(encoding='utf-8')
+          def script(name):
+              step = content.split(f'      - name: {name}\n', 1)[1].split('\n      - name:', 1)[0]
+              return textwrap.dedent(step.split('        run: |\n', 1)[1])
+
+          with tempfile.TemporaryDirectory() as directory:
+              root = Path(directory)
+              remote, work, checkout = root / 'remote.git', root / 'work', root / 'checkout'
+              def git(cwd, *args):
+                  return subprocess.run(['git', *args], cwd=cwd, check=True, stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE, encoding='utf-8').stdout.strip()
+
+              git(root, 'init', '--bare', str(remote))
+              git(root, 'init', str(work))
+              git(work, 'switch', '-c', 'dev')
+              git(work, 'config', 'user.name', 'Test')
+              git(work, 'config', 'user.email', 'test@example.invalid')
+              git(work, 'commit', '--allow-empty', '-m', 'initial')
+              git(work, 'tag', '-a', 'v1.2.0', '-m', 'Previous release')
+              git(work, 'remote', 'add', 'origin', str(remote))
+              git(work, 'push', 'origin', 'dev', '--tags')
+              source = git(work, 'rev-parse', 'HEAD')
+              git(root, 'clone', '--branch', 'dev', str(remote), str(checkout))
+              git(checkout, 'checkout', '--detach', source)
+              output = root / 'output'
+              bash = shutil.which('bash')
+              output_path = str(output)
+              if os.name == 'nt':
+                  bash = str(Path(shutil.which('git')).parent.parent / 'bin' / 'bash.exe')
+                  output_path = f'/{output.drive[0].lower()}{output.as_posix()[2:]}'
+
+              def run(name, sha, **values):
+                  output.write_text('', encoding='utf-8')
+                  env = {**os.environ, 'COMMIT_SHA': sha, 'BRANCH': 'dev',
+                         'GH_TOKEN': 'test', 'GITHUB_OUTPUT': output_path, **values}
+                  subprocess.run([bash, '-eo', 'pipefail', '-c', script(name)],
+                                 cwd=checkout, env=env, check=True)
+                  return dict(line.split('=', 1) for line in output.read_text().splitlines())
+
+              version = run('Select next version', source)
+              assert version == {'existing': 'false', 'tag': 'v1.2.1', 'proceed': 'true'}
+              assert run('Create release commit and tag', source, TAG=version['tag'], EXISTING='false') == {'proceed': 'true'}
+              release = git(checkout, 'rev-parse', 'HEAD')
+              assert git(checkout, 'rev-parse', 'v1.2.1^{}') == release
+              assert git(checkout, 'ls-remote', 'origin', 'refs/heads/dev').split()[0] == release
+              assert git(checkout, 'ls-remote', 'origin', 'refs/tags/v1.2.1^{}').split()[0] == release
+              assert git(checkout, 'rev-parse', f'{release}^') == source
+              assert git(checkout, 'rev-parse', f'{release}^{{tree}}') == git(checkout, 'rev-parse', f'{source}^{{tree}}')
+              assert git(checkout, 'log', '-1', '--format=%s', release) == '1.2.1'
+              # A fresh checkout simulates a rerun after the push succeeded.
+              checkout = root / 'retry'
+              git(root, 'clone', '--branch', 'dev', str(remote), str(checkout))
+              git(checkout, 'checkout', '--detach', source)
+              retry = run('Select next version', source)
+              assert retry == {'existing': 'true', 'tag': 'v1.2.1', 'proceed': 'true'}
+              assert run('Create release commit and tag', source, TAG=retry['tag'], EXISTING='true') == {'proceed': 'true'}
+
+              # Advance the remote after version selection to test both the
+              # initial stale-branch check and the atomic push race.
+              git(work, 'pull', '--ff-only', 'origin', 'dev')
+              git(work, 'commit', '--allow-empty', '-m', 'next change')
+              git(work, 'push', 'origin', 'dev')
+              source = git(work, 'rev-parse', 'HEAD')
+              git(checkout, 'fetch', 'origin')
+              git(checkout, 'checkout', '--detach', source)
+              version = run('Select next version', source)
+              assert version == {'existing': 'false', 'tag': 'v1.2.2', 'proceed': 'true'}
+              git(work, 'commit', '--allow-empty', '-m', 'newer change')
+              git(work, 'push', 'origin', 'dev')
+              latest = git(work, 'rev-parse', 'HEAD')
+              assert run('Select next version', source) == {'proceed': 'false'}
+              assert run('Create release commit and tag', source, TAG=version['tag'], EXISTING='false') == {'proceed': 'false'}
+              assert git(checkout, 'ls-remote', 'origin', 'refs/heads/dev').split()[0] == latest
+              assert not git(checkout, 'ls-remote', 'origin', 'refs/tags/v1.2.2')
+          PY
       - name: Check wheel contents
+        # Verify the wheel includes representative Python, migration, static
+        # and template files required by the plugin.
         run: |
           python - <<'PY'
           from glob import glob
@@ -37,6 +211,8 @@ jobs:
           } <= files
           PY
 
+  # Run the BDD suite in the G3W-ADMIN/QGIS Docker environment rather than
+  # relying on the lightweight packaging runner for geospatial dependencies.
   tests:
     runs-on: ubuntu-24.04
     timeout-minutes: 60
@@ -48,18 +224,22 @@ jobs:
         with:
           path: plugin
       - name: Install plugin source
+        # Place this checkout where the host application discovers its plugin.
         run: |
           mv plugin/qprocessing g3w-admin/
           cp plugin/requirements.txt plugin/requirements-test.txt g3w-admin/qprocessing/
       - name: Start services
         run: docker compose -f docker-compose.ltr.yml up -d
       - name: Copy source into container
+        # The suite's setup scripts run against the source tree inside /code.
         run: docker cp . "$(docker compose -f docker-compose.ltr.yml ps -q g3w-suite)":/code
       - name: Install dependencies
         run: |
           docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c \
             'cd /code && pip3 install --break-system-packages -r requirements_docker.txt -r requirements_huey.txt -r g3w-admin/qprocessing/requirements.txt -r g3w-admin/qprocessing/requirements-test.txt'
       - name: Configure and set up G3W-ADMIN
+        # Enable qprocessing and behave-django, initialize the host suite,
+        # then load its test settings before invoking Behave.
         run: |
           docker compose -f docker-compose.ltr.yml exec -T g3w-suite sh -c \
             'printf "\nG3WADMIN_LOCAL_MORE_APPS = [\"qprocessing\"]\nfrom base.settings.base import THIRD_PARTY_APPS\nTHIRD_PARTY_APPS = THIRD_PARTY_APPS + [\"behave_django\"]\n" >> /code/settings_docker.py && /code/ci_scripts/build_suite.sh && /code/ci_scripts/setup_suite.sh && printf "\nfrom base.settings.tests_settings import *\n" >> /code/g3w-admin/base/settings/local_settings.py'
