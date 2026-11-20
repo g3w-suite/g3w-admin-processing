@@ -1,5 +1,6 @@
-# G3W-ADMIN-QPROCESSING v2.0.0
+# G3W-ADMIN-QPROCESSING
 
+[![PyPI version](https://img.shields.io/pypi/v/g3w-admin-processing)](https://pypi.org/project/g3w-admin-processing/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/g3w-suite/g3w-admin-processing)
 
 A dedicated [QGIS Processing](https://docs.qgis.org/3.28/en/docs/training_manual/processing/index.html) module for G3W-SUITE framework:
@@ -48,7 +49,7 @@ pip3 install git+https://github.com/g3w-suite/g3w-admin-processing.git@v1.0.0
 # Install module from local folder (git development)
 # pip3 install -e /g3w-admin/plugins/qprocessing
 
-# Install module from PyPi (not yet available)
+# Install module from PyPI
 # pip3 install g3w-admin-processing
 ```
 

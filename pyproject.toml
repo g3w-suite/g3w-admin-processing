@@ -6,14 +6,13 @@ requires        = [
 ]
 
 [project]
-name            = "qprocessing"
+name            = "g3w-admin-processing"
 dynamic         = [
     "version",              # retrieve package version from git tags
-    "dependencies",         # retrieve package dependencies from requirements.txt
-    "optional-dependencies" # retrieve development dependencies from requirements_dev.txt
+    "dependencies"          # retrieve package dependencies from requirements.txt
 ] 
 authors         = [ { name = "Gis3w snc", email = "info@gis3w.it" } ]
-description     = "G3W-ADMIN plugin for use the processing features of QGIS application-"
+description     = "G3W-ADMIN plugin for use the processing features of QGIS application"
 readme          = "README.md"
 license         = { text = "Mozilla Public License 2.0 (MPL 2.0)" }
 classifiers     = [
@@ -32,24 +31,12 @@ classifiers     = [
 "Homepage"      = "https://github.com/g3w-suite/g3w-admin-processing"
 "Bug Tracker"   = "https://github.com/g3w-suite/g3w-admin-processing/issues"
 
-[tool.setuptools]
-# Manual package discovery
-packages        = ["qprocessing"]
-package-dir     = { qprocessing = "qprocessing" }
-
-# Custom package discovery
-# [tool.setuptools.packages]
-# find = { }
-
-# https://setuptools.pypa.io/en/latest/userguide/package_discovery.html#automatic-discovery
-#
-# NB: see also: MANIFEST.in
+[tool.setuptools.packages.find]
+include = ["qprocessing*"]
+namespaces = false
 
 [tool.setuptools.dynamic]
 dependencies    = { file = ["requirements.txt"] }
-
-[tool.setuptools.dynamic.optional-dependencies]
-dev  = { file = ["requirements_dev.txt"] }
 
 [tool.setuptools_scm]
 fallback_version = "v1.2.1-beta.0"

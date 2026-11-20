@@ -34,6 +34,7 @@ class TestQprocessingAlgorithm(TestQProcessingBase):
         #ingresso1 = './buildings.geojson'
         ingresso1 = os.path.join(CURRENT_PATH, TEST_BASE_PATH, 'project_data/buildings.geojson')
         result_path = os.path.join(CURRENT_PATH, TEST_BASE_PATH, 'processing_result', 'out.shp')
+        os.makedirs(os.path.dirname(result_path), exist_ok=True)
 
         params = {
             'buffer_distance': 1000,
@@ -47,6 +48,6 @@ class TestQprocessingAlgorithm(TestQProcessingBase):
 
         res = qpm.model.processAlgorithm(params, ctx, ctf)
 
-        aspected_res = {'CHILD_INPUTS': {'native:buffer_1': {'DISSOLVE': False, 'DISTANCE': 1000, 'END_CAP_STYLE': 0, 'INPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/project_data/buildings.geojson', 'JOIN_STYLE': 0, 'MITER_LIMIT': None, 'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp', 'SEGMENTS': None}}, 'CHILD_RESULTS': {'native:buffer_1': {'OUTPUT': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}}, 'layer_bufferd': '/home/walter/PycharmProjects/g3w_suite_qgis_api/plugins/g3w-admin-processing/qprocessing/tests/data/processing_result/out.shp'}
+        aspected_res = {'CHILD_INPUTS': {'native:buffer_1': {'DISSOLVE': False, 'DISTANCE': 1000, 'END_CAP_STYLE': 0, 'INPUT': ingresso1, 'JOIN_STYLE': 0, 'MITER_LIMIT': None, 'OUTPUT': result_path, 'SEGMENTS': None}}, 'CHILD_RESULTS': {'native:buffer_1': {'OUTPUT': result_path}}, 'layer_bufferd': result_path}
 
         self.assertEqual(res, aspected_res)
