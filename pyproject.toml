@@ -33,7 +33,11 @@ classifiers     = [
 
 [tool.setuptools.packages.find]
 include = ["qprocessing*"]
+exclude = ["*.tests", "*.tests.*"]
 namespaces = false
+
+[tool.setuptools.exclude-package-data]
+"*" = ["tests/*", "tests/**/*"]
 
 [tool.setuptools.dynamic]
 dependencies    = { file = ["requirements.txt"] }

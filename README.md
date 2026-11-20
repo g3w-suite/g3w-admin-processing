@@ -174,7 +174,7 @@ They require a configured G3W-ADMIN/QGIS environment, PostGIS, and Node.js
 Install the test dependencies from this repository:
 
 ```sh
-pip install -r requirements-test.txt
+pip install -r requirements_test.txt
 ```
 
 Make the plugin source available as `qprocessing` in G3W-ADMIN, as done in
