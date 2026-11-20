@@ -1,110 +1,154 @@
-# G3W-ADMIN-QPROCESSING
+# G3W-ADMIN-PROCESSING
 
 [![PyPI version](https://img.shields.io/pypi/v/g3w-admin-processing)](https://pypi.org/project/g3w-admin-processing/)
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/g3w-suite/g3w-admin-processing)
 
-A dedicated [QGIS Processing](https://docs.qgis.org/3.28/en/docs/training_manual/processing/index.html) module for G3W-SUITE framework:
+Run [QGIS Processing](https://docs.qgis.org/3.28/en/docs/training_manual/processing/index.html)
+models from G3W-CLIENT. Upload a `.model3` file in G3W-ADMIN, associate it with
+one or more projects, and make it available to authorized users.
 
 ![QProcessing schema](doc/images/qprocessing_schema.png)
 
-1. upload a [`.model3`](https://docs.qgis.org/3.28/en/docs/user_manual/processing/modeler.html) file into G3W-ADMIN.
-2. get QGIS Processing tools available within G3W-CLIENT.
-
-![QGIS desktop](doc/images/qgis.png)
-
-![G3W-SUITE](doc/images/g3w-suite.png)
-
-## Supported features
-
-#### QGIS Processing Inputs:
-
-- **VectorLayer** → [QgsProcessingParameterVectorLayer](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterVectorLayer.html)
-- **VectorFeatures** → [QgsProcessingParameterFeatureSource](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterFeatureSource.html)
-- **VectorField** → [QgsProcessingParameterField](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterField.html)
-- **RasterLayer** → [QgsProcessingParameterRasterLayer](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterRasterLayer.html)
-- **Distance** → [QgsProcessingParameterDistance](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterDistance.html) 
-- **DateTime** → [QgsProcessingParameterDateTime](https://api.qgis.org/api/classQgsProcessingParameterDateTime.html) 
-- **Boolean** → [QgsProcessingParameterBoolean](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterBoolean.html)
-- **Range** → [QgsProcessingParameterRange](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterRange.html) 
-- **Number** → [QgsProcessingParameterNumber](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterNumber.html) 
-- **Extent** → [QgsProcessingParameterExtent](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingParameterExtent.html)
-
-#### QGIS Processing Outputs:
-
-- **VectorLayer** → [QgsProcessingOutputVectorLayer](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingOutputVectorLayer.html)
-- **RasterLayer** → [QgsProcessingOutputRasterLayer](https://qgis.org/pyqgis/3.2/core/Processing/QgsProcessingOutputRasterLayer.html)
-
-
 ## Installation
 
-Install *qprocessing* module into [`g3w-admin`](https://github.com/g3w-suite/g3w-admin/tree/v.3.6.x/g3w-admin) applications folder:
+Install the package in the Python environment used by G3W-ADMIN:
 
 ```sh
-# Install module from github (v1.0.0)
-pip3 install git+https://github.com/g3w-suite/g3w-admin-processing.git@v1.0.0
-
-# Install module from github (dev branch)
-# pip3 install git+https://github.com/g3w-suite/g3w-admin-processing.git@dev
-
-# Install module from local folder (git development)
-# pip3 install -e /g3w-admin/plugins/qprocessing
-
-# Install module from PyPI
-# pip3 install g3w-admin-processing
+pip install g3w-admin-processing
 ```
 
-Enable `'qprocessing'` module adding it to `G3W_LOCAL_MORE_APPS` list:
+For local development, install from a checkout instead:
 
-```py
-# local_settings.py
+```sh
+pip3 install -e /g3w-suite-docker/plugins/qprocessing
+```
 
+The Django application is named **`qprocessing`**. Add it to the existing list in G3W-ADMIN's
+`local_settings.py`:
+
+```python
 G3WADMIN_LOCAL_MORE_APPS = [
     ...
-    'qprocessing'
+    'qprocessing',
     ...
 ]
 ```
 
-Refer to [g3w-suite-docker](https://github.com/g3w-suite/g3w-suite-docker) repository for more info about running this on a docker instance.
-
-### Tests
-
-The Gherkin scenarios use Behave and are run in CI. Install the test dependencies
-with `pip install -r requirements-test.txt`. Use a configured G3W-ADMIN/QGIS
-environment with PostGIS and Node.js. Add `behave_django` to Django's
-`INSTALLED_APPS` (as a third-party app, not `G3WADMIN_LOCAL_MORE_APPS`) and
-enable G3W-ADMIN's `base.settings.tests_settings`
-for the test run (including its in-memory Huey configuration), and run from the
-G3W-ADMIN directory:
+Run G3W-ADMIN's migrations and restart the application:
 
 ```sh
-python manage.py behave --simple qprocessing/tests
+python manage.py migrate
 ```
 
-**NB** On Ubuntu Jammy you could get an `UNKNOWN` package install instead of `g3w-admin-processing`, you can retry installing it as follows to fix it:
+For Docker deployments, see
+[g3w-suite-docker](https://github.com/g3w-suite/g3w-suite-docker).
+
+On Ubuntu Jammy, if installation produces an `UNKNOWN` distribution instead of
+`g3w-admin-processing`, retry with:
 
 ```sh
-# Fix: https://github.com/pypa/setuptools/issues/3269#issuecomment-1254507377
 export DEB_PYTHON_INSTALL_LAYOUT=deb_system
-
-# And then install again the module
-pip3 install ...
+pip install g3w-admin-processing
 ```
 
-### Configuration
+## Use
 
-By default `Qprocessing` works sin **synchronous mode** 
+1. Create a model using the [QGIS graphical modeler](https://docs.qgis.org/3.28/en/docs/user_manual/processing/modeler.html)
+   and save it as a `.model3` file.
+2. In G3W-ADMIN, open **Processing > Models > Add model**, upload the model,
+   select its projects, and configure access.
+3. Open an associated project in G3W-CLIENT, provide the model inputs, and run it.
 
-To make `QProcessing` works in **asynchronous mode** (in batch mode) you need set  setting `QPROCESSING_ASYNC_RUN` TO `True` and  Huey and have a message broker such as [`Redis`](https://redis.io/), here it is an example:
+Users need permission to view the project and run the model.
+
+![QGIS desktop](doc/images/qgis.png)
+![G3W-SUITE](doc/images/g3w-suite.png)
+
+### Supported model parameters
+
+The processing form supports the following QGIS parameter types:
+
+- Vector layer, feature source, and vector field
+- Raster layer
+- Distance, number, boolean, and extent
+
+Supported outputs are vector layers, raster layers, files, and HTML. Date/time
+and range parameters are recognized when a model is read, but their processing
+input conversions are not currently implemented.
+
+## Configuration
+
+Set these options in G3W-ADMIN's settings. Defaults are defined in
+[`qprocessing/configs.py`](qprocessing/configs.py).
+
+| Setting | Default | Description |
+| --- | --- | --- |
+| `QPROCESSING_ASYNC_RUN` | `False` | Run models asynchronously when enabled. |
+| `QPROCESSING_OUTPUT_PATH` | `/tmp/` | Directory for processing outputs. |
+| `QPROCESSING_INPUT_UPLOAD_PATH` | `/tmp/` | Directory for uploaded inputs. |
+| `QPROCESSING_INPUT_UPLOAD_MAX_FILE_SIZE` | `None` | Client-side upload size limit in bytes; `None` disables the limit. |
+| `QPROCESSING_TASK_INFO_INTERVAL` | `5` | Task status polling interval in seconds. |
+| `QPROCESSING_INPUT_SHP_EXTS` | `['shp', 'shx', 'prj', 'dbf', 'shx']` | Required shapefile extensions. |
+| `QPROCESSING_CRYPTO_KEY` | See defaults | Fernet key used to encrypt output download links. |
+
+Use writable paths ending in `/`. If you change the output directory and want
+uploads in the same location, set both path options.
+
+Set a deployment-specific Fernet key instead of relying on the default:
+
+```sh
+python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"
+```
+
+Store the generated key securely in `QPROCESSING_CRYPTO_KEY` as bytes. Changing
+it invalidates existing encrypted download links.
+
+### Formats
+
+Each format setting is a list of dictionaries with `value` and `key` fields.
+The defaults are:
+
+| Setting | Default values |
+| --- | --- |
+| `QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS` | `zip`, `geojson`, `kml`, `gpkg`, `sqlite` |
+| `QPROCESSING_INPUT_UPLOAD_RASTER_FORMATS` | `vrt`, `tiff`, `tif`, `png`, `jpeg`, `jpg` |
+| `QPROCESSING_OUTPUT_VECTOR_FORMATS` | `shp`, `geojson`, `kml`, `kmz`, `csv` |
+| `QPROCESSING_OUTPUT_RASTER_FORMATS` | `vrt`, `tiff`, `png`, `jpeg`, `jpg` |
+| `QPROCESSING_OUTPUT_FILE_FORMATS` | `pdf` |
+| `QPROCESSING_OUTPUT_HTML_FORMATS` | `html` |
+
+Default output formats are configured separately:
+
+| Setting | Default |
+| --- | --- |
+| `QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT` | `geojson` |
+| `QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT` | `tiff` |
+| `QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT` | `pdf` |
+| `QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT` | `html` |
+
+For example:
 
 ```python
-QPROCESSING_ASYNC_RUN = True 
+QPROCESSING_OUTPUT_VECTOR_FORMATS = [
+    {'value': 'shp', 'key': 'Shapefile'},
+    {'value': 'geojson', 'key': 'GeoJSON'},
+]
+QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT = 'geojson'
+```
 
-HUEY = {                                   # Huey implementation to use.
+### Asynchronous execution
+
+Models run synchronously by default. To run them asynchronously, configure
+Huey and a Redis broker in the G3W-ADMIN environment:
+
+```python
+QPROCESSING_ASYNC_RUN = True
+
+HUEY = {
     'huey_class': 'huey.RedisExpireHuey',
     'name': 'g3w-suite',
     'url': 'redis://localhost:6379/?db=0',
-    'immediate': False,                    # If True, run synchronously.
+    'immediate': False,
     'consumer': {
         'workers': 1,
         'worker_type': 'process',
@@ -112,139 +156,45 @@ HUEY = {                                   # Huey implementation to use.
 }
 ```
 
-Then start huey:
-```
-python3 manage.py tun_huey -k process
-```
+Start a Huey consumer alongside G3W-ADMIN:
 
-#### Other settings:
-
-##### QPROCESSING_ASYNC_RUN
-Activate/deactivate the asynchronous mode running models.
-
-##### QPROCESSING_OUTPUT_PATH
-Directory to save the processing outputs. Default *'/tmp/'*.
-
-##### QPROCESSING_INPUT_UPLOAD_PATH
-Directory to upload the processing inputs. Default same value of  *QPROCESSING_OUTPUT_PATH*.
-
-##### QPROCESSING_OUTPUT_VECTOR_FORMAT_DEFAULT
-Default processing output vector format. Default *'geojson'*
-
-##### QPROCESSING_OUTPUT_RASTER_FORMAT_DEFAULT
-Default processing output raster format. Default *'tiff'*
-
-##### QPROCESSING_OUTPUT_FILE_FORMAT_DEFAULT
-Default processing output file format. Default *'pdf'*
-
-##### QPROCESSING_OUTPUT_HTML_FORMAT_DEFAULT
-Default processing output html format. Default *'html'*
-
-##### QPROCESSING_INPUT_SHP_EXTS
-List of input shapefile extensions. Default *['shp', 'shx', 'prj', 'dbf', 'shx']*
-
-### QPROCESSING_INPUT_UPLOAD_VECTOR_FORMATS
-List of input vector formats to upload. Default:
-``` python
-[
-    {
-        'value': 'zip',
-        'key': 'Shapefile'
-    },
-    {
-        'value': 'geojson',
-        'key': 'GeoJSON'
-    },
-    {
-        'value': 'kml',
-        'key': 'KML'
-    },
-    {
-        'value': 'gpkg',
-        'key': 'GeoPackage'
-    },
-    {
-        'value': 'sqlite',
-        'key': 'Sqlite/Spatialite'
-    }
-
-]
+```sh
+python manage.py run_huey -k process
 ```
 
-##### QPROCESSING_OUTPUT_VECTOR_FORMATS
-List of output vector formats. Default:
-``` python
-[
-    {
-        'value': 'zip',
-        'key': 'Shapefile'
-    },
-    {
-        'value': 'geojson',
-        'key': 'GeoJSON'
-    },
-    {
-        'value': 'kml',
-        'key': 'KML'
-    },
-    {
-        'value': 'gpkg',
-        'key': 'GeoPackage'
-    }, 
-]
+The Redis URL must be reachable from the consumer and the application.
+
+## Development and tests
+
+The BDD scenarios live in [`qprocessing/tests/features`](qprocessing/tests/features),
+with Python steps in [`qprocessing/tests/steps`](qprocessing/tests/steps).
+They require a configured G3W-ADMIN/QGIS environment, PostGIS, and Node.js
+(used to execute the JavaScript component test).
+
+Install the test dependencies from this repository:
+
+```sh
+pip install -r requirements-test.txt
 ```
 
-##### QPROCESSING_OUTPUT_FILE_FORMATS
-List of output file formats. Default:
-``` python
-[
-    {
-        'value': 'pdf',
-        'key': 'PDF'
-    },
-]
+Make the plugin source available as `qprocessing` in G3W-ADMIN, as done in
+[CI](.github/workflows/ci.yml). For a test-only Django settings module, import
+G3W-ADMIN's test settings and add `behave_django` to `INSTALLED_APPS`:
+
+```python
+# base/settings/qprocessing_test_settings.py
+from . import *
+from .tests_settings import *
+
+INSTALLED_APPS = [*INSTALLED_APPS, 'behave_django']
 ```
 
-##### QPROCESSING_OUTPUT_HTML_FORMATS
-List of output html formats. Default:
-``` python
-[
-    {
-        'value': 'html',
-        'key': 'HTML'
-    },
-]
-```
+The test settings use an in-memory Huey queue. From the G3W-ADMIN directory,
+run:
 
-##### QPROCESSING_OUTPUT_RASTER_FORMATS
-List of output raster formats. Default:
-``` python
-[
-    {
-        'value': 'vrt',
-        'key': 'VRT'
-    },
-    {
-        'value': 'tiff',
-        'key': 'TIFF'
-    },
-    {
-        'value': 'png',
-        'key': 'PNG'
-    },
-    {
-        'value': 'jpeg',
-        'key': 'JPEG'
-    },
-    {
-        'value': 'jpg',
-        'key': 'JPG'
-    },
-]
+```sh
+python manage.py behave --settings=base.settings.qprocessing_test_settings --simple qprocessing/tests
 ```
-
-##### QPROCESSING_CRYPTO_KEY
-Encryption key for download links.
 
 **Compatibile with:**
 [![g3w-admin version](https://img.shields.io/badge/g3w--admin-3.7-1EB300.svg?style=flat)](https://github.com/g3w-suite/g3w-admin/tree/v.3.7.x)
